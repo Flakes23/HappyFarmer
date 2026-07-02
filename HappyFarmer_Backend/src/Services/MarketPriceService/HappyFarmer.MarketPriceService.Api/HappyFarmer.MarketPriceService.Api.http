@@ -1,0 +1,6 @@
+@HappyFarmer.MarketPriceService.Api_HostAddress = http://localhost:5262
+
+GET {{HappyFarmer.MarketPriceService.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

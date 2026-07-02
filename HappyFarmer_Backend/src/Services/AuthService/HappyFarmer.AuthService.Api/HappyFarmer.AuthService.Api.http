@@ -1,0 +1,6 @@
+@HappyFarmer.AuthService.Api_HostAddress = http://localhost:5242
+
+GET {{HappyFarmer.AuthService.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

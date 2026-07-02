@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/AiAdvisoryService/">
+    <Project Path="src/Services/AiAdvisoryService/HappyFarmer.AiAdvisoryService.Api/HappyFarmer.AiAdvisoryService.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/AuthService/">
+    <Project Path="src/Services/AuthService/HappyFarmer.AuthService.Api/HappyFarmer.AuthService.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/MarketplaceService/">
+    <Project Path="src/Services/MarketplaceService/HappyFarmer.MarketplaceService.Api/HappyFarmer.MarketplaceService.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/MarketPriceService/">
+    <Project Path="src/Services/MarketPriceService/HappyFarmer.MarketPriceService.Api/HappyFarmer.MarketPriceService.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/NotificationService/">
+    <Project Path="src/Services/NotificationService/HappyFarmer.NotificationService.Api/HappyFarmer.NotificationService.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="src/Shared/HappyFarmer.Shared.Contracts/HappyFarmer.Shared.Contracts.csproj" />
+  </Folder>
+</Solution>
