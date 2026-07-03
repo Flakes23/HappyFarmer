@@ -33,6 +33,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
     .Configure<RsaKeyProvider, Microsoft.Extensions.Options.IOptions<JwtOptions>>((options, keyProvider, jwtOptions) =>
     {
+        // Tắt remap claim type ngắn ("role","sub") sang URI dài (ClaimTypes.*) —
+        // nếu không, RoleClaimType/NameClaimType bên dưới sẽ không khớp claim thực tế trong token.
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
