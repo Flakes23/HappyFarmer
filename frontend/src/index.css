@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * HappyFarmer fixed color palette ("Đồng quê ấm áp").
+ * Values are plain hex, not wrapped in hsl()/oklch() — tailwind.config.js
+ * references them as `var(--x)` directly. Do not introduce Tailwind's
+ * default color scale (blue/red/gray/...) anywhere; only these tokens.
+ */
+@layer base {
+  :root {
+    --background: #fffbeb;
+    --foreground: #1a202c;
+
+    --card: #ffffff;
+    --card-foreground: #1a202c;
+    --popover: #ffffff;
+    --popover-foreground: #1a202c;
+
+    --primary: #2f855a;
+    --primary-foreground: #ffffff;
+    --primary-light: #48bb78;
+
+    --secondary: #f3ead3;
+    --secondary-foreground: #1a202c;
+
+    --muted: #f1ede4;
+    --muted-foreground: #6b7280;
+
+    --accent: #dd6b20;
+    --accent-foreground: #ffffff;
+
+    --destructive: #e53e3e;
+    --destructive-foreground: #ffffff;
+    --success: #38a169;
+    --success-foreground: #ffffff;
+
+    --border: #e2dcc8;
+    --input: #e2dcc8;
+    --ring: #48bb78;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-text;
+  }
+}

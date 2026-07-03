@@ -2,20 +2,56 @@
 
 Nền tảng hỗ trợ nông dân: tra cứu giá nông sản, AI tư vấn canh tác (nhận diện bệnh cây, dự đoán thu hoạch), marketplace kết nối nông dân-người mua, chatbot tiếng Việt.
 
-**Trạng thái hiện tại**: đã scaffold xong solution backend (`HappyFarmer_Backend/`, .NET 10) — 5 project Web API rỗng (chưa có logic nghiệp vụ) + 1 shared class library. Frontend chưa bắt đầu.
+**Trạng thái hiện tại**: Auth Service và Market Price Service đã code xong đầy đủ (API + DB + Redis + JWT, đã test end-to-end). 3 service còn lại (AI Advisory, Marketplace, Notification) vẫn là skeleton rỗng. Frontend (`frontend/`) đã code xong đăng ký/đăng nhập/xem giá nông sản (React + Tailwind + shadcn/ui), đã test end-to-end với backend thật. Repo đã push lên GitHub public: `https://github.com/Flakes23/HappyFarmer`.
 
 ## Backend solution — `HappyFarmer_Backend/HappyFarmer_Backend.slnx`
 
-| Service (xem docs tương ứng) | Project path |
-|---|---|
-| [Auth Service](docs/architecture/services/auth-service.md) | `src/Services/AuthService/HappyFarmer.AuthService.Api/` |
-| [Market Price Service](docs/architecture/services/market-price-service.md) | `src/Services/MarketPriceService/HappyFarmer.MarketPriceService.Api/` |
-| [AI Advisory Service](docs/architecture/services/ai-advisory-service.md) | `src/Services/AiAdvisoryService/HappyFarmer.AiAdvisoryService.Api/` |
-| [Marketplace Service](docs/architecture/services/marketplace-service.md) | `src/Services/MarketplaceService/HappyFarmer.MarketplaceService.Api/` |
-| [Notification Service](docs/architecture/services/notification-service.md) | `src/Services/NotificationService/HappyFarmer.NotificationService.Api/` |
-| Thư viện dùng chung (Kafka DTO, JWT helper — chưa có nội dung, tạo dần theo nhu cầu) | `src/Shared/HappyFarmer.Shared.Contracts/` |
+| Service (xem docs tương ứng) | Project path | Trạng thái |
+|---|---|---|
+| [Auth Service](docs/architecture/services/auth-service.md) | `src/Services/AuthService/HappyFarmer.AuthService.Api/` | Done |
+| [Market Price Service](docs/architecture/services/market-price-service.md) | `src/Services/MarketPriceService/HappyFarmer.MarketPriceService.Api/` | Done |
+| [AI Advisory Service](docs/architecture/services/ai-advisory-service.md) | `src/Services/AiAdvisoryService/HappyFarmer.AiAdvisoryService.Api/` | Skeleton |
+| [Marketplace Service](docs/architecture/services/marketplace-service.md) | `src/Services/MarketplaceService/HappyFarmer.MarketplaceService.Api/` | Skeleton |
+| [Notification Service](docs/architecture/services/notification-service.md) | `src/Services/NotificationService/HappyFarmer.NotificationService.Api/` | Skeleton |
+| Thư viện dùng chung — `Auth/` (JWT helper verify token từ Auth Service qua JWKS) | `src/Shared/HappyFarmer.Shared.Contracts/` | Có nội dung |
 
 Mỗi service project đã reference `HappyFarmer.Shared.Contracts`. Build toàn solution: `dotnet build` tại `HappyFarmer_Backend/`.
+
+## Frontend — `frontend/`
+
+- Stack: React + TypeScript + Vite, TailwindCSS v3, shadcn/ui (Radix), TanStack Query + Zustand (session, persist localStorage), React Hook Form + Zod, react-router-dom, recharts.
+- Đã code xong: đăng ký, đăng nhập (+ refresh-token tự động khi access token hết hạn), xem giá nông sản (filter theo sản phẩm/khu vực, top biến động giá, biểu đồ lịch sử giá).
+- Chạy dev: `npm run dev` tại `frontend/` → `http://localhost:5173` (port cố định, khớp `Cors:AllowedOrigins` của cả 2 service backend — đổi port thì phải sửa CORS backend).
+- Gọi thẳng Auth Service (`:5242`) và Market Price Service (`:5262`) qua `VITE_AUTH_API_URL`/`VITE_MARKET_PRICE_API_URL` trong `.env` (copy từ `.env.example`), chưa qua Nginx gateway (chưa setup ở local).
+- `provinceId` trong form đăng ký hiện dùng danh sách 63 tỉnh/thành hardcode ở `frontend/src/lib/provinces.ts` (`id` chỉ là index cosmetic) — AuthService chưa có bảng tỉnh/thành thật, thay khi có API chính thức.
+
+## Hạ tầng local (đã setup)
+
+- Docker Desktop đã cài, data relocate sang `D:\Docker` (không đụng ổ C).
+- `docker-compose.yml` ở root: chạy `sqlserver` (SQL Server 2022, port 1433) + `redis` (port 6379) — chưa có Kafka (để dành Phase 4). Lệnh: `docker compose up -d` tại root repo.
+- `.env` (gitignored) chứa `SQLSERVER_SA_PASSWORD` — xem `.env.example` để biết các biến cần thiết.
+- Connection string thật + secrets (Internal API key của Market Price Service...) lưu qua `dotnet user-secrets` ở từng project, KHÔNG nằm trong `appsettings.*.json` (chỉ có placeholder `CHANGE_ME_VIA_USER_SECRETS`).
+- Port từng service khi chạy dev (theo `Properties/launchSettings.json`): Auth Service `:5242`, Market Price Service `:5262`.
+
+## Lưu ý kỹ thuật quan trọng
+
+- **JWT**: Auth Service ký token bằng RSA key cục bộ (RS256, tự sinh vào `keys/jwt-private.pem` nếu chưa có — đã gitignore). Các service khác verify bằng cách fetch JWKS từ Auth Service qua helper dùng chung `HappyFarmer.Shared.Contracts/Auth/` (gọi `AddRemoteJwtAuthentication(configuration)` trong `Program.cs`) — không cần viết lại logic JWT.
+- **Cạm bẫy đã gặp**: `JwtBearerOptions` mặc định tự remap claim type ngắn (`"role"`, `"sub"`) sang URI dài `ClaimTypes.*`, khiến `RoleClaimType`/`NameClaimType` cấu hình không khớp claim thực tế trong token → mọi `[Authorize(Roles=...)]` âm thầm trả 403 dù token đúng role. Đã fix bằng `options.MapInboundClaims = false;` ở cả Auth Service và shared helper (`ServiceCollectionExtensions.AddRemoteJwtAuthentication`) — **bắt buộc giữ dòng này** khi thêm JWT cho AI Advisory/Marketplace/Notification Service sau này.
+- **Cạm bẫy đã gặp**: `Program.cs` của Auth Service và Market Price Service từng có `UseHttpsRedirection()`, khiến khi chạy `dotnet run` bình thường (Kestrel mở cả HTTP lẫn HTTPS theo `launchSettings.json`), mọi request từ frontend vào port HTTP dev (5242/5262) bị redirect sang port HTTPS dev (7283/7074) — mà chứng chỉ dev chưa được trình duyệt tin cậy nên request thất bại (chỉ đổi thứ tự với `UseCors()` là chưa đủ, vẫn còn bị redirect). Đã **bỏ hẳn `UseHttpsRedirection()`** ở cả 2 service, vì theo kiến trúc TLS chỉ xử lý ở Nginx khi deploy production (`docs/architecture/03-infrastructure-deployment.md`), các service nội bộ không cần tự redirect HTTPS — **không thêm lại middleware này** khi tạo Program.cs cho AI Advisory/Marketplace/Notification Service sau này.
+- **Bảng màu cố định của Frontend** ("Đồng quê ấm áp") — chỉ dùng các token sau cho mọi component (không dùng màu mặc định Tailwind/shadcn như `blue-500`, `gray-200`...), khai báo ở `frontend/src/index.css` (CSS variables, giá trị hex thô, không wrap `hsl()`) và map trong `frontend/tailwind.config.js`:
+
+  | Token | Hex | Dùng cho |
+  |---|---|---|
+  | `primary` | `#2F855A` | Nút chính, header, link |
+  | `primary-light` | `#48BB78` | Hover, badge, focus ring |
+  | `accent` | `#DD6B20` | CTA phụ, chỉ báo giá tăng |
+  | `background` | `#FFFBEB` | Nền trang |
+  | `surface` | `#FFFFFF` | Nền card/form |
+  | `text` / `text-muted` | `#1A202C` / `#6B7280` | Chữ chính / chữ phụ |
+  | `border` | `#E2DCC8` | Viền, input |
+  | `secondary` | `#F3EAD3` | Nền phụ |
+  | `error` | `#E53E3E` | Lỗi, giá giảm |
+  | `success` | `#38A169` | Thành công |
 
 ## Bảng tra cứu tài liệu — đọc đúng 1 file, đừng quét cả docs/
 
