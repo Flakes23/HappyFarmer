@@ -4,12 +4,12 @@
 
 ```mermaid
 graph TD
-  U["Nông dân / Người mua<br/>ReactJS + Tailwind"] -->|HTTPS| NGINX["Nginx Reverse Proxy<br/>path-based routing"]
-  NGINX -->|"/api/auth/*"| AUTH[Auth Service]
-  NGINX -->|"/api/market-price/*"| MP[Market Price Service]
-  NGINX -->|"/api/ai-advisory/*"| AI[AI Advisory Service]
-  NGINX -->|"/api/marketplace/*"| MKT[Marketplace Service]
-  NGINX -->|"/api/notification/*"| NOTI[Notification Service]
+  U["Nông dân / Người mua<br/>ReactJS + Tailwind"] -->|HTTPS| GW["API Gateway (.NET YARP)<br/>path-based routing + verify JWT"]
+  GW -->|"/api/auth/*"| AUTH[Auth Service]
+  GW -->|"/api/market-price/*"| MP[Market Price Service]
+  GW -->|"/api/ai-advisory/*"| AI[AI Advisory Service]
+  GW -->|"/api/marketplace/*"| MKT[Marketplace Service]
+  GW -->|"/api/notification/*"| NOTI[Notification Service]
 
   MP -- publish event --> KAFKA[("Kafka - KRaft")]
   MKT -- publish event --> KAFKA
@@ -28,11 +28,11 @@ graph TD
   NOTI --> SQL5[("SQL Server: NotificationDb")]
 ```
 
-Frontend (React) chỉ nói chuyện với một cổng public duy nhất — Nginx. Nginx route theo tiền tố path tới đúng service nội bộ. Kafka, Redis, SQL Server nằm hoàn toàn trong mạng nội bộ Docker, không public ra ngoài.
+Frontend (React) chỉ nói chuyện với một cổng public duy nhất — API Gateway. Gateway verify JWT tập trung rồi route theo tiền tố path tới đúng service nội bộ, kèm danh tính người dùng qua header tin cậy (xem [02-security-auth.md](02-security-auth.md#2-luồng-verify-token-liên-service)). Kafka, Redis, SQL Server nằm hoàn toàn trong mạng nội bộ Docker, không public ra ngoài.
 
 ## 2. Nguyên tắc giao tiếp
 
-- **Đồng bộ (REST/HTTPS)** — dùng cho mọi thao tác cần phản hồi ngay cho người dùng: đăng nhập, xem giá, đăng tin, gọi AI. Toàn bộ giao tiếp Frontend ↔ Service đi qua Nginx bằng REST.
+- **Đồng bộ (REST/HTTPS)** — dùng cho mọi thao tác cần phản hồi ngay cho người dùng: đăng nhập, xem giá, đăng tin, gọi AI. Toàn bộ giao tiếp Frontend ↔ Service đi qua API Gateway bằng REST.
 - **Bất đồng bộ (Kafka)** — chỉ dùng cho sự kiện "báo cho bên khác biết, không cần phản hồi ngay":
   - `market-price.price-changed.v1`
   - `marketplace.new-interest.v1`
@@ -47,15 +47,22 @@ Frontend (React) chỉ nói chuyện với một cổng public duy nhất — Ng
 
 ## 3. Có cần API Gateway/BFF không?
 
-**Quyết định: không dùng full API Gateway/BFF ở giai đoạn đầu.** Thay vào đó dùng **Nginx làm reverse proxy "dumb"**, chỉ đảm nhiệm 2 việc: routing theo path prefix và TLS termination.
+**Quyết định (cập nhật): dùng full API Gateway**, xây bằng **.NET + YARP** (project `HappyFarmer.ApiGateway`, thư mục `src/Gateway/`), thay cho phương án Nginx reverse-proxy "dumb" ban đầu.
 
-Lý do:
-- Dự án ở cấp độ học tập + demo thật, cần giữ độ phức tạp vừa đủ để thể hiện đúng chuẩn microservices mà không phình to.
-- Nginx là một container nhẹ, không cần code thêm, cấu hình thuần qua `nginx.conf`.
+Gateway đảm nhiệm:
+- **Routing** theo path prefix (`/api/{service-prefix}/*`) tới đúng service nội bộ — giữ nguyên convention cũ.
+- **TLS termination** ở tầng production (VPS).
+- **Xác thực JWT tập trung**: Gateway verify chữ ký + issuer/audience/lifetime (RS256, JWKS từ Auth Service, dùng lại `AddRemoteJwtAuthentication` trong `HappyFarmer.Shared.Contracts`). Token hợp lệ → Gateway gắn header danh tính rồi forward; token thiếu/sai → Gateway forward tiếp **không kèm header** (Gateway hiện không tự chặn theo route, xem ghi chú bên dưới), và service phía sau tự quyết định 401 qua `[Authorize]` vì không thấy header.
+- **Forward danh tính** qua header nội bộ tin cậy (`X-User-Id`, `X-User-Role`, `X-User-Phone`) cho service phía sau đọc bằng `AddTrustedHeaderAuthentication` (đã migrate xong ở Auth Service + Market Price Service), thay vì mỗi service tự verify lại token — xem chi tiết luồng tại [02-security-auth.md](02-security-auth.md#2-luồng-verify-token-liên-service).
+
+Lý do đổi quyết định:
+- YARP là thư viện .NET chính thức của Microsoft, tận dụng được kiến thức .NET sẵn có của solution thay vì học thêm cú pháp `nginx.conf`.
+- Xác thực JWT một chỗ duy nhất giúp tránh lặp lại logic JWT Bearer ở cả 5 service, dễ thêm rate-limiting/aggregation sau này (không cần đợi tới Phase 6+ như dự tính cũ).
 - Vẫn đảm bảo một cổng public duy nhất (giải quyết CORS, giấu port nội bộ) — giống mô hình production thật.
-- JWT được xác thực **ở từng service**, không tập trung ở gateway. Điều này đúng chuẩn microservices hơn (mỗi service tự chịu trách nhiệm bảo mật của chính nó), tránh biến gateway thành single point of failure về logic.
 
-**Stretch-goal (Phase 6+, không bắt buộc):** nếu sau này muốn học BFF pattern, có thể thay Nginx bằng một service .NET dùng YARP, thêm rate-limiting và request aggregation. Việc này không phá vỡ thiết kế hiện tại vì convention routing (`/api/{service-prefix}/*`) đã nhất quán ngay từ đầu.
+**Trade-off cần lưu ý**: Gateway giờ là single point of failure về cả routing lẫn auth — nếu Gateway lỗi, toàn bộ hệ thống không truy cập được (trước đây mỗi service vẫn tự đứng độc lập nếu Nginx lỗi ở tầng khác). Chấp nhận đánh đổi này vì đơn giản hoá được auth logic đáng kể ở quy mô dự án hiện tại.
+
+**Đã migrate xong**: Auth Service và Market Price Service không còn tự verify JWT — dùng `AddTrustedHeaderAuthentication` (cùng thư viện chung) để tin header do Gateway gắn. Việc này chỉ an toàn vì kiến trúc target không public 2 service này ra ngoài (chỉ Gateway gọi tới được); ở local dev do 2 service vẫn bind port ra host nên về lý thuyết có thể bị bypass nếu gọi thẳng port và tự gắn header — chấp nhận trade-off này ở dev, xem `CLAUDE.md`.
 
 ## 4. Service discovery ở mức Docker Compose
 
@@ -65,10 +72,10 @@ Không dùng Consul/Eureka/Kubernetes. Dùng chính DNS nội bộ của Docker 
 
 | Từ | Đến | Kiểu | Mục đích |
 |---|---|---|---|
-| Frontend | Tất cả service (qua Nginx) | REST | CRUD, gọi AI |
+| Frontend | Tất cả service (qua API Gateway) | REST | CRUD, gọi AI |
 | Market Price Service | Kafka topic `market-price.price-changed.v1` | Publish | Báo giá thay đổi |
 | Marketplace Service | Kafka topic `marketplace.new-interest.v1` | Publish | Báo có người quan tâm tin đăng |
 | Notification Service | 2 topic trên | Subscribe | Sinh thông báo, gửi kênh phù hợp |
-| Tất cả service | Auth Service `.well-known/jwks.json` | REST (cache) | Lấy public key verify JWT |
+| API Gateway | Auth Service `.well-known/jwks.json` | REST (cache) | Lấy public key verify JWT tập trung — chỉ Gateway fetch, service phía sau không tự verify JWT nữa |
 
 Chi tiết từng service xem tại thư mục [services/](services/), chi tiết từng luồng sự kiện/AI xem tại [data-flows/](data-flows/).

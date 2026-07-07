@@ -18,7 +18,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
     ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
 builder.Services.AddScoped<PriceCacheService>();
 
-builder.Services.AddRemoteJwtAuthentication(builder.Configuration);
+builder.Services.AddTrustedHeaderAuthentication();
 
 var corsOrigins = builder.Configuration["Cors:AllowedOrigins"]?
     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];

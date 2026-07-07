@@ -46,4 +46,20 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
+
+    /// <summary>
+    /// Đăng ký xác thực bằng header danh tính (X-User-Id/X-User-Role/X-User-Phone) do API Gateway
+    /// gắn — dùng cho service phía sau Gateway, KHÔNG tự verify JWT nữa (xem
+    /// TrustedHeaderAuthenticationHandler và docs/architecture/02-security-auth.md).
+    /// </summary>
+    public static IServiceCollection AddTrustedHeaderAuthentication(this IServiceCollection services)
+    {
+        services.AddAuthentication(TrustedHeaderAuthenticationHandler.SchemeName)
+            .AddScheme<TrustedHeaderAuthenticationOptions, TrustedHeaderAuthenticationHandler>(
+                TrustedHeaderAuthenticationHandler.SchemeName, _ => { });
+
+        services.AddAuthorization();
+
+        return services;
+    }
 }

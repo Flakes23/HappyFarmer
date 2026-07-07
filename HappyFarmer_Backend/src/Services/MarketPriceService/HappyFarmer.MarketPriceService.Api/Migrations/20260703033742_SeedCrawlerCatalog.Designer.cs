@@ -4,6 +4,7 @@ using HappyFarmer.MarketPriceService.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HappyFarmer.MarketPriceService.Api.Migrations
 {
     [DbContext(typeof(MarketPriceDbContext))]
-    partial class MarketPriceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260703033742_SeedCrawlerCatalog")]
+    partial class SeedCrawlerCatalog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -227,31 +230,31 @@ namespace HappyFarmer.MarketPriceService.Api.Migrations
                         new
                         {
                             Id = 103,
-                            MarketName = "Giá tham khảo tỉnh Gia Lai",
+                            MarketName = "Giá tham khảo tỉnh",
                             ProvinceName = "Gia Lai"
                         },
                         new
                         {
                             Id = 104,
-                            MarketName = "Giá tham khảo tỉnh Đồng Nai",
+                            MarketName = "Giá tham khảo tỉnh",
                             ProvinceName = "Đồng Nai"
                         },
                         new
                         {
                             Id = 105,
-                            MarketName = "Giá tham khảo tỉnh Đắk Nông",
+                            MarketName = "Giá tham khảo tỉnh",
                             ProvinceName = "Đắk Nông"
                         },
                         new
                         {
                             Id = 106,
-                            MarketName = "Giá tham khảo tỉnh Đắk Lắk",
+                            MarketName = "Giá tham khảo tỉnh",
                             ProvinceName = "Đắk Lắk"
                         },
                         new
                         {
                             Id = 107,
-                            MarketName = "Giá tham khảo tỉnh Lâm Đồng",
+                            MarketName = "Giá tham khảo tỉnh",
                             ProvinceName = "Lâm Đồng"
                         });
                 });

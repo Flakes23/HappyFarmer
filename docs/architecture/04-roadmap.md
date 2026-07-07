@@ -4,8 +4,8 @@ Thứ tự các phase dưới đây là gợi ý dựa trên phụ thuộc giữ
 
 | Phase | Nội dung | Ghi chú |
 |---|---|---|
-| 0 | Scaffolding: solution structure .NET, shared contracts library (Kafka event DTO, JWT helper), skeleton docker-compose, CI cơ bản | Nền tảng dùng chung cho mọi service |
-| 1 | [Auth Service](services/auth-service.md) + [Market Price Service](services/market-price-service.md) (xem giá, seed data thay vì crawler thật) + Frontend cơ bản (đăng ký/đăng nhập/xem giá) + Nginx gateway | Có thể demo sớm |
+| 0 | Scaffolding: solution structure .NET, shared contracts library (Kafka event DTO, JWT helper), API Gateway skeleton (YARP), skeleton docker-compose, CI cơ bản | Nền tảng dùng chung cho mọi service |
+| 1 | [Auth Service](services/auth-service.md) + [Market Price Service](services/market-price-service.md) (xem giá, seed data thay vì crawler thật) + Frontend cơ bản (đăng ký/đăng nhập/xem giá) + API Gateway (.NET YARP) | Có thể demo sớm |
 | 2 | [Marketplace Service](services/marketplace-service.md) (đăng bán/mua/liên hệ) + hoàn thiện phân quyền role | Phụ thuộc Auth Service |
 | 3 | [AI Advisory Service](services/ai-advisory-service.md) — 3 luồng thật (Claude Vision, chatbot, harvest prediction) + Redis cho AI | Phần "điểm nhấn" công nghệ của dự án |
 | 4 | Kafka: Market Price → Notification, Marketplace → Notification; [Notification Service](services/notification-service.md) in-app + email | Hoàn thiện kiến trúc event-driven |

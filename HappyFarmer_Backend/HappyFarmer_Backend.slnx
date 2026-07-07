@@ -1,5 +1,8 @@
 <Solution>
   <Folder Name="/src/" />
+  <Folder Name="/src/Gateway/">
+    <Project Path="src/Gateway/HappyFarmer.ApiGateway/HappyFarmer.ApiGateway.csproj" />
+  </Folder>
   <Folder Name="/src/Services/" />
   <Folder Name="/src/Services/AiAdvisoryService/">
     <Project Path="src/Services/AiAdvisoryService/HappyFarmer.AiAdvisoryService.Api/HappyFarmer.AiAdvisoryService.Api.csproj" />
@@ -18,5 +21,8 @@
   </Folder>
   <Folder Name="/src/Shared/">
     <Project Path="src/Shared/HappyFarmer.Shared.Contracts/HappyFarmer.Shared.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/src/Tools/">
+    <Project Path="src/Tools/HappyFarmer.MarketPriceCrawler/HappyFarmer.MarketPriceCrawler.csproj" />
   </Folder>
 </Solution>

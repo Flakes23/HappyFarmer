@@ -4,7 +4,7 @@ import { attachAuthInterceptors } from '@/api/authRefresh'
 
 /** For AuthService endpoints that require a Bearer token (e.g. GET/PUT /me). */
 export const httpAuth = axios.create({
-  baseURL: env.authApiUrl,
+  baseURL: env.apiGatewayUrl,
 })
 
 attachAuthInterceptors(httpAuth)

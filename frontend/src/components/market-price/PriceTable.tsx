@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
+import { SourceBadge } from '@/components/market-price/SourceBadge'
 import type { PriceResponse } from '@/api/types'
 
 interface PriceTableProps {
@@ -32,6 +33,7 @@ export function PriceTable({ prices, isLoading }: PriceTableProps) {
             <th className="px-4 py-2 font-medium">Sản phẩm</th>
             <th className="px-4 py-2 font-medium">Khu vực</th>
             <th className="px-4 py-2 font-medium">Giá</th>
+            <th className="px-4 py-2 font-medium">Nguồn</th>
             <th className="px-4 py-2 font-medium">Ngày</th>
           </tr>
         </thead>
@@ -45,6 +47,9 @@ export function PriceTable({ prices, isLoading }: PriceTableProps) {
               </td>
               <td className="px-4 py-2">{p.regionName}</td>
               <td className="px-4 py-2 font-medium">{currencyFormatter.format(p.price)}</td>
+              <td className="px-4 py-2">
+                <SourceBadge source={p.source} />
+              </td>
               <td className="px-4 py-2 text-text-muted">{p.effectiveDate}</td>
             </tr>
           ))}

@@ -8,5 +8,5 @@ import { env } from '@/lib/env'
  * (calling refresh-token through the interceptor-bearing client would recurse).
  */
 export const rawAuthClient = axios.create({
-  baseURL: env.authApiUrl,
+  baseURL: env.apiGatewayUrl,
 })
