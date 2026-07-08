@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { RegisterForm } from '@/components/auth/RegisterForm'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 export function RegisterPage() {
+  useDocumentTitle('Đăng ký — HappyFarmer')
   return (
     <div className="mx-auto max-w-sm">
       <Card>

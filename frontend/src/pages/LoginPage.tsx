@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoginForm } from '@/components/auth/LoginForm'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 export function LoginPage() {
+  useDocumentTitle('Đăng nhập — HappyFarmer')
   return (
     <div className="mx-auto max-w-sm">
       <Card>

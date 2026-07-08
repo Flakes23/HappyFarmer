@@ -3,10 +3,20 @@ import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
 import { useProducts } from '@/hooks/queries/useProducts'
 import { useRegions } from '@/hooks/queries/useRegions'
 import { usePriceHistory } from '@/hooks/queries/usePriceHistory'
 import { PriceHistoryChart } from '@/components/market-price/PriceHistoryChart'
+import { PriceStatCards } from '@/components/market-price/PriceStatCards'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 const ALL = 'all'
 
@@ -20,13 +30,32 @@ export function ProductPriceDetailPage() {
   const history = usePriceHistory(productIdNum, { regionId })
 
   const product = products.data?.find((p) => p.id === productIdNum)
+  useDocumentTitle(product ? `${product.nameVi} — Giá nông sản` : 'Giá nông sản — HappyFarmer')
 
   return (
     <div className="space-y-6">
-      <Link to="/prices" className="flex items-center gap-1 text-sm text-primary hover:underline">
-        <ArrowLeft className="h-4 w-4" />
-        Quay lại danh sách giá
-      </Link>
+      <div className="space-y-2">
+        <Link to="/prices" className="flex items-center gap-1 text-sm text-primary hover:underline">
+          <ArrowLeft className="h-4 w-4" />
+          Quay lại danh sách giá
+        </Link>
+
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/prices">Giá nông sản</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{product?.nameVi ?? `Sản phẩm #${productIdNum ?? ''}`}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+
+      <PriceStatCards data={history.data} />
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4">

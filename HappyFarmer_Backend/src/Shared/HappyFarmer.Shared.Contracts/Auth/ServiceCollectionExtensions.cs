@@ -7,6 +7,13 @@ namespace HappyFarmer.Shared.Contracts.Auth;
 
 public static class ServiceCollectionExtensions
 {
+    // Trình duyệt không thể gắn header Authorization vào WebSocket handshake, nên SignalR JS
+    // client gửi token qua query string (?access_token=...) thay vì header. Chỉ chấp nhận
+    // fallback này cho đúng path của hub — mọi route khác vẫn bắt buộc header Authorization
+    // như cũ. Dùng mảng để hub mới ở service khác sau này chỉ cần thêm prefix vào đây.
+    private static readonly string[] HubPathPrefixes = ["/api/marketplace/hubs"];
+
+
     /// <summary>
     /// Đăng ký JWT Bearer authentication verify token do Auth Service phát hành,
     /// bằng cách fetch + cache JWKS (xem docs/architecture/02-security-auth.md).
@@ -39,6 +46,21 @@ public static class ServiceCollectionExtensions
                     IssuerSigningKeyResolver = resolver.ResolveSigningKeys,
                     NameClaimType = "sub",
                     RoleClaimType = "role",
+                };
+
+                jwtOptions.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            HubPathPrefixes.Any(p => path.StartsWithSegments(p, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    },
                 };
             });
 

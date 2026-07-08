@@ -1,9 +1,10 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { isAxiosError } from 'axios'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/auth/PasswordInput'
 import {
   Form,
   FormControl,
@@ -18,16 +19,21 @@ import { extractApiErrorMessage } from '@/api/authApi'
 
 export function LoginForm() {
   const navigate = useNavigate()
+  const location = useLocation()
   const login = useLogin()
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { phoneNumber: '', password: '' },
+    mode: 'onBlur',
   })
 
   function onSubmit(values: LoginFormValues) {
     login.mutate(values, {
-      onSuccess: () => navigate('/'),
+      onSuccess: () => {
+        const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname
+        navigate(from ?? '/')
+      },
     })
   }
 
@@ -62,9 +68,14 @@ export function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Mật khẩu</FormLabel>
+              <div className="flex items-center justify-between">
+                <FormLabel>Mật khẩu</FormLabel>
+                <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                  Quên mật khẩu?
+                </Link>
+              </div>
               <FormControl>
-                <Input type="password" autoComplete="current-password" {...field} />
+                <PasswordInput autoComplete="current-password" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom'
-import { Sprout, LogOut } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { MobileNav } from '@/components/layout/MobileNav'
+import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { useAuthStore } from '@/store/authStore'
 import { useLogout } from '@/hooks/mutations/useLogout'
+import logo from '@/assets/logo.svg'
 
 export function Navbar() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -13,14 +16,19 @@ export function Navbar() {
     <header className="border-b border-border bg-surface">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <Link to="/" className="flex items-center gap-2 font-semibold text-primary">
-          <Sprout className="h-5 w-5" />
+          <img src={logo} alt="" className="h-6 w-6" />
           HappyFarmer
         </Link>
 
-        <nav className="flex items-center gap-3">
+        <nav className="hidden items-center gap-3 md:flex">
           <Link to="/prices" className="text-sm text-text hover:text-primary">
             Giá nông sản
           </Link>
+          <Link to="/marketplace" className="text-sm text-text hover:text-primary">
+            Chợ nông sản
+          </Link>
+
+          <ThemeToggle />
 
           {isAuthenticated && user ? (
             <div className="flex items-center gap-3">
@@ -46,6 +54,8 @@ export function Navbar() {
             </div>
           )}
         </nav>
+
+        <MobileNav />
       </div>
     </header>
   )

@@ -3,6 +3,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/auth/PasswordInput'
+import { PasswordStrengthMeter } from '@/components/auth/PasswordStrengthMeter'
 import {
   Select,
   SelectContent,
@@ -37,6 +39,7 @@ export function RegisterForm() {
       role: 'Farmer',
       provinceId: undefined,
     },
+    mode: 'onBlur',
   })
 
   function onSubmit(values: RegisterFormValues) {
@@ -102,8 +105,9 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Mật khẩu</FormLabel>
               <FormControl>
-                <Input type="password" autoComplete="new-password" {...field} />
+                <PasswordInput autoComplete="new-password" {...field} />
               </FormControl>
+              <PasswordStrengthMeter value={field.value} />
               <FormMessage />
             </FormItem>
           )}

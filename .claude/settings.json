@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(node marketplace-e2e.mjs)",
+      "Bash(dotnet user-secrets *)",
+      "Bash(dotnet ef *)",
+      "Bash(tasklist //FI \"IMAGENAME eq HappyFarmer*\")",
+      "Bash(tasklist //FI \"IMAGENAME eq dotnet.exe\")",
+      "Bash(taskkill //F //IM \"HappyFarmer.AuthService.A*\" //T)",
+      "Bash(taskkill //F //IM \"HappyFarmer.MarketPriceSe*\" //T)",
+      "Bash(taskkill //F //IM \"HappyFarmer.MarketplaceSe*\" //T)",
+      "Bash(taskkill //F //IM \"HappyFarmer.ApiGateway.ex*\" //T)"
+    ]
+  }
+}

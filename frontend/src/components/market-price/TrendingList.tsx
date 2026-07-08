@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { useTrending } from '@/hooks/queries/useTrending'
 
 const currencyFormatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
@@ -22,7 +23,7 @@ export function TrendingList() {
             ))}
           </div>
         ) : !trending.data || trending.data.length === 0 ? (
-          <p className="text-text-muted">Chưa có dữ liệu biến động.</p>
+          <EmptyState title="Chưa có dữ liệu biến động" />
         ) : (
           <ul className="divide-y divide-border">
             {trending.data.map((item) => {

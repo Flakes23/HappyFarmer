@@ -42,6 +42,44 @@
 
     --radius: 0.5rem;
   }
+
+  /*
+   * Dark variant of the same "Đồng quê ấm áp" palette — warm dark surfaces
+   * (not pure black/gray) with brand green/orange re-tuned for contrast.
+   * No new hues introduced; every value is a darker/lighter step of the
+   * same brand colors declared in :root above.
+   */
+  .dark {
+    --background: #1b211a;
+    --foreground: #f3ead3;
+
+    --card: #232a20;
+    --card-foreground: #f3ead3;
+    --popover: #232a20;
+    --popover-foreground: #f3ead3;
+
+    --primary: #48bb78;
+    --primary-foreground: #1a202c;
+    --primary-light: #6fcf97;
+
+    --secondary: #2b3226;
+    --secondary-foreground: #f3ead3;
+
+    --muted: #2a3025;
+    --muted-foreground: #a8a290;
+
+    --accent: #ed8936;
+    --accent-foreground: #1a202c;
+
+    --destructive: #fc8181;
+    --destructive-foreground: #1a202c;
+    --success: #68d391;
+    --success-foreground: #1a202c;
+
+    --border: #3a4032;
+    --input: #3a4032;
+    --ring: #48bb78;
+  }
 }
 
 @layer base {
@@ -49,6 +87,6 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-text;
+    @apply bg-background text-text font-sans;
   }
 }

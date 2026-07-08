@@ -1,0 +1,39 @@
+import { cn } from '@/lib/utils'
+import { formatJoinedSince } from '@/lib/relativeTime'
+
+function getInitial(name: string) {
+  return name.trim().charAt(0).toUpperCase() || '?'
+}
+
+export function SellerInfo({
+  name,
+  joinedAt,
+  otherActiveCount,
+  otherActiveLabel,
+  className,
+}: {
+  name: string | null
+  joinedAt: string | null
+  otherActiveCount: number
+  otherActiveLabel: string
+  className?: string
+}) {
+  if (!name) return null
+
+  return (
+    <div className={cn('flex items-center gap-2', className)}>
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-light text-[10px] font-semibold text-white">
+        {getInitial(name)}
+      </span>
+      <span className="min-w-0 truncate text-xs text-text-muted">
+        <span className="font-medium text-text">{name}</span>
+        {joinedAt ? <> · {formatJoinedSince(joinedAt)}</> : null}
+      </span>
+      {otherActiveCount > 0 ? (
+        <span className="ml-auto shrink-0 whitespace-nowrap rounded-full bg-secondary px-2 py-0.5 text-[11px] text-text-muted">
+          {otherActiveCount} {otherActiveLabel}
+        </span>
+      ) : null}
+    </div>
+  )
+}

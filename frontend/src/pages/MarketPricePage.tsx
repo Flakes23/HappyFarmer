@@ -3,8 +3,10 @@ import { usePrices } from '@/hooks/queries/usePrices'
 import { ProductRegionFilterBar } from '@/components/market-price/ProductRegionFilterBar'
 import { PriceTable } from '@/components/market-price/PriceTable'
 import { TrendingList } from '@/components/market-price/TrendingList'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 export function MarketPricePage() {
+  useDocumentTitle('Giá nông sản — HappyFarmer')
   const [productId, setProductId] = useState<number | undefined>(undefined)
   const [regionId, setRegionId] = useState<number | undefined>(undefined)
 

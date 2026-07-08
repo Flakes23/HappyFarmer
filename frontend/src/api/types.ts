@@ -1,6 +1,14 @@
 // Mirrors HappyFarmer_Backend DTOs exactly. Keep in sync with:
 // - AuthService: Dtos/AuthDtos.cs
 // - MarketPriceService: Dtos/MarketPriceDtos.cs
+// - MarketplaceService: Dtos/MarketplaceDtos.cs, Services/CloudinarySignatureService.cs
+
+export interface PagedResult<T> {
+  items: T[]
+  page: number
+  pageSize: number
+  totalCount: number
+}
 
 export type UserRole = 'Farmer' | 'Buyer' | 'Admin'
 
@@ -81,4 +89,100 @@ export interface TrendingItem {
   currentPrice: number
   previousPrice: number | null
   changePercent: number | null
+}
+
+export type ListingStatus = 'Active' | 'Sold' | 'Closed' | 'Expired'
+export type BuyRequestStatus = 'Active' | 'Closed'
+export type InterestStatus = 'Pending' | 'Responded'
+
+export interface ListingResponse {
+  id: number
+  farmerId: number
+  farmerName: string | null
+  farmerJoinedAt: string | null
+  farmerActiveListingCount: number
+  productId: number
+  quantity: number
+  unit: string
+  pricePerUnit: number
+  regionId: number
+  description: string | null
+  status: ListingStatus
+  createdAt: string
+  expiresAt: string | null
+  imageUrls: string[]
+}
+
+export interface CreateListingRequest {
+  productId: number
+  quantity: number
+  unit: string
+  pricePerUnit: number
+  regionId: number
+  description?: string
+  expiresAt?: string
+  imageUrls?: string[]
+}
+
+export interface UpdateListingRequest {
+  quantity?: number
+  pricePerUnit?: number
+  description?: string
+  expiresAt?: string
+}
+
+export interface BuyRequestResponse {
+  id: number
+  buyerId: number
+  buyerName: string | null
+  buyerJoinedAt: string | null
+  buyerActiveBuyRequestCount: number
+  productId: number
+  desiredQuantity: number
+  regionId: number
+  maxPricePerUnit: number | null
+  description: string | null
+  status: BuyRequestStatus
+  createdAt: string
+}
+
+export interface CreateBuyRequestRequest {
+  productId: number
+  desiredQuantity: number
+  regionId: number
+  maxPricePerUnit?: number
+  description?: string
+}
+
+export interface InterestResponse {
+  id: number
+  listingId: number | null
+  buyRequestId: number | null
+  initiatorUserId: number
+  targetUserId: number
+  message: string | null
+  status: InterestStatus
+  createdAt: string
+}
+
+export interface MessageResponse {
+  id: number
+  interestId: number
+  senderUserId: number
+  body: string
+  createdAt: string
+  readAt: string | null
+}
+
+export interface MessageHistoryResponse {
+  messages: MessageResponse[]
+  hasMore: boolean
+}
+
+export interface UploadSignatureResponse {
+  signature: string
+  timestamp: number
+  apiKey: string
+  cloudName: string
+  folder: string
 }

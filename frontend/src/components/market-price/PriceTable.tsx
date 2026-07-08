@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom'
-import { Skeleton } from '@/components/ui/skeleton'
+import { LineChart } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { SourceBadge } from '@/components/market-price/SourceBadge'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { ListSkeleton } from '@/components/shared/Skeletons'
 import type { PriceResponse } from '@/api/types'
 
 interface PriceTableProps {
@@ -12,49 +16,63 @@ const currencyFormatter = new Intl.NumberFormat('vi-VN', { style: 'currency', cu
 
 export function PriceTable({ prices, isLoading }: PriceTableProps) {
   if (isLoading) {
-    return (
-      <div className="space-y-2">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-10 w-full" />
-        ))}
-      </div>
-    )
+    return <ListSkeleton count={5} rowHeight="h-10" />
   }
 
   if (!prices || prices.length === 0) {
-    return <p className="py-8 text-center text-text-muted">Không có dữ liệu giá phù hợp.</p>
+    return <EmptyState icon={LineChart} title="Không có dữ liệu giá phù hợp" description="Thử thay đổi bộ lọc sản phẩm/khu vực." />
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-border">
-      <table className="w-full text-left text-sm">
-        <thead className="bg-secondary text-secondary-foreground">
-          <tr>
-            <th className="px-4 py-2 font-medium">Sản phẩm</th>
-            <th className="px-4 py-2 font-medium">Khu vực</th>
-            <th className="px-4 py-2 font-medium">Giá</th>
-            <th className="px-4 py-2 font-medium">Nguồn</th>
-            <th className="px-4 py-2 font-medium">Ngày</th>
-          </tr>
-        </thead>
-        <tbody>
-          {prices.map((p) => (
-            <tr key={`${p.productId}-${p.regionId}`} className="border-t border-border">
-              <td className="px-4 py-2">
-                <Link to={`/prices/${p.productId}`} className="text-primary hover:underline">
+    <>
+      <div className="hidden rounded-lg border border-border sm:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Sản phẩm</TableHead>
+              <TableHead>Khu vực</TableHead>
+              <TableHead>Giá</TableHead>
+              <TableHead>Nguồn</TableHead>
+              <TableHead>Ngày</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {prices.map((p) => (
+              <TableRow key={`${p.productId}-${p.regionId}`}>
+                <TableCell>
+                  <Link to={`/prices/${p.productId}`} className="text-primary hover:underline">
+                    {p.productName}
+                  </Link>
+                </TableCell>
+                <TableCell>{p.regionName}</TableCell>
+                <TableCell className="font-medium">{currencyFormatter.format(p.price)}</TableCell>
+                <TableCell>
+                  <SourceBadge source={p.source} />
+                </TableCell>
+                <TableCell className="text-text-muted">{p.effectiveDate}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="space-y-3 sm:hidden">
+        {prices.map((p) => (
+          <Card key={`${p.productId}-${p.regionId}`}>
+            <CardContent className="space-y-1 p-4">
+              <div className="flex items-start justify-between gap-2">
+                <Link to={`/prices/${p.productId}`} className="font-medium text-primary hover:underline">
                   {p.productName}
                 </Link>
-              </td>
-              <td className="px-4 py-2">{p.regionName}</td>
-              <td className="px-4 py-2 font-medium">{currencyFormatter.format(p.price)}</td>
-              <td className="px-4 py-2">
                 <SourceBadge source={p.source} />
-              </td>
-              <td className="px-4 py-2 text-text-muted">{p.effectiveDate}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+              </div>
+              <p className="text-sm text-text-muted">{p.regionName}</p>
+              <p className="font-semibold text-text">{currencyFormatter.format(p.price)}</p>
+              <p className="text-xs text-text-muted">{p.effectiveDate}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </>
   )
 }
