@@ -27,9 +27,16 @@ export interface PriceHistoryParams {
   to?: string
 }
 
+export interface ProductSearchFilters {
+  search?: string
+  limit?: number
+}
+
 export const marketPriceApi = {
-  getProducts: () =>
-    httpMarketPrice.get<ProductResponse[]>('/api/market-price/products').then((r) => r.data),
+  getProducts: (filters: ProductSearchFilters = {}) =>
+    httpMarketPrice
+      .get<ProductResponse[]>('/api/market-price/products', { params: filters })
+      .then((r) => r.data),
 
   getRegions: () =>
     httpMarketPrice.get<RegionResponse[]>('/api/market-price/regions').then((r) => r.data),

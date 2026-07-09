@@ -7,15 +7,18 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { useProducts } from '@/hooks/queries/useProducts'
+import { UnitSelect } from '@/components/marketplace/UnitSelect'
+import { ProductSearchInput } from '@/components/marketplace/ProductSearchInput'
 import { useRegions } from '@/hooks/queries/useRegions'
+import { usePrices } from '@/hooks/queries/usePrices'
 import { useCreateBuyRequest } from '@/hooks/mutations/useCreateBuyRequest'
 import { createBuyRequestSchema, type CreateBuyRequestFormValues } from '@/schemas/marketplaceSchemas'
 import { extractApiErrorMessage } from '@/api/authApi'
 
+const currencyFormatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
+
 export function BuyRequestForm() {
   const navigate = useNavigate()
-  const products = useProducts()
   const regions = useRegions()
   const createBuyRequest = useCreateBuyRequest()
 
@@ -24,25 +27,49 @@ export function BuyRequestForm() {
     defaultValues: {
       productId: undefined,
       desiredQuantity: '',
+      unit: 'kg',
       regionId: undefined,
-      maxPricePerUnit: '',
+      maxTotalPrice: '',
       description: '',
     },
   })
 
   function onSubmit(values: CreateBuyRequestFormValues) {
-    const parsed = createBuyRequestSchema.parse(values)
-    createBuyRequest.mutate(parsed, {
-      onSuccess: () => {
-        toast.success('Đăng yêu cầu mua thành công!')
-        navigate('/marketplace')
-      },
-    })
+    const { maxTotalPrice, ...parsed } = createBuyRequestSchema.parse(values)
+    createBuyRequest.mutate(
+      { ...parsed, maxPricePerUnit: maxTotalPrice ? maxTotalPrice / parsed.desiredQuantity : undefined },
+      {
+        onSuccess: () => {
+          toast.success('Đăng yêu cầu mua thành công!')
+          navigate('/marketplace')
+        },
+      }
+    )
   }
 
   const errorMessage = createBuyRequest.isError
     ? extractApiErrorMessage(createBuyRequest.error, 'Đăng yêu cầu thất bại. Vui lòng thử lại.')
     : null
+
+  const productIdValue = form.watch('productId')
+  const regionIdValue = form.watch('regionId')
+  const desiredQuantityValue = Number(form.watch('desiredQuantity'))
+  const maxTotalPriceValue = Number(form.watch('maxTotalPrice'))
+  const unitValue = form.watch('unit') || 'kg'
+  const derivedMaxPricePerUnit =
+    Number.isFinite(desiredQuantityValue) &&
+    desiredQuantityValue > 0 &&
+    Number.isFinite(maxTotalPriceValue) &&
+    maxTotalPriceValue > 0
+      ? maxTotalPriceValue / desiredQuantityValue
+      : null
+
+  const prices = usePrices({ productId: productIdValue }, { enabled: Boolean(productIdValue) })
+  const referencePrice = prices.data?.items.find((p) => p.regionId === regionIdValue)
+  const deviationPercent =
+    derivedMaxPricePerUnit !== null && referencePrice && referencePrice.price > 0
+      ? ((derivedMaxPricePerUnit - referencePrice.price) / referencePrice.price) * 100
+      : null
 
   return (
     <Form {...form}>
@@ -53,41 +80,43 @@ export function BuyRequestForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Sản phẩm</FormLabel>
-              <Select
-                onValueChange={(v) => field.onChange(Number(v))}
-                defaultValue={field.value ? String(field.value) : undefined}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn sản phẩm" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {products.data?.map((p) => (
-                    <SelectItem key={p.id} value={String(p.id)}>
-                      {p.nameVi}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="desiredQuantity"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Số lượng cần mua</FormLabel>
               <FormControl>
-                <Input type="number" step="0.01" {...field} />
+                <ProductSearchInput onChange={field.onChange} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="desiredQuantity"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Số lượng cần mua ({form.watch('unit') || 'kg'})</FormLabel>
+                <FormControl>
+                  <Input type="number" step="0.01" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="unit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Đơn vị</FormLabel>
+                <FormControl>
+                  <UnitSelect value={field.value} onChange={field.onChange} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <FormField
           control={form.control}
@@ -107,7 +136,7 @@ export function BuyRequestForm() {
                 <SelectContent>
                   {regions.data?.map((r) => (
                     <SelectItem key={r.id} value={String(r.id)}>
-                      {r.marketName} — {r.provinceName}
+                      {r.provinceName}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -119,17 +148,35 @@ export function BuyRequestForm() {
 
         <FormField
           control={form.control}
-          name="maxPricePerUnit"
+          name="maxTotalPrice"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Giá tối đa / đơn vị (tuỳ chọn)</FormLabel>
+              <FormLabel>Tổng giá tối đa sẵn sàng trả (VNĐ, tuỳ chọn)</FormLabel>
               <FormControl>
-                <Input type="number" step="0.01" {...field} />
+                <Input type="number" step="1000" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {desiredQuantityValue > 0 ? (
+          <p className="-mt-2 text-xs text-text-muted">
+            Cần mua: <span className="font-medium text-text">{desiredQuantityValue}{unitValue}</span>.
+            {derivedMaxPricePerUnit ? (
+              <>
+                {' '}
+                Bạn đang muốn mua với giá{' '}
+                <span className="font-medium text-primary">{currencyFormatter.format(derivedMaxPricePerUnit)}</span>/
+                {unitValue}
+                {deviationPercent !== null && Math.abs(deviationPercent) >= 1
+                  ? `, ${deviationPercent > 0 ? 'cao hơn' : 'thấp hơn'} giá thị trường ${Math.abs(deviationPercent).toFixed(0)}%`
+                  : ''}
+                .
+              </>
+            ) : null}
+          </p>
+        ) : null}
 
         <FormField
           control={form.control}

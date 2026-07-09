@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/marketplace/StatusBadge'
+import { InterestSummary } from '@/components/marketplace/InterestSummary'
 import { ChatThread } from '@/components/marketplace/ChatThread'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { useMyInterests } from '@/hooks/queries/useMyInterests'
@@ -31,23 +32,26 @@ export function InterestThreadPage() {
         <EmptyState title="Không tìm thấy cuộc trò chuyện" description="Liên hệ này có thể đã bị xoá hoặc không tồn tại." />
       ) : (
         <>
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <p className="font-medium text-text">
+          <div className="space-y-3 rounded-lg border border-border bg-surface p-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium text-text">
                 {interest.initiatorUserId === userId ? 'Bạn đã gửi liên hệ' : 'Bạn nhận được liên hệ'}
-                {interest.listingId ? (
-                  <>
-                    {' '}
-                    cho{' '}
-                    <Link to={`/marketplace/listings/${interest.listingId}`} className="text-primary hover:underline">
-                      tin #{interest.listingId}
-                    </Link>
-                  </>
-                ) : null}
               </p>
-              <p className="text-xs text-text-muted">{new Date(interest.createdAt).toLocaleString('vi-VN')}</p>
+              <StatusBadge status={interest.status} />
             </div>
-            <StatusBadge status={interest.status} />
+
+            <Link
+              to={
+                interest.listingId
+                  ? `/marketplace/listings/${interest.listingId}`
+                  : `/marketplace/buy-requests/${interest.buyRequestId}`
+              }
+              className="block rounded-md transition-colors hover:bg-secondary"
+            >
+              <InterestSummary interest={interest} />
+            </Link>
+
+            <p className="text-xs text-text-muted">{new Date(interest.createdAt).toLocaleString('vi-VN')}</p>
           </div>
 
           <ChatThread interestId={interestId} />

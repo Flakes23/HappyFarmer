@@ -35,18 +35,19 @@ public record ListingResponse(
 public record CreateBuyRequestRequest(
     [Required] int ProductId,
     [Required, Range(0.01, double.MaxValue)] decimal DesiredQuantity,
+    [Required] string Unit,
     [Required] int RegionId,
     [Range(0.01, double.MaxValue)] decimal? MaxPricePerUnit,
     string? Description);
 
 public record BuyRequestResponse(
     int Id, int BuyerId, string? BuyerName, DateTime? BuyerJoinedAt, int BuyerActiveBuyRequestCount,
-    int ProductId, decimal DesiredQuantity, int RegionId,
+    int ProductId, decimal DesiredQuantity, string Unit, int RegionId,
     decimal? MaxPricePerUnit, string? Description, string Status, DateTime CreatedAt)
 {
     public static BuyRequestResponse FromEntity(BuyRequest br, int buyerActiveBuyRequestCount = 0) => new(
         br.Id, br.BuyerId, br.BuyerName, br.BuyerJoinedAt, buyerActiveBuyRequestCount,
-        br.ProductId, br.DesiredQuantity, br.RegionId,
+        br.ProductId, br.DesiredQuantity, br.Unit, br.RegionId,
         br.MaxPricePerUnit, br.Description, br.Status.ToString(), br.CreatedAt);
 }
 
@@ -54,14 +55,52 @@ public record PagedResult<T>(List<T> Items, int Page, int PageSize, int TotalCou
 
 public record ContactListingRequest(string? Message);
 
-public record InterestResponse(
-    int Id, int? ListingId, int? BuyRequestId, int InitiatorUserId, int TargetUserId,
-    string? Message, string Status, DateTime CreatedAt)
+public record InterestListingSummary(
+    int ProductId, decimal Quantity, string Unit, decimal PricePerUnit, string Status, string? ImageUrl)
 {
-    public static InterestResponse FromEntity(Interest i) => new(
-        i.Id, i.ListingId, i.BuyRequestId, i.InitiatorUserId, i.TargetUserId,
-        i.Message, i.Status.ToString(), i.CreatedAt);
+    public static InterestListingSummary FromEntity(Listing l) => new(
+        l.ProductId, l.Quantity, l.Unit, l.PricePerUnit, l.Status.ToString(),
+        l.Images.OrderBy(i => i.SortOrder).Select(i => i.ImageUrl).FirstOrDefault());
 }
+
+public record InterestBuyRequestSummary(
+    int ProductId, decimal DesiredQuantity, string Unit, decimal? MaxPricePerUnit, string Status)
+{
+    public static InterestBuyRequestSummary FromEntity(BuyRequest br) => new(
+        br.ProductId, br.DesiredQuantity, br.Unit, br.MaxPricePerUnit, br.Status.ToString());
+}
+
+public record InterestLastMessage(string Body, int SenderUserId, DateTime CreatedAt);
+
+public record InterestResponse(
+    int Id, int? ListingId, InterestListingSummary? Listing, int? BuyRequestId, InterestBuyRequestSummary? BuyRequest,
+    int InitiatorUserId, int TargetUserId, string? Message, string Status, DateTime CreatedAt, bool HasUnread,
+    InterestLastMessage? LastMessage)
+{
+    public static InterestResponse FromEntity(Interest i, int currentUserId, Message? lastMessage) => new(
+        i.Id, i.ListingId, i.Listing is null ? null : InterestListingSummary.FromEntity(i.Listing),
+        i.BuyRequestId, i.BuyRequest is null ? null : InterestBuyRequestSummary.FromEntity(i.BuyRequest),
+        i.InitiatorUserId, i.TargetUserId, i.Message, i.Status.ToString(), i.CreatedAt,
+        ComputeHasUnread(i, currentUserId, lastMessage?.CreatedAt),
+        // Chưa có tin nhắn thật nào trong bảng Messages (mới vừa liên hệ) thì fallback về lời nhắn
+        // mở đầu (Interest.Message) — luôn hiện được preview kể cả khi đối phương chưa trả lời.
+        lastMessage is not null
+            ? new InterestLastMessage(lastMessage.Body, lastMessage.SenderUserId, lastMessage.CreatedAt)
+            : (i.Message is not null ? new InterestLastMessage(i.Message, i.InitiatorUserId, i.CreatedAt) : null));
+
+    /// <summary>
+    /// "Chưa đọc" = mốc đọc gần nhất của người đang xem (Initiator/TargetReadAt) cũ hơn hoạt động
+    /// gần nhất của cuộc trò chuyện (tin nhắn mới nhất, hoặc CreatedAt nếu chưa ai nhắn thêm gì).
+    /// </summary>
+    public static bool ComputeHasUnread(Interest i, int currentUserId, DateTime? lastMessageAt)
+    {
+        var lastActivity = lastMessageAt ?? i.CreatedAt;
+        var myReadAt = currentUserId == i.InitiatorUserId ? i.InitiatorReadAt : i.TargetReadAt;
+        return myReadAt is null || myReadAt < lastActivity;
+    }
+}
+
+public record UnreadCountResponse(int Count);
 
 public record SendMessageRequest([Required, MinLength(1), MaxLength(4000)] string Body);
 

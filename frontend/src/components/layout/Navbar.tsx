@@ -5,12 +5,14 @@ import { MobileNav } from '@/components/layout/MobileNav'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { useAuthStore } from '@/store/authStore'
 import { useLogout } from '@/hooks/mutations/useLogout'
+import { useUnreadInterestsCount } from '@/hooks/queries/useUnreadInterestsCount'
 import logo from '@/assets/logo.svg'
 
 export function Navbar() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const user = useAuthStore((s) => s.user)
   const logout = useLogout()
+  const unreadCount = useUnreadInterestsCount()
 
   return (
     <header className="border-b border-border bg-surface">
@@ -27,6 +29,17 @@ export function Navbar() {
           <Link to="/marketplace" className="text-sm text-text hover:text-primary">
             Chợ nông sản
           </Link>
+
+          {isAuthenticated ? (
+            <Link to="/marketplace/my-interests" className="relative text-sm text-text hover:text-primary">
+              Liên hệ của tôi
+              {unreadCount.data && unreadCount.data.count > 0 ? (
+                <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-error px-1 text-[10px] font-semibold text-white">
+                  {unreadCount.data.count > 9 ? '9+' : unreadCount.data.count}
+                </span>
+              ) : null}
+            </Link>
+          ) : null}
 
           <ThemeToggle />
 

@@ -8,6 +8,7 @@ public class BuyRequest
     public DateTime? BuyerJoinedAt { get; set; }
     public int ProductId { get; set; }
     public decimal DesiredQuantity { get; set; }
+    public required string Unit { get; set; }
     public int RegionId { get; set; }
     public decimal? MaxPricePerUnit { get; set; }
     public string? Description { get; set; }

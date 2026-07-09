@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { StatusBadge } from '@/components/marketplace/StatusBadge'
 import { SellerInfo } from '@/components/marketplace/SellerInfo'
@@ -21,33 +22,37 @@ export function BuyRequestCard({ buyRequest }: { buyRequest: BuyRequestResponse 
       : buyRequest.buyerActiveBuyRequestCount
 
   return (
-    <Card>
-      <CardContent className="space-y-1 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <p className="font-medium text-text">{product?.nameVi ?? `Sản phẩm #${buyRequest.productId}`}</p>
-          <StatusBadge status={buyRequest.status} />
-        </div>
-        <p className="text-sm text-text-muted">
-          {region ? `${region.marketName} — ${region.provinceName}` : `Khu vực #${buyRequest.regionId}`}
-        </p>
-        <p className="text-sm text-text-muted">Cần mua: {buyRequest.desiredQuantity} {product?.unit ?? ''}</p>
-        {buyRequest.maxPricePerUnit ? (
-          <p className="font-semibold text-primary">
-            Giá tối đa: {currencyFormatter.format(buyRequest.maxPricePerUnit)}
+    <Link to={`/marketplace/buy-requests/${buyRequest.id}`}>
+      <Card className="h-full transition-colors hover:border-primary">
+        <CardContent className="space-y-1 p-4">
+          <div className="flex items-start justify-between gap-2">
+            <p className="font-medium text-text">{product?.nameVi ?? `Sản phẩm #${buyRequest.productId}`}</p>
+            <StatusBadge status={buyRequest.status} />
+          </div>
+          <p className="text-sm text-text-muted">
+            {region ? region.provinceName : `Khu vực #${buyRequest.regionId}`}
           </p>
-        ) : null}
-        {buyRequest.description ? <p className="text-sm text-text-muted">{buyRequest.description}</p> : null}
+          <p className="text-sm text-text-muted">
+            Cần mua: {buyRequest.desiredQuantity} {buyRequest.unit}
+          </p>
+          {buyRequest.maxPricePerUnit ? (
+            <p className="font-semibold text-primary">
+              Giá tối đa: {currencyFormatter.format(buyRequest.maxPricePerUnit)} / {buyRequest.unit}
+            </p>
+          ) : null}
+          {buyRequest.description ? <p className="text-sm text-text-muted">{buyRequest.description}</p> : null}
 
-        <SellerInfo
-          name={buyRequest.buyerName}
-          joinedAt={buyRequest.buyerJoinedAt}
-          otherActiveCount={otherActiveCount}
-          otherActiveLabel="yêu cầu khác"
-          className="pt-1"
-        />
+          <SellerInfo
+            name={buyRequest.buyerName}
+            joinedAt={buyRequest.buyerJoinedAt}
+            otherActiveCount={otherActiveCount}
+            otherActiveLabel="yêu cầu khác"
+            className="pt-1"
+          />
 
-        <p className="text-[11px] text-text-muted">{formatRelativeTime(buyRequest.createdAt)}</p>
-      </CardContent>
-    </Card>
+          <p className="text-[11px] text-text-muted">{formatRelativeTime(buyRequest.createdAt)}</p>
+        </CardContent>
+      </Card>
+    </Link>
   )
 }

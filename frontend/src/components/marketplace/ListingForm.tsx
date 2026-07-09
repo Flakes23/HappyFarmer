@@ -10,15 +10,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Label } from '@/components/ui/label'
 import { ImageUploadField } from '@/components/marketplace/ImageUploadField'
-import { useProducts } from '@/hooks/queries/useProducts'
+import { UnitSelect } from '@/components/marketplace/UnitSelect'
+import { ProductSearchInput } from '@/components/marketplace/ProductSearchInput'
 import { useRegions } from '@/hooks/queries/useRegions'
+import { usePrices } from '@/hooks/queries/usePrices'
 import { useCreateListing } from '@/hooks/mutations/useCreateListing'
 import { createListingSchema, type CreateListingFormValues } from '@/schemas/marketplaceSchemas'
 import { extractApiErrorMessage } from '@/api/authApi'
 
+const currencyFormatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
+
 export function ListingForm() {
   const navigate = useNavigate()
-  const products = useProducts()
   const regions = useRegions()
   const createListing = useCreateListing()
   const [images, setImages] = useState<string[]>([])
@@ -29,16 +32,16 @@ export function ListingForm() {
       productId: undefined,
       quantity: '',
       unit: 'kg',
-      pricePerUnit: '',
+      totalPrice: '',
       regionId: undefined,
       description: '',
     },
   })
 
   function onSubmit(values: CreateListingFormValues) {
-    const parsed = createListingSchema.parse(values)
+    const { totalPrice, ...parsed } = createListingSchema.parse(values)
     createListing.mutate(
-      { ...parsed, imageUrls: images },
+      { ...parsed, pricePerUnit: totalPrice / parsed.quantity, imageUrls: images },
       {
         onSuccess: (listing) => {
           toast.success('Đăng tin bán thành công!')
@@ -52,6 +55,24 @@ export function ListingForm() {
     ? extractApiErrorMessage(createListing.error, 'Đăng tin thất bại. Vui lòng thử lại.')
     : null
 
+  const productIdValue = form.watch('productId')
+  const regionIdValue = form.watch('regionId')
+  const quantityValue = Number(form.watch('quantity'))
+  const totalPriceValue = Number(form.watch('totalPrice'))
+  const unitValue = form.watch('unit') || 'kg'
+
+  const derivedPricePerUnit =
+    Number.isFinite(quantityValue) && quantityValue > 0 && Number.isFinite(totalPriceValue) && totalPriceValue > 0
+      ? totalPriceValue / quantityValue
+      : null
+
+  const prices = usePrices({ productId: productIdValue }, { enabled: Boolean(productIdValue) })
+  const referencePrice = prices.data?.items.find((p) => p.regionId === regionIdValue)
+  const deviationPercent =
+    derivedPricePerUnit !== null && referencePrice && referencePrice.price > 0
+      ? ((derivedPricePerUnit - referencePrice.price) / referencePrice.price) * 100
+      : null
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -61,23 +82,9 @@ export function ListingForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Sản phẩm</FormLabel>
-              <Select
-                onValueChange={(v) => field.onChange(Number(v))}
-                defaultValue={field.value ? String(field.value) : undefined}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn sản phẩm" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {products.data?.map((p) => (
-                    <SelectItem key={p.id} value={String(p.id)}>
-                      {p.nameVi}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <ProductSearchInput onChange={field.onChange} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -89,7 +96,7 @@ export function ListingForm() {
             name="quantity"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Số lượng</FormLabel>
+                <FormLabel>Số lượng ({form.watch('unit') || 'kg'})</FormLabel>
                 <FormControl>
                   <Input type="number" step="0.01" {...field} />
                 </FormControl>
@@ -105,7 +112,7 @@ export function ListingForm() {
               <FormItem>
                 <FormLabel>Đơn vị</FormLabel>
                 <FormControl>
-                  <Input placeholder="kg" {...field} />
+                  <UnitSelect value={field.value} onChange={field.onChange} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -115,10 +122,10 @@ export function ListingForm() {
 
         <FormField
           control={form.control}
-          name="pricePerUnit"
+          name="totalPrice"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Giá (VNĐ) / đơn vị (Ví dụ 10000 VNĐ / 1kg)</FormLabel>
+              <FormLabel>Tổng giá bán (VNĐ)</FormLabel>
               <FormControl>
                 <Input type="number" step="1000" {...field} />
               </FormControl>
@@ -126,6 +133,24 @@ export function ListingForm() {
             </FormItem>
           )}
         />
+
+        {quantityValue > 0 ? (
+          <p className="-mt-2 text-xs text-text-muted">
+            Số lượng đang bán: <span className="font-medium text-text">{quantityValue}{unitValue}</span>.
+            {derivedPricePerUnit ? (
+              <>
+                {' '}
+                Bạn đang bán với giá{' '}
+                <span className="font-medium text-primary">{currencyFormatter.format(derivedPricePerUnit)}</span>/
+                {unitValue}
+                {deviationPercent !== null && Math.abs(deviationPercent) >= 1
+                  ? `, ${deviationPercent > 0 ? 'cao hơn' : 'thấp hơn'} giá thị trường ${Math.abs(deviationPercent).toFixed(0)}%`
+                  : ''}
+                .
+              </>
+            ) : null}
+          </p>
+        ) : null}
 
         <FormField
           control={form.control}
@@ -145,7 +170,7 @@ export function ListingForm() {
                 <SelectContent>
                   {regions.data?.map((r) => (
                     <SelectItem key={r.id} value={String(r.id)}>
-                      {r.marketName} — {r.provinceName}
+                      {r.provinceName}
                     </SelectItem>
                   ))}
                 </SelectContent>

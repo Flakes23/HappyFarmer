@@ -4,6 +4,7 @@ using HappyFarmer.MarketplaceService.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HappyFarmer.MarketplaceService.Api.Migrations
 {
     [DbContext(typeof(MarketplaceDbContext))]
-    partial class MarketplaceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260709071426_AddUnitToBuyRequest")]
+    partial class AddUnitToBuyRequest
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -91,9 +94,6 @@ namespace HappyFarmer.MarketplaceService.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("InitiatorReadAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("InitiatorUserId")
                         .HasColumnType("int");
 
@@ -107,9 +107,6 @@ namespace HappyFarmer.MarketplaceService.Api.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime?>("TargetReadAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("TargetUserId")
                         .HasColumnType("int");

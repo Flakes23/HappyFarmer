@@ -12,9 +12,8 @@ import {
 } from '@/components/ui/breadcrumb'
 import { StatusBadge } from '@/components/marketplace/StatusBadge'
 import { ContactDialog } from '@/components/marketplace/ContactDialog'
-import { ImageGallery } from '@/components/marketplace/ImageGallery'
 import { SellerInfo } from '@/components/marketplace/SellerInfo'
-import { useListing } from '@/hooks/queries/useListing'
+import { useBuyRequest } from '@/hooks/queries/useBuyRequest'
 import { useProducts } from '@/hooks/queries/useProducts'
 import { useRegions } from '@/hooks/queries/useRegions'
 import { useAuthStore } from '@/store/authStore'
@@ -23,17 +22,17 @@ import { formatRelativeTime } from '@/lib/relativeTime'
 
 const currencyFormatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
 
-export function ListingDetailPage() {
+export function BuyRequestDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const listingId = id ? Number(id) : undefined
+  const buyRequestId = id ? Number(id) : undefined
 
-  const listing = useListing(listingId)
+  const buyRequest = useBuyRequest(buyRequestId)
   const products = useProducts()
   const regions = useRegions()
   const user = useAuthStore((s) => s.user)
 
-  const product = products.data?.find((p) => p.id === listing.data?.productId)
-  const region = regions.data?.find((r) => r.id === listing.data?.regionId)
+  const product = products.data?.find((p) => p.id === buyRequest.data?.productId)
+  const region = regions.data?.find((r) => r.id === buyRequest.data?.regionId)
   useDocumentTitle(product ? `${product.nameVi} — Chợ nông sản` : 'Chợ nông sản — HappyFarmer')
 
   return (
@@ -53,68 +52,66 @@ export function ListingDetailPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{product?.nameVi ?? `Sản phẩm #${listing.data?.productId ?? ''}`}</BreadcrumbPage>
+              <BreadcrumbPage>{product?.nameVi ?? `Sản phẩm #${buyRequest.data?.productId ?? ''}`}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
       </div>
 
-      {listing.isLoading ? (
+      {buyRequest.isLoading ? (
         <Skeleton className="h-64 w-full" />
-      ) : !listing.data ? (
-        <p className="py-8 text-center text-text-muted">Không tìm thấy tin đăng.</p>
+      ) : !buyRequest.data ? (
+        <p className="py-8 text-center text-text-muted">Không tìm thấy yêu cầu mua.</p>
       ) : (
         <Card>
           <CardHeader className="flex flex-row items-start justify-between gap-4">
-            <CardTitle>{product?.nameVi ?? `Sản phẩm #${listing.data.productId}`}</CardTitle>
-            <StatusBadge status={listing.data.status} />
+            <CardTitle>{product?.nameVi ?? `Sản phẩm #${buyRequest.data.productId}`}</CardTitle>
+            <StatusBadge status={buyRequest.data.status} />
           </CardHeader>
           <CardContent className="space-y-4">
-            <ImageGallery images={listing.data.imageUrls} alt={product?.nameVi} />
-
             <dl className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <dt className="text-text-muted">Số lượng</dt>
+                <dt className="text-text-muted">Cần mua</dt>
                 <dd className="font-medium">
-                  {listing.data.quantity} {listing.data.unit}
+                  {buyRequest.data.desiredQuantity} {buyRequest.data.unit}
                 </dd>
               </div>
-              <div>
-                <dt className="text-text-muted">Giá</dt>
-                <dd className="font-medium text-primary">
-                  {currencyFormatter.format(listing.data.pricePerUnit)} / {listing.data.unit}
-                </dd>
-              </div>
+              {buyRequest.data.maxPricePerUnit ? (
+                <div>
+                  <dt className="text-text-muted">Giá tối đa</dt>
+                  <dd className="font-medium text-primary">
+                    {currencyFormatter.format(buyRequest.data.maxPricePerUnit)} / {buyRequest.data.unit}
+                  </dd>
+                </div>
+              ) : null}
               <div>
                 <dt className="text-text-muted">Khu vực</dt>
-                <dd className="font-medium">
-                  {region ? region.provinceName : `#${listing.data.regionId}`}
-                </dd>
+                <dd className="font-medium">{region ? region.provinceName : `#${buyRequest.data.regionId}`}</dd>
               </div>
               <div>
                 <dt className="text-text-muted">Ngày đăng</dt>
-                <dd className="font-medium">{new Date(listing.data.createdAt).toLocaleDateString('vi-VN')}</dd>
+                <dd className="font-medium">{new Date(buyRequest.data.createdAt).toLocaleDateString('vi-VN')}</dd>
               </div>
             </dl>
 
-            {listing.data.description ? <p className="text-text">{listing.data.description}</p> : null}
+            {buyRequest.data.description ? <p className="text-text">{buyRequest.data.description}</p> : null}
 
             <div className="space-y-1 border-t border-border pt-4">
               <SellerInfo
-                name={listing.data.farmerName}
-                joinedAt={listing.data.farmerJoinedAt}
+                name={buyRequest.data.buyerName}
+                joinedAt={buyRequest.data.buyerJoinedAt}
                 otherActiveCount={
-                  listing.data.status === 'Active'
-                    ? Math.max(listing.data.farmerActiveListingCount - 1, 0)
-                    : listing.data.farmerActiveListingCount
+                  buyRequest.data.status === 'Active'
+                    ? Math.max(buyRequest.data.buyerActiveBuyRequestCount - 1, 0)
+                    : buyRequest.data.buyerActiveBuyRequestCount
                 }
-                otherActiveLabel="tin khác đang bán"
+                otherActiveLabel="yêu cầu khác"
               />
-              <p className="text-[11px] text-text-muted">{formatRelativeTime(listing.data.createdAt)}</p>
+              <p className="text-[11px] text-text-muted">{formatRelativeTime(buyRequest.data.createdAt)}</p>
             </div>
 
-            {user?.role === 'Buyer' && listing.data.status === 'Active' ? (
-              <ContactDialog id={listing.data.id} kind="listing" />
+            {user?.role === 'Farmer' && buyRequest.data.status === 'Active' ? (
+              <ContactDialog id={buyRequest.data.id} kind="buyRequest" />
             ) : null}
           </CardContent>
         </Card>

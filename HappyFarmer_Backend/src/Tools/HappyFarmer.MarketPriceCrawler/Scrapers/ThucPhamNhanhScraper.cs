@@ -152,8 +152,6 @@ public class ThucPhamNhanhScraper : IPriceSourceScraper
 
             var imageUrl = node.SelectSingleNode(".//img")?.GetAttributeValue("src", "");
             if (string.IsNullOrEmpty(imageUrl)) imageUrl = null;
-            
-            price = price.Value + 1000;
 
             items.Add(new RawPriceItem(
                 SourceName, CategoryName, subCategoryName, title, unit,

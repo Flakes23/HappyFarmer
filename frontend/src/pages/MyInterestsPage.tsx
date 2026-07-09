@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { MessageSquareOff } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { StatusBadge } from '@/components/marketplace/StatusBadge'
+import { InterestSummary } from '@/components/marketplace/InterestSummary'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ListSkeleton } from '@/components/shared/Skeletons'
 import { useMyInterests } from '@/hooks/queries/useMyInterests'
@@ -28,19 +29,29 @@ export function MyInterestsPage() {
             const isSent = interest.initiatorUserId === userId
 
             return (
-              <Card key={interest.id} className="transition-colors hover:border-primary">
+              <Card key={interest.id} className="relative transition-colors hover:border-primary">
+                {interest.hasUnread ? (
+                  <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-error" aria-label="Chưa đọc" />
+                ) : null}
                 <Link to={`/marketplace/my-interests/${interest.id}`} className="block">
-                  <CardContent className="space-y-1 p-4">
+                  <CardContent className="space-y-2 p-4">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-sm font-medium text-text">
                         {isSent ? 'Bạn đã gửi liên hệ' : 'Bạn nhận được liên hệ'}
-                        {interest.listingId ? ` cho tin #${interest.listingId}` : null}
                       </span>
                       <StatusBadge status={interest.status} />
                     </div>
-                    {interest.message ? <p className="text-sm text-text-muted">{interest.message}</p> : null}
+
+                    <InterestSummary interest={interest} />
+
+                    {interest.lastMessage ? (
+                      <p className="truncate text-sm text-text-muted">
+                        {interest.lastMessage.senderUserId === userId ? 'Bạn: ' : ''}
+                        {interest.lastMessage.body}
+                      </p>
+                    ) : null}
                     <p className="text-xs text-text-muted">
-                      {new Date(interest.createdAt).toLocaleString('vi-VN')}
+                      {new Date(interest.lastMessage?.createdAt ?? interest.createdAt).toLocaleString('vi-VN')}
                     </p>
                   </CardContent>
                 </Link>

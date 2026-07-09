@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { env } from '@/lib/env'
 import { useAuthStore } from '@/store/authStore'
 import { appendIfNew } from '@/hooks/mutations/useSendMessage'
-import type { MessageHistoryResponse, MessageResponse } from '@/api/types'
+import type { MessageHistoryResponse, MessageResponse, UnreadCountResponse } from '@/api/types'
 
 const ChatConnectionContext = createContext<HubConnection | null>(null)
 
@@ -41,6 +41,13 @@ export function ChatConnectionProvider({ children }: { children: ReactNode }) {
 
     conn.on('ReceiveMessage', (msg: MessageResponse) => {
       queryClient.setQueryData<MessageHistoryResponse>(['messages', msg.interestId], (old) => appendIfNew(old, msg))
+      queryClient.invalidateQueries({ queryKey: ['my-interests'] })
+    })
+
+    // Đẩy từ server (ChatHub.UserGroupName) mỗi khi có tin nhắn/liên hệ mới liên quan tới user này
+    // — cập nhật badge ngay lập tức, không đợi poll.
+    conn.on('UnreadCountChanged', (payload: UnreadCountResponse) => {
+      queryClient.setQueryData(['my-interests', 'unread-count'], payload)
       queryClient.invalidateQueries({ queryKey: ['my-interests'] })
     })
 

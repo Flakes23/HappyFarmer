@@ -11,7 +11,7 @@ namespace HappyFarmer.MarketplaceService.Api.Controllers;
 
 [ApiController]
 [Route("api/marketplace/buy-requests")]
-public class BuyRequestsController(MarketplaceDbContext db, AuthServiceClient authServiceClient) : ControllerBase
+public class BuyRequestsController(MarketplaceDbContext db, AuthServiceClient authServiceClient, InterestNotificationService notifier) : ControllerBase
 {
     [HttpGet]
     [AllowAnonymous]
@@ -50,6 +50,17 @@ public class BuyRequestsController(MarketplaceDbContext db, AuthServiceClient au
         return Ok(new PagedResult<BuyRequestResponse>(items, page, pageSize, totalCount));
     }
 
+    [HttpGet("{id:int}")]
+    [AllowAnonymous]
+    public async Task<ActionResult<BuyRequestResponse>> GetById(int id)
+    {
+        var buyRequest = await db.BuyRequests.SingleOrDefaultAsync(br => br.Id == id);
+        if (buyRequest is null) return NotFound();
+
+        var count = await db.BuyRequests.CountAsync(br => br.BuyerId == buyRequest.BuyerId && br.Status == BuyRequestStatus.Active);
+        return Ok(BuyRequestResponse.FromEntity(buyRequest, count));
+    }
+
     [HttpPost]
     [Authorize(Roles = "Buyer")]
     public async Task<ActionResult<BuyRequestResponse>> Create(CreateBuyRequestRequest request)
@@ -64,6 +75,7 @@ public class BuyRequestsController(MarketplaceDbContext db, AuthServiceClient au
             BuyerJoinedAt = buyer?.CreatedAt,
             ProductId = request.ProductId,
             DesiredQuantity = request.DesiredQuantity,
+            Unit = request.Unit,
             RegionId = request.RegionId,
             MaxPricePerUnit = request.MaxPricePerUnit,
             Description = request.Description,
@@ -74,6 +86,32 @@ public class BuyRequestsController(MarketplaceDbContext db, AuthServiceClient au
 
         var count = await db.BuyRequests.CountAsync(br => br.BuyerId == buyerId && br.Status == BuyRequestStatus.Active);
         return Ok(BuyRequestResponse.FromEntity(buyRequest, count));
+    }
+
+    [HttpPost("{id:int}/contact")]
+    [Authorize(Roles = "Farmer")]
+    public async Task<ActionResult<InterestResponse>> Contact(int id, ContactListingRequest request)
+    {
+        var buyRequest = await db.BuyRequests.FindAsync(id);
+        if (buyRequest is null) return NotFound();
+
+        var interest = new Interest
+        {
+            BuyRequestId = buyRequest.Id,
+            InitiatorUserId = GetCurrentUserId()!.Value,
+            TargetUserId = buyRequest.BuyerId,
+            Message = request.Message,
+            InitiatorReadAt = DateTime.UtcNow,
+        };
+
+        db.Interests.Add(interest);
+        await db.SaveChangesAsync();
+        await notifier.PushUnreadCountAsync(interest.TargetUserId);
+
+        // TODO (Phase 4): publish "marketplace.new-interest.v1" lên Kafka để Notification Service
+        // consume — chưa wiring vì Kafka chưa setup ở local (xem docs/architecture/04-roadmap.md).
+
+        return Ok(InterestResponse.FromEntity(interest, interest.InitiatorUserId, null));
     }
 
     private int? GetCurrentUserId()

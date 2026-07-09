@@ -25,7 +25,6 @@ const PAGE_SIZE = 20
 
 export function MarketplacePage() {
   useDocumentTitle('Chợ nông sản — HappyFarmer')
-  const [productId, setProductId] = useState<number | undefined>(undefined)
   const [regionId, setRegionId] = useState<number | undefined>(undefined)
   const [search, setSearch] = useState('')
   const [minPrice, setMinPrice] = useState<number | undefined>(undefined)
@@ -34,7 +33,7 @@ export function MarketplacePage() {
   const [listingsPage, setListingsPage] = useState(1)
   const [buyRequestsPage, setBuyRequestsPage] = useState(1)
 
-  const filters = { productId, regionId, search: search || undefined, minPrice, maxPrice, sort }
+  const filters = { regionId, search: search || undefined, minPrice, maxPrice, sort }
 
   const listings = useListings({ ...filters, page: listingsPage, pageSize: PAGE_SIZE })
   const buyRequests = useBuyRequests({ ...filters, page: buyRequestsPage, pageSize: PAGE_SIZE })
@@ -95,16 +94,11 @@ export function MarketplacePage() {
       </div>
 
       <MarketplaceFilterBar
-        productId={productId}
         regionId={regionId}
         search={search}
         minPrice={minPrice}
         maxPrice={maxPrice}
         sort={sort}
-        onProductChange={(v) => {
-          setProductId(v)
-          resetPages()
-        }}
         onRegionChange={(v) => {
           setRegionId(v)
           resetPages()

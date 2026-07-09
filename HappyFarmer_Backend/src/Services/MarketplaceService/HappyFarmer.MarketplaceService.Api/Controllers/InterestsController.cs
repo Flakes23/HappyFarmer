@@ -3,6 +3,7 @@ using HappyFarmer.MarketplaceService.Api.Data;
 using HappyFarmer.MarketplaceService.Api.Dtos;
 using HappyFarmer.MarketplaceService.Api.Entities;
 using HappyFarmer.MarketplaceService.Api.Hubs;
+using HappyFarmer.MarketplaceService.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -13,18 +14,29 @@ namespace HappyFarmer.MarketplaceService.Api.Controllers;
 [ApiController]
 [Route("api/marketplace/my-interests")]
 [Authorize]
-public class InterestsController(MarketplaceDbContext db, IHubContext<ChatHub> hubContext) : ControllerBase
+public class InterestsController(MarketplaceDbContext db, IHubContext<ChatHub> hubContext, InterestNotificationService notifier) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<List<InterestResponse>>> GetMyInterests()
     {
-        var userId = GetCurrentUserId();
+        var userId = GetCurrentUserId()!.Value;
         var interests = await db.Interests
+            .Include(i => i.Listing).ThenInclude(l => l!.Images)
+            .Include(i => i.BuyRequest)
             .Where(i => i.InitiatorUserId == userId || i.TargetUserId == userId)
             .OrderByDescending(i => i.CreatedAt)
             .ToListAsync();
 
-        return Ok(interests.Select(InterestResponse.FromEntity));
+        var lastMessages = await notifier.GetLastMessagesAsync(interests.Select(i => i.Id));
+        return Ok(interests.Select(i => InterestResponse.FromEntity(i, userId, lastMessages.GetValueOrDefault(i.Id))));
+    }
+
+    [HttpGet("unread-count")]
+    public async Task<ActionResult<UnreadCountResponse>> GetUnreadCount()
+    {
+        var userId = GetCurrentUserId()!.Value;
+        var count = await notifier.GetUnreadCountAsync(userId);
+        return Ok(new UnreadCountResponse(count));
     }
 
     [HttpGet("{id:int}/messages")]
@@ -33,6 +45,8 @@ public class InterestsController(MarketplaceDbContext db, IHubContext<ChatHub> h
     {
         var interest = await EnsureParticipantAsync(id);
         if (interest is null) return NotFound();
+
+        await MarkReadAsync(interest);
 
         var query = db.Messages.Where(m => m.InterestId == id);
         if (beforeId is not null) query = query.Where(m => m.Id < beforeId);
@@ -49,6 +63,16 @@ public class InterestsController(MarketplaceDbContext db, IHubContext<ChatHub> h
         }
 
         return Ok(new MessageHistoryResponse(messages, hasMore));
+    }
+
+    [HttpPost("{id:int}/read")]
+    public async Task<ActionResult> MarkRead(int id)
+    {
+        var interest = await EnsureParticipantAsync(id);
+        if (interest is null) return NotFound();
+
+        await MarkReadAsync(interest);
+        return NoContent();
     }
 
     [HttpPost("{id:int}/messages")]
@@ -75,7 +99,25 @@ public class InterestsController(MarketplaceDbContext db, IHubContext<ChatHub> h
         var response = MessageResponse.FromEntity(message);
         await hubContext.Clients.Group(ChatHub.GroupName(id)).SendAsync("ReceiveMessage", response);
 
+        var recipientId = message.SenderUserId == interest.InitiatorUserId ? interest.TargetUserId : interest.InitiatorUserId;
+        await notifier.PushUnreadCountAsync(recipientId);
+
         return Ok(response);
+    }
+
+    /// <summary>
+    /// Set mốc đọc của người đang gọi (Initiator/TargetReadAt tương ứng) rồi đẩy lại unread-count
+    /// mới nhất qua SignalR cho chính họ — để nếu họ mở nhiều tab/thiết bị thì badge đồng bộ ngay,
+    /// không đợi tab kia tự poll/focus lại.
+    /// </summary>
+    private async Task MarkReadAsync(Interest interest)
+    {
+        var userId = GetCurrentUserId()!.Value;
+        if (userId == interest.InitiatorUserId) interest.InitiatorReadAt = DateTime.UtcNow;
+        else interest.TargetReadAt = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+
+        await notifier.PushUnreadCountAsync(userId);
     }
 
     private async Task<Interest?> EnsureParticipantAsync(int interestId)

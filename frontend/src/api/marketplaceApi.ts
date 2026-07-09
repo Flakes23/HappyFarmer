@@ -10,6 +10,7 @@ import type {
   MessageHistoryResponse,
   MessageResponse,
   PagedResult,
+  UnreadCountResponse,
   UpdateListingRequest,
   UploadSignatureResponse,
 } from '@/api/types'
@@ -71,11 +72,25 @@ export const marketplaceApi = {
       .get<PagedResult<BuyRequestResponse>>('/api/marketplace/buy-requests', { params: filters })
       .then((r) => r.data),
 
+  getBuyRequest: (id: number) =>
+    httpMarketplace.get<BuyRequestResponse>(`/api/marketplace/buy-requests/${id}`).then((r) => r.data),
+
   createBuyRequest: (body: CreateBuyRequestRequest) =>
     httpMarketplace.post<BuyRequestResponse>('/api/marketplace/buy-requests', body).then((r) => r.data),
 
+  contactBuyRequest: (id: number, message: string) =>
+    httpMarketplace
+      .post<InterestResponse>(`/api/marketplace/buy-requests/${id}/contact`, { message })
+      .then((r) => r.data),
+
+  getUnreadInterestsCount: () =>
+    httpMarketplace.get<UnreadCountResponse>('/api/marketplace/my-interests/unread-count').then((r) => r.data),
+
   getMyInterests: () =>
     httpMarketplace.get<InterestResponse[]>('/api/marketplace/my-interests').then((r) => r.data),
+
+  markInterestRead: (interestId: number) =>
+    httpMarketplace.post(`/api/marketplace/my-interests/${interestId}/read`).then((r) => r.data),
 
   getMessages: (interestId: number, beforeId?: number) =>
     httpMarketplace

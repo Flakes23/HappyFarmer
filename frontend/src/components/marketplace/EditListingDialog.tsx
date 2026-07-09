@@ -71,7 +71,7 @@ export function EditListingDialog({ listing }: { listing: ListingResponse }) {
               name="quantity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Số lượng</FormLabel>
+                  <FormLabel>Số lượng ({listing.unit})</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.01" {...field} />
                   </FormControl>
@@ -85,7 +85,7 @@ export function EditListingDialog({ listing }: { listing: ListingResponse }) {
               name="pricePerUnit"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Giá (VNĐ) / đơn vị (Ví dụ 10000 VNĐ / 1kg)</FormLabel>
+                  <FormLabel>Giá (VNĐ) / đơn vị</FormLabel>
                   <FormControl>
                     <Input type="number" step="1000" {...field} />
                   </FormControl>

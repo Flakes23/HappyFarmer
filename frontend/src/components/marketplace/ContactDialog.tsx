@@ -17,12 +17,16 @@ import {
 } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { useContactListing } from '@/hooks/mutations/useContactListing'
+import { useContactBuyRequest } from '@/hooks/mutations/useContactBuyRequest'
 import { contactListingSchema, type ContactListingFormValues } from '@/schemas/marketplaceSchemas'
 import { extractApiErrorMessage } from '@/api/authApi'
 
-export function ContactDialog({ listingId }: { listingId: number }) {
+export function ContactDialog({ id, kind }: { id: number; kind: 'listing' | 'buyRequest' }) {
   const [open, setOpen] = useState(false)
   const contactListing = useContactListing()
+  const contactBuyRequest = useContactBuyRequest()
+  const mutation = kind === 'listing' ? contactListing : contactBuyRequest
+  const label = kind === 'listing' ? 'Liên hệ người bán' : 'Liên hệ người mua'
   const navigate = useNavigate()
 
   const form = useForm<ContactListingFormValues>({
@@ -31,11 +35,11 @@ export function ContactDialog({ listingId }: { listingId: number }) {
   })
 
   function onSubmit(values: ContactListingFormValues) {
-    contactListing.mutate(
-      { id: listingId, message: values.message },
+    mutation.mutate(
+      { id, message: values.message },
       {
         onSuccess: (interest) => {
-          toast.success('Đã gửi liên hệ tới người bán.')
+          toast.success(`Đã gửi ${label.toLowerCase()}.`)
           setOpen(false)
           form.reset()
           navigate(`/marketplace/my-interests/${interest.id}`)
@@ -44,8 +48,8 @@ export function ContactDialog({ listingId }: { listingId: number }) {
     )
   }
 
-  const errorMessage = contactListing.isError
-    ? extractApiErrorMessage(contactListing.error, 'Gửi liên hệ thất bại. Vui lòng thử lại.')
+  const errorMessage = mutation.isError
+    ? extractApiErrorMessage(mutation.error, 'Gửi liên hệ thất bại. Vui lòng thử lại.')
     : null
 
   return (
@@ -53,12 +57,12 @@ export function ContactDialog({ listingId }: { listingId: number }) {
       <DialogTrigger asChild>
         <Button>
           <MessageCircle className="h-4 w-4" />
-          Liên hệ người bán
+          {label}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Liên hệ người bán</DialogTitle>
+          <DialogTitle>{label}</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -85,8 +89,8 @@ export function ContactDialog({ listingId }: { listingId: number }) {
                   Huỷ
                 </Button>
               </DialogClose>
-              <Button type="submit" disabled={contactListing.isPending}>
-                {contactListing.isPending ? 'Đang gửi...' : 'Gửi liên hệ'}
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? 'Đang gửi...' : 'Gửi liên hệ'}
               </Button>
             </DialogFooter>
           </form>

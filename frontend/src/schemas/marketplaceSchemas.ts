@@ -4,7 +4,7 @@ export const createListingSchema = z.object({
   productId: z.coerce.number().min(1, 'Vui lòng chọn sản phẩm'),
   quantity: z.coerce.number().positive('Số lượng phải lớn hơn 0'),
   unit: z.string().min(1, 'Đơn vị là bắt buộc'),
-  pricePerUnit: z.coerce.number().positive('Giá phải lớn hơn 0'),
+  totalPrice: z.coerce.number().positive('Tổng giá phải lớn hơn 0'),
   regionId: z.coerce.number().min(1, 'Vui lòng chọn khu vực'),
   description: z
     .string()
@@ -32,8 +32,9 @@ export type UpdateListingFormOutput = z.output<typeof updateListingSchema>
 export const createBuyRequestSchema = z.object({
   productId: z.coerce.number().min(1, 'Vui lòng chọn sản phẩm'),
   desiredQuantity: z.coerce.number().positive('Số lượng phải lớn hơn 0'),
+  unit: z.string().min(1, 'Đơn vị là bắt buộc'),
   regionId: z.coerce.number().min(1, 'Vui lòng chọn khu vực'),
-  maxPricePerUnit: z.coerce
+  maxTotalPrice: z.coerce
     .number()
     .positive('Giá phải lớn hơn 0')
     .optional()

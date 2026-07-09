@@ -7,17 +7,34 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { useMessages } from '@/hooks/queries/useMessages'
 import { useSendMessage } from '@/hooks/mutations/useSendMessage'
+import { useMarkInterestRead } from '@/hooks/mutations/useMarkInterestRead'
 import { useChatConnection } from '@/providers/ChatConnectionProvider'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
+import type { MessageResponse } from '@/api/types'
 
 export function ChatThread({ interestId }: { interestId: number }) {
   const connection = useChatConnection()
   const messages = useMessages(interestId)
   const sendMessage = useSendMessage(interestId)
+  const markRead = useMarkInterestRead()
   const currentUserId = useAuthStore((s) => s.user?.id)
   const [draft, setDraft] = useState('')
   const listRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!connection) return
+
+    function onReceiveMessage(msg: MessageResponse) {
+      if (msg.interestId === interestId) markRead.mutate(interestId)
+    }
+
+    connection.on('ReceiveMessage', onReceiveMessage)
+    return () => {
+      connection.off('ReceiveMessage', onReceiveMessage)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connection, interestId])
 
   useEffect(() => {
     if (!connection) return

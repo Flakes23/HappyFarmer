@@ -52,10 +52,10 @@ export function ListingCard({ listing }: { listing: ListingResponse }) {
               <StatusBadge status={listing.status} />
             </div>
             <p className="text-sm text-text-muted">
-              {region ? `${region.marketName} — ${region.provinceName}` : `Khu vực #${listing.regionId}`}
+              {region ? region.provinceName : `Khu vực #${listing.regionId}`}
             </p>
             <p className="text-sm text-text-muted">
-              {listing.quantity} {listing.unit}
+              Đang bán: {listing.quantity} {listing.unit}
             </p>
             <p className="font-semibold text-primary">
               {currencyFormatter.format(listing.pricePerUnit)} / {listing.unit}

@@ -118,7 +118,7 @@ public class PricesController(MarketPriceDbContext db, PriceCacheService cache) 
             })
             .Where(t => t.ChangePercent is not null)
             .OrderByDescending(t => Math.Abs(t.ChangePercent!.Value))
-            .Take(10)
+            .Take(16)
             .ToList();
 
         await cache.SetTrendingAsync(trending);

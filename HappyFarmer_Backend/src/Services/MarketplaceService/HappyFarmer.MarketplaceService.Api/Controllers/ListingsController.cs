@@ -11,7 +11,7 @@ namespace HappyFarmer.MarketplaceService.Api.Controllers;
 
 [ApiController]
 [Route("api/marketplace/listings")]
-public class ListingsController(MarketplaceDbContext db, AuthServiceClient authServiceClient) : ControllerBase
+public class ListingsController(MarketplaceDbContext db, AuthServiceClient authServiceClient, InterestNotificationService notifier) : ControllerBase
 {
     [HttpGet]
     [AllowAnonymous]
@@ -160,15 +160,17 @@ public class ListingsController(MarketplaceDbContext db, AuthServiceClient authS
             InitiatorUserId = GetCurrentUserId()!.Value,
             TargetUserId = listing.FarmerId,
             Message = request.Message,
+            InitiatorReadAt = DateTime.UtcNow,
         };
 
         db.Interests.Add(interest);
         await db.SaveChangesAsync();
+        await notifier.PushUnreadCountAsync(interest.TargetUserId);
 
         // TODO (Phase 4): publish "marketplace.new-interest.v1" lên Kafka để Notification Service
         // consume — chưa wiring vì Kafka chưa setup ở local (xem docs/architecture/04-roadmap.md).
 
-        return Ok(InterestResponse.FromEntity(interest));
+        return Ok(InterestResponse.FromEntity(interest, interest.InitiatorUserId, null));
     }
 
     private int? GetCurrentUserId()

@@ -16,4 +16,11 @@ public class Interest
     public string? Message { get; set; }
     public InterestStatus Status { get; set; } = InterestStatus.Pending;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Mốc thời gian mỗi bên (Initiator/Target) mở thread trò chuyện lần gần nhất — dùng để suy ra
+    /// "chưa đọc" (so với CreatedAt của tin nhắn mới nhất) mà không cần bảng đọc riêng cho từng tin.
+    /// </summary>
+    public DateTime? InitiatorReadAt { get; set; }
+    public DateTime? TargetReadAt { get; set; }
 }

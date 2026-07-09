@@ -4,36 +4,35 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ProductRegionFilterBar } from '@/components/market-price/ProductRegionFilterBar'
+import { useRegions } from '@/hooks/queries/useRegions'
 import type { MarketplaceSort } from '@/api/marketplaceApi'
 
 interface MarketplaceFilterBarProps {
-  productId: number | undefined
   regionId: number | undefined
   search: string
   minPrice: number | undefined
   maxPrice: number | undefined
   sort: MarketplaceSort
-  onProductChange: (productId: number | undefined) => void
   onRegionChange: (regionId: number | undefined) => void
   onSearchChange: (search: string) => void
   onPriceRangeChange: (minPrice: number | undefined, maxPrice: number | undefined) => void
   onSortChange: (sort: MarketplaceSort) => void
 }
 
+const ALL_REGIONS = 'all'
+
 export function MarketplaceFilterBar({
-  productId,
   regionId,
   search,
   minPrice,
   maxPrice,
   sort,
-  onProductChange,
   onRegionChange,
   onSearchChange,
   onPriceRangeChange,
   onSortChange,
 }: MarketplaceFilterBarProps) {
+  const regions = useRegions()
   const [searchInput, setSearchInput] = useState(search)
   const [minInput, setMinInput] = useState(minPrice?.toString() ?? '')
   const [maxInput, setMaxInput] = useState(maxPrice?.toString() ?? '')
@@ -52,12 +51,22 @@ export function MarketplaceFilterBar({
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <ProductRegionFilterBar
-        productId={productId}
-        regionId={regionId}
-        onProductChange={onProductChange}
-        onRegionChange={onRegionChange}
-      />
+      <Select
+        value={regionId ? String(regionId) : ALL_REGIONS}
+        onValueChange={(v) => onRegionChange(v === ALL_REGIONS ? undefined : Number(v))}
+      >
+        <SelectTrigger className="w-48">
+          <SelectValue placeholder="Tất cả khu vực" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ALL_REGIONS}>Tất cả khu vực</SelectItem>
+          {regions.data?.map((r) => (
+            <SelectItem key={r.id} value={String(r.id)}>
+              {r.provinceName}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       <Input
         placeholder="Tìm theo mô tả, đơn vị..."

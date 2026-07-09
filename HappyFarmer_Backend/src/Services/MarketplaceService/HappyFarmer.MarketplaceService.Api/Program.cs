@@ -23,6 +23,7 @@ builder.Services.AddHttpClient("AuthService", client =>
     client.BaseAddress = new Uri(builder.Configuration["Services:AuthServiceBaseUrl"]!);
 });
 builder.Services.AddScoped<AuthServiceClient>();
+builder.Services.AddScoped<InterestNotificationService>();
 
 builder.Services.AddTrustedHeaderAuthentication();
 

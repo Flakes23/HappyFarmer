@@ -157,6 +157,7 @@ export interface BuyRequestResponse {
   buyerActiveBuyRequestCount: number
   productId: number
   desiredQuantity: number
+  unit: string
   regionId: number
   maxPricePerUnit: number | null
   description: string | null
@@ -167,20 +168,52 @@ export interface BuyRequestResponse {
 export interface CreateBuyRequestRequest {
   productId: number
   desiredQuantity: number
+  unit: string
   regionId: number
   maxPricePerUnit?: number
   description?: string
 }
 
+export interface InterestListingSummary {
+  productId: number
+  quantity: number
+  unit: string
+  pricePerUnit: number
+  status: ListingStatus
+  imageUrl: string | null
+}
+
+export interface InterestBuyRequestSummary {
+  productId: number
+  desiredQuantity: number
+  unit: string
+  maxPricePerUnit: number | null
+  status: BuyRequestStatus
+}
+
+export interface InterestLastMessage {
+  body: string
+  senderUserId: number
+  createdAt: string
+}
+
 export interface InterestResponse {
   id: number
   listingId: number | null
+  listing: InterestListingSummary | null
   buyRequestId: number | null
+  buyRequest: InterestBuyRequestSummary | null
   initiatorUserId: number
   targetUserId: number
   message: string | null
   status: InterestStatus
   createdAt: string
+  hasUnread: boolean
+  lastMessage: InterestLastMessage | null
+}
+
+export interface UnreadCountResponse {
+  count: number
 }
 
 export interface MessageResponse {

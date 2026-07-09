@@ -16,6 +16,19 @@ namespace HappyFarmer.MarketplaceService.Api.Hubs;
 [Authorize]
 public class ChatHub(MarketplaceDbContext db) : Hub
 {
+    /// <summary>
+    /// Tự join group riêng theo user ngay khi kết nối (không cần RPC) — dùng để đẩy sự kiện
+    /// "UnreadCountChanged" tới đúng người dùng ở bất kỳ trang nào, không chỉ khi đang mở 1
+    /// thread cụ thể (khác với group theo Interest, chỉ join khi mở ChatThread).
+    /// </summary>
+    public override async Task OnConnectedAsync()
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, UserGroupName(GetUserId()));
+        await base.OnConnectedAsync();
+    }
+
+    public static string UserGroupName(int userId) => $"user-{userId}";
+
     public async Task JoinConversation(int interestId)
     {
         var userId = GetUserId();

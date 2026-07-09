@@ -10,6 +10,7 @@ import { MarketPricePage } from '@/pages/MarketPricePage'
 import { ProductPriceDetailPage } from '@/pages/ProductPriceDetailPage'
 import { MarketplacePage } from '@/pages/MarketplacePage'
 import { ListingDetailPage } from '@/pages/ListingDetailPage'
+import { BuyRequestDetailPage } from '@/pages/BuyRequestDetailPage'
 import { NewListingPage } from '@/pages/NewListingPage'
 import { MyListingsPage } from '@/pages/MyListingsPage'
 import { NewBuyRequestPage } from '@/pages/NewBuyRequestPage'
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
       { path: 'prices/:productId', element: <ProductPriceDetailPage /> },
       { path: 'marketplace', element: <MarketplacePage /> },
       { path: 'marketplace/listings/:id', element: <ListingDetailPage /> },
+      { path: 'marketplace/buy-requests/:id', element: <BuyRequestDetailPage /> },
       {
         path: 'marketplace/new',
         element: (

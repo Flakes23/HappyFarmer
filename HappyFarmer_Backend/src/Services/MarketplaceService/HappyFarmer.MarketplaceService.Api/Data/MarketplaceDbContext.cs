@@ -58,6 +58,7 @@ public class MarketplaceDbContext(DbContextOptions<MarketplaceDbContext> options
         modelBuilder.Entity<BuyRequest>(entity =>
         {
             entity.Property(br => br.DesiredQuantity).HasColumnType("decimal(12,2)");
+            entity.Property(br => br.Unit).HasMaxLength(50);
             entity.Property(br => br.MaxPricePerUnit).HasColumnType("decimal(12,2)");
             entity.Property(br => br.Status).HasConversion<string>().HasMaxLength(20);
             entity.Property(br => br.BuyerName).HasMaxLength(200);
