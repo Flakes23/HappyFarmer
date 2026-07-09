@@ -4,6 +4,7 @@ using HappyFarmer.MarketPriceService.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HappyFarmer.MarketPriceService.Api.Migrations
 {
     [DbContext(typeof(MarketPriceDbContext))]
-    partial class MarketPriceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260709022951_RedesignCategorySchema")]
+    partial class RedesignCategorySchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -79,7 +82,7 @@ namespace HappyFarmer.MarketPriceService.Api.Migrations
                     b.Property<int?>("SubmittedByUserId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Unit")
+                    b.Property<string>("Variant")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 

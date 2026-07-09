@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { Minus, TrendingUp, TrendingDown } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -27,7 +27,9 @@ export function TrendingList() {
         ) : (
           <ul className="divide-y divide-border">
             {trending.data.map((item) => {
-              const isUp = (item.changePercent ?? 0) >= 0
+              const changePercent = item.changePercent ?? 0
+              const isUp = changePercent > 0
+              const isDown = changePercent < 0
               return (
                 <li key={`${item.productId}-${item.regionId}`} className="flex items-center justify-between py-3">
                   <div>
@@ -44,10 +46,16 @@ export function TrendingList() {
                     {item.changePercent !== null ? (
                       <p
                         className={`flex items-center justify-end gap-1 text-xs font-medium ${
-                          isUp ? 'text-accent' : 'text-error'
+                          isUp ? 'text-success' : isDown ? 'text-error' : 'text-text-muted'
                         }`}
                       >
-                        {isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                        {isUp ? (
+                          <TrendingUp className="h-3 w-3" />
+                        ) : isDown ? (
+                          <TrendingDown className="h-3 w-3" />
+                        ) : (
+                          <Minus className="h-3 w-3" />
+                        )}
                         {Math.abs(item.changePercent).toFixed(1)}%
                       </p>
                     ) : null}

@@ -50,10 +50,25 @@ export interface RefreshTokenRequest {
 
 export type PriceSource = 'Crawled' | 'Community' | 'Admin'
 
+export interface CategoryResponse {
+  id: number
+  name: string
+}
+
+export interface SubCategoryResponse {
+  id: number
+  categoryId: number
+  categoryName: string
+  name: string
+}
+
 export interface ProductResponse {
   id: number
   nameVi: string
-  category: string | null
+  subCategoryId: number
+  subCategoryName: string
+  categoryId: number
+  categoryName: string
   unit: string
   imageUrl: string | null
 }
@@ -74,11 +89,13 @@ export interface PriceResponse {
   price: number
   source: PriceSource
   effectiveDate: string
+  unit: string | null
 }
 
 export interface PriceHistoryPoint {
   effectiveDate: string
   price: number
+  unit: string | null
 }
 
 export interface TrendingItem {
@@ -89,6 +106,7 @@ export interface TrendingItem {
   currentPrice: number
   previousPrice: number | null
   changePercent: number | null
+  unit: string | null
 }
 
 export type ListingStatus = 'Active' | 'Sold' | 'Closed' | 'Expired'

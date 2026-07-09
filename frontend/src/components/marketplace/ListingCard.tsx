@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { StatusBadge } from '@/components/marketplace/StatusBadge'
 import { SellerInfo } from '@/components/marketplace/SellerInfo'
+import { PriceDeviationBadge } from '@/components/marketplace/PriceDeviationBadge'
 import { useProducts } from '@/hooks/queries/useProducts'
 import { useRegions } from '@/hooks/queries/useRegions'
 import { formatRelativeTime } from '@/lib/relativeTime'
@@ -23,7 +24,12 @@ export function ListingCard({ listing }: { listing: ListingResponse }) {
 
   return (
     <Link to={`/marketplace/listings/${listing.id}`}>
-      <Card className="h-full transition-colors hover:border-primary">
+      <Card className="relative h-full transition-colors hover:border-primary">
+        <PriceDeviationBadge
+          productId={listing.productId}
+          regionId={listing.regionId}
+          pricePerUnit={listing.pricePerUnit}
+        />
         <CardContent className="flex gap-4 p-4">
           <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-secondary">
             {listing.imageUrls[0] ? (

@@ -14,7 +14,10 @@ public class ProductsController(MarketPriceDbContext db) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<ProductResponse>>> GetProducts()
     {
-        var products = await db.Products.OrderBy(p => p.NameVi).ToListAsync();
+        var products = await db.Products
+            .Include(p => p.SubCategory).ThenInclude(sc => sc.Category)
+            .OrderBy(p => p.NameVi)
+            .ToListAsync();
         return Ok(products.Select(ProductResponse.FromEntity));
     }
 }

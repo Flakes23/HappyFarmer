@@ -30,26 +30,28 @@ export function PriceTable({ prices, isLoading }: PriceTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Sản phẩm</TableHead>
-              <TableHead>Khu vực</TableHead>
               <TableHead>Giá</TableHead>
+              <TableHead>Đơn vị tính</TableHead>
               <TableHead>Nguồn</TableHead>
+              <TableHead>Nơi tham khảo</TableHead>
               <TableHead>Ngày</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {prices.map((p) => (
-              <TableRow key={`${p.productId}-${p.regionId}`}>
+              <TableRow key={`${p.productId}-${p.regionId}-${p.unit ?? ''}`}>
                 <TableCell>
                   <Link to={`/prices/${p.productId}`} className="text-primary hover:underline">
                     {p.productName}
                   </Link>
                 </TableCell>
-                <TableCell>{p.regionName}</TableCell>
                 <TableCell className="font-medium">{currencyFormatter.format(p.price)}</TableCell>
+                <TableCell className="text-text-muted">{p.unit ?? '—'}</TableCell>
                 <TableCell>
                   <SourceBadge source={p.source} />
                 </TableCell>
-                <TableCell className="text-text-muted">{p.effectiveDate}</TableCell>
+                <TableCell>{p.regionName}</TableCell>
+                <TableCell className="text-text-muted">{new Date(p.effectiveDate).toLocaleDateString('vi-VN')}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -58,7 +60,7 @@ export function PriceTable({ prices, isLoading }: PriceTableProps) {
 
       <div className="space-y-3 sm:hidden">
         {prices.map((p) => (
-          <Card key={`${p.productId}-${p.regionId}`}>
+          <Card key={`${p.productId}-${p.regionId}-${p.unit ?? ''}`}>
             <CardContent className="space-y-1 p-4">
               <div className="flex items-start justify-between gap-2">
                 <Link to={`/prices/${p.productId}`} className="font-medium text-primary hover:underline">
@@ -66,9 +68,10 @@ export function PriceTable({ prices, isLoading }: PriceTableProps) {
                 </Link>
                 <SourceBadge source={p.source} />
               </div>
+              {p.unit ? <p className="text-sm text-text-muted">{p.unit}</p> : null}
               <p className="text-sm text-text-muted">{p.regionName}</p>
               <p className="font-semibold text-text">{currencyFormatter.format(p.price)}</p>
-              <p className="text-xs text-text-muted">{p.effectiveDate}</p>
+              <p className="text-xs text-text-muted">{new Date(p.effectiveDate).toLocaleDateString('vi-VN')}</p>
             </CardContent>
           </Card>
         ))}

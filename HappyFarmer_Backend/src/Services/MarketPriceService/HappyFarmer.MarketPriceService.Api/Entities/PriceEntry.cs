@@ -12,6 +12,14 @@ public class PriceEntry
     public int RegionId { get; set; }
     public Region Region { get; set; } = null!;
     public decimal Price { get; set; }
+
+    /// <summary>
+    /// Đơn vị/khối lượng thật của đúng bản ghi giá này (vd. "150g" so với "1kg" — cùng Product
+    /// "Đậu đỏ" nhưng khác quy cách đóng gói, khác giá thật). Null với giá Admin/Community vì
+    /// không có khái niệm "quy cách nguồn" ở đó.
+    /// </summary>
+    public string? Unit { get; set; }
+
     public PriceSource Source { get; set; }
     public int? SubmittedByUserId { get; set; }
     public PriceEntryStatus Status { get; set; } = PriceEntryStatus.Pending;

@@ -13,14 +13,14 @@ interface SourceBadgeProps {
 export function SourceBadge({ source }: SourceBadgeProps) {
   if (source === 'Community') {
     return (
-      <span className="inline-flex items-center rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium text-text-muted">
+      <span className="inline-flex items-center whitespace-nowrap rounded-md border border-accent/30 bg-accent/15 px-2 py-0.5 text-xs font-medium text-accent">
         Cộng đồng đóng góp
       </span>
     )
   }
 
   return (
-    <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+    <span className="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
       <BadgeCheck className="h-3.5 w-3.5 fill-primary text-surface" />
       HappyFarmer
     </span>

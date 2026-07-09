@@ -19,6 +19,12 @@ public class InternalController(MarketPriceDbContext db, PriceCacheService cache
 {
     private const string ApiKeyHeader = "X-Internal-Api-Key";
 
+    /// <summary>
+    /// Find-or-create toàn bộ chuỗi Category -&gt; SubCategory -&gt; Product -&gt; Region theo tên trước
+    /// khi ghi PriceEntry — crawler không cần biết trước Id, chỉ cần gửi đúng tên lấy được từ
+    /// nguồn. Product đã tồn tại thì cập nhật lại SubCategory/Unit/ImageUrl theo lần crawl mới
+    /// nhất (site có thể đổi cách phân loại/đơn vị theo thời gian).
+    /// </summary>
     [HttpPost("crawl-ingest")]
     public async Task<ActionResult<PriceEntryResponse>> CrawlIngest(CrawlIngestRequest request)
     {
@@ -30,18 +36,51 @@ public class InternalController(MarketPriceDbContext db, PriceCacheService cache
             return Unauthorized(new { message = "API key không hợp lệ." });
         }
 
-        var productExists = await db.Products.AnyAsync(p => p.Id == request.ProductId);
-        var regionExists = await db.Regions.AnyAsync(r => r.Id == request.RegionId);
-        if (!productExists || !regionExists)
+        var category = await db.Categories.FirstOrDefaultAsync(c => c.Name == request.CategoryName);
+        if (category is null)
         {
-            return BadRequest(new { message = "Nông sản hoặc khu vực không tồn tại." });
+            category = new Category { Name = request.CategoryName };
+            db.Categories.Add(category);
+            await db.SaveChangesAsync();
+        }
+
+        var subCategory = await db.SubCategories.FirstOrDefaultAsync(sc => sc.CategoryId == category.Id && sc.Name == request.SubCategoryName);
+        if (subCategory is null)
+        {
+            subCategory = new SubCategory { CategoryId = category.Id, Name = request.SubCategoryName };
+            db.SubCategories.Add(subCategory);
+            await db.SaveChangesAsync();
+        }
+
+        var product = await db.Products.FirstOrDefaultAsync(p => p.NameVi == request.ProductName);
+        if (product is null)
+        {
+            product = new Product { NameVi = request.ProductName, SubCategoryId = subCategory.Id, Unit = request.ProductUnit, ImageUrl = request.ImageUrl };
+            db.Products.Add(product);
+        }
+        else
+        {
+            product.SubCategoryId = subCategory.Id;
+            product.Unit = request.ProductUnit;
+            product.ImageUrl = request.ImageUrl ?? product.ImageUrl;
+        }
+
+        await db.SaveChangesAsync();
+
+        var region = await db.Regions.FirstOrDefaultAsync(r => r.ProvinceName == request.RegionProvinceName && r.MarketName == request.RegionMarketName);
+        if (region is null)
+        {
+            region = new Region { ProvinceName = request.RegionProvinceName, MarketName = request.RegionMarketName };
+            db.Regions.Add(region);
+            await db.SaveChangesAsync();
         }
 
         var entry = new PriceEntry
         {
-            ProductId = request.ProductId,
-            RegionId = request.RegionId,
+            ProductId = product.Id,
+            RegionId = region.Id,
             Price = request.Price,
+            Unit = request.Unit,
             Source = PriceSource.Crawled,
             Status = PriceEntryStatus.Approved,
             EffectiveDate = request.EffectiveDate,

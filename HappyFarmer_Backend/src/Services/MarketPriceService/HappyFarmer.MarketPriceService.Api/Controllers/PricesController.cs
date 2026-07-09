@@ -15,17 +15,22 @@ public class PricesController(MarketPriceDbContext db, PriceCacheService cache) 
 {
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<List<PriceResponse>>> GetCurrentPrices(
-        [FromQuery] int? productId, [FromQuery] int? regionId, [FromQuery] DateOnly? date)
+    public async Task<ActionResult<PagedResult<PriceResponse>>> GetCurrentPrices(
+        [FromQuery] int? productId, [FromQuery] int? regionId, [FromQuery] DateOnly? date,
+        [FromQuery] string? search, [FromQuery] int? categoryId, [FromQuery] int? subCategoryId,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
         var asOfDate = date ?? DateOnly.FromDateTime(DateTime.UtcNow);
+        var hasExtraFilters = !string.IsNullOrWhiteSpace(search) || categoryId is not null || subCategoryId is not null;
 
-        if (productId is not null && regionId is not null)
+        if (productId is not null && regionId is not null && !hasExtraFilters && page == 1)
         {
             var cached = await cache.GetCurrentPriceAsync(productId.Value, regionId.Value);
             if (cached is not null)
             {
-                return Ok(new List<PriceResponse> { cached });
+                return Ok(new PagedResult<PriceResponse>([cached], 1, pageSize, 1));
             }
         }
 
@@ -35,22 +40,28 @@ public class PricesController(MarketPriceDbContext db, PriceCacheService cache) 
             .Where(pe => pe.Status == PriceEntryStatus.Approved && pe.EffectiveDate <= asOfDate)
             .Where(pe => productId == null || pe.ProductId == productId)
             .Where(pe => regionId == null || pe.RegionId == regionId)
+            .Where(pe => string.IsNullOrWhiteSpace(search) || pe.Product.NameVi.Contains(search))
+            .Where(pe => categoryId == null || pe.Product.SubCategory.CategoryId == categoryId)
+            .Where(pe => subCategoryId == null || pe.Product.SubCategoryId == subCategoryId)
             .OrderByDescending(pe => pe.EffectiveDate)
             .ThenByDescending(pe => pe.CreatedAt)
             .ToListAsync();
 
         var latestPerGroup = candidates
-            .GroupBy(pe => (pe.ProductId, pe.RegionId))
+            .GroupBy(pe => (pe.ProductId, pe.RegionId, pe.Unit))
             .Select(g => g.First())
-            .Select(ToResponse)
+            .OrderBy(pe => pe.Product.NameVi)
             .ToList();
 
-        if (productId is not null && regionId is not null && latestPerGroup.Count == 1)
+        var totalCount = latestPerGroup.Count;
+        var paged = latestPerGroup.Skip((page - 1) * pageSize).Take(pageSize).Select(ToResponse).ToList();
+
+        if (productId is not null && regionId is not null && !hasExtraFilters && page == 1 && totalCount == 1)
         {
-            await cache.SetCurrentPriceAsync(productId.Value, regionId.Value, latestPerGroup[0]);
+            await cache.SetCurrentPriceAsync(productId.Value, regionId.Value, paged[0]);
         }
 
-        return Ok(latestPerGroup);
+        return Ok(new PagedResult<PriceResponse>(paged, page, pageSize, totalCount));
     }
 
     [HttpGet("{productId:int}/history")]
@@ -66,7 +77,7 @@ public class PricesController(MarketPriceDbContext db, PriceCacheService cache) 
             .Where(pe => regionId == null || pe.RegionId == regionId)
             .Where(pe => pe.EffectiveDate >= fromDate && pe.EffectiveDate <= toDate)
             .OrderBy(pe => pe.EffectiveDate)
-            .Select(pe => new PriceHistoryPoint(pe.EffectiveDate, pe.Price))
+            .Select(pe => new PriceHistoryPoint(pe.EffectiveDate, pe.Price, pe.Unit))
             .ToListAsync();
 
         return Ok(history);
@@ -92,7 +103,7 @@ public class PricesController(MarketPriceDbContext db, PriceCacheService cache) 
             .ToListAsync();
 
         var trending = recent
-            .GroupBy(pe => (pe.ProductId, pe.RegionId))
+            .GroupBy(pe => (pe.ProductId, pe.RegionId, pe.Unit))
             .Select(g =>
             {
                 var ordered = g.OrderByDescending(pe => pe.EffectiveDate).ThenByDescending(pe => pe.CreatedAt).ToList();
@@ -103,7 +114,7 @@ public class PricesController(MarketPriceDbContext db, PriceCacheService cache) 
                     : null;
                 return new TrendingItem(
                     current.ProductId, current.Product.NameVi, current.RegionId, current.Region.MarketName,
-                    current.Price, previous?.Price, changePercent);
+                    current.Price, previous?.Price, changePercent, current.Unit);
             })
             .Where(t => t.ChangePercent is not null)
             .OrderByDescending(t => Math.Abs(t.ChangePercent!.Value))
@@ -157,7 +168,7 @@ public class PricesController(MarketPriceDbContext db, PriceCacheService cache) 
     }
 
     private static PriceResponse ToResponse(PriceEntry pe) => new(
-        pe.ProductId, pe.Product.NameVi, pe.RegionId, pe.Region.MarketName, pe.Price, pe.Source.ToString(), pe.EffectiveDate);
+        pe.ProductId, pe.Product.NameVi, pe.RegionId, pe.Region.MarketName, pe.Price, pe.Source.ToString(), pe.EffectiveDate, pe.Unit);
 
     private int? GetCurrentUserId()
     {

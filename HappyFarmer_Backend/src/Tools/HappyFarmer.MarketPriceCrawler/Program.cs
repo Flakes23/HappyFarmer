@@ -22,16 +22,11 @@ http.DefaultRequestHeaders.Add("X-Internal-Api-Key", apiKey);
 
 Console.WriteLine("== HappyFarmer Market Price Crawler ==");
 Console.WriteLine($"API: {apiBaseUrl}");
-
-var catalog = await CatalogClient.LoadAsync(http);
-Console.WriteLine($"Đã tải catalog: {catalog.ProductIdByName.Count} sản phẩm, {catalog.RegionIdByKey.Count} khu vực.");
 Console.WriteLine();
 
 IPriceSourceScraper[] scrapers =
 [
-    new NsvlScraper(),
-    new ThucPhamDongXanhScraper(),
-    new BangGiaNongSanScraper(),
+    new ThucPhamNhanhScraper(),
 ];
 
 var scraped = new List<RawPriceItem>();
@@ -47,47 +42,32 @@ foreach (var scraper in scrapers)
     }
 }
 
-var resolved = new List<ResolvedPriceItem>();
-foreach (var item in scraped)
-{
-    if (!catalog.ProductIdByName.TryGetValue(item.ProductNameVi, out var productId))
-    {
-        Console.WriteLine($"[SKIP] [{item.SourceName}] Không có Product \"{item.ProductNameVi}\" trong catalog.");
-        continue;
-    }
-
-    var regionKey = (item.RegionProvinceName, item.RegionMarketName);
-    if (!catalog.RegionIdByKey.TryGetValue(regionKey, out var regionId))
-    {
-        Console.WriteLine($"[SKIP] [{item.SourceName}] Không có Region \"{item.RegionProvinceName} / {item.RegionMarketName}\" trong catalog.");
-        continue;
-    }
-
-    resolved.Add(new ResolvedPriceItem(
-        productId, regionId, item.ProductNameVi,
-        $"{item.RegionProvinceName} - {item.RegionMarketName}", item.SourceName, item.Price));
-}
-
 Console.WriteLine();
-Console.WriteLine("== Ghép nhóm theo (Sản phẩm, Khu vực) và tính giá ==");
+Console.WriteLine("== Lưu từng sản phẩm lấy được (server tự tạo Category/SubCategory/Product/Region theo tên) ==");
 
-var groups = resolved.GroupBy(r => (r.ProductId, r.RegionId)).ToList();
+// Cùng 1 lần crawl có thể vô tình đọc trùng đúng 1 sản phẩm (vd. trang bị tải lại khi lỗi mạng
+// giữa chừng) — loại theo đúng (ProductName, Unit) để không gửi 2 bản ghi giá y hệt nhau,
+// KHÔNG loại theo tên sản phẩm gốc vì mỗi tên trên trang này đã là 1 mặt hàng cụ thể, riêng biệt.
+var deduped = scraped.DistinctBy(i => (i.ProductName, i.Unit)).ToList();
 var effectiveDate = DateOnly.FromDateTime(DateTime.Today);
 var successCount = 0;
 
-foreach (var group in groups)
+foreach (var item in deduped)
 {
-    var members = group.ToList();
-    var price = Math.Round(members.Average(m => m.Price), 0);
-    var breakdown = string.Join(", ", members.Select(m => $"{m.SourceName}={m.Price:N0}đ"));
-    Console.WriteLine($"{members[0].ProductName} @ {members[0].RegionName}: [{breakdown}] -> {price:N0}đ");
+    Console.WriteLine($"{item.ProductName} [{item.SubCategoryName}] @ {item.RegionProvinceName} - {item.RegionMarketName} [{item.SourceName}]: {item.Price:N0}đ/{item.ProductUnit}");
 
     var payload = new
     {
-        ProductId = group.Key.ProductId,
-        RegionId = group.Key.RegionId,
-        Price = price,
+        item.CategoryName,
+        item.SubCategoryName,
+        ProductName = item.ProductName,
+        item.ProductUnit,
+        item.RegionProvinceName,
+        item.RegionMarketName,
+        item.Price,
         EffectiveDate = effectiveDate,
+        item.Unit,
+        item.ImageUrl,
     };
 
     var response = await http.PostAsJsonAsync("/api/market-price/internal/crawl-ingest", payload);
@@ -103,7 +83,5 @@ foreach (var group in groups)
 }
 
 Console.WriteLine();
-Console.WriteLine($"Hoàn tất: {successCount}/{groups.Count} nhóm giá đã lưu vào hệ thống.");
+Console.WriteLine($"Hoàn tất: {successCount}/{deduped.Count} sản phẩm đã lưu vào hệ thống.");
 return 0;
-
-record ResolvedPriceItem(int ProductId, int RegionId, string ProductName, string RegionName, string SourceName, decimal Price);

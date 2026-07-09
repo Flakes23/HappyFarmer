@@ -118,9 +118,9 @@ export function ListingForm() {
           name="pricePerUnit"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Giá / đơn vị (VNĐ)</FormLabel>
+              <FormLabel>Giá (VNĐ) / đơn vị (Ví dụ 10000 VNĐ / 1kg)</FormLabel>
               <FormControl>
-                <Input type="number" step="0.01" {...field} />
+                <Input type="number" step="1000" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
