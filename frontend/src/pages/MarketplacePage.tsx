@@ -129,7 +129,7 @@ export function MarketplacePage() {
             <CardGridSkeleton count={8} />
           ) : listings.data && listings.data.items.length > 0 ? (
             <>
-              <div className="grid gap-4 grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                 {listings.data.items.map((l) => (
                   <ListingCard key={l.id} listing={l} />
                 ))}
@@ -170,7 +170,7 @@ export function MarketplacePage() {
             <CardGridSkeleton count={8} />
           ) : buyRequests.data && buyRequests.data.items.length > 0 ? (
             <>
-              <div className="grid gap-4 grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                 {buyRequests.data.items.map((br) => (
                   <BuyRequestCard key={br.id} buyRequest={br} />
                 ))}
