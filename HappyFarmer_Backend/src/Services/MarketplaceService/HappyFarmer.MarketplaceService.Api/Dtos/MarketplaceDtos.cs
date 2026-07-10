@@ -20,13 +20,13 @@ public record UpdateListingRequest(
     DateTime? ExpiresAt);
 
 public record ListingResponse(
-    int Id, int FarmerId, string? FarmerName, DateTime? FarmerJoinedAt, int FarmerActiveListingCount,
+    int Id, int FarmerId, string? FarmerName, DateTime? FarmerJoinedAt, string? FarmerAvatarUrl, int FarmerActiveListingCount,
     int ProductId, decimal Quantity, string Unit, decimal PricePerUnit,
     int RegionId, string? Description, string Status, DateTime CreatedAt, DateTime? ExpiresAt,
     List<string> ImageUrls)
 {
     public static ListingResponse FromEntity(Listing l, int farmerActiveListingCount = 0) => new(
-        l.Id, l.FarmerId, l.FarmerName, l.FarmerJoinedAt, farmerActiveListingCount,
+        l.Id, l.FarmerId, l.FarmerName, l.FarmerJoinedAt, l.FarmerAvatarUrl, farmerActiveListingCount,
         l.ProductId, l.Quantity, l.Unit, l.PricePerUnit,
         l.RegionId, l.Description, l.Status.ToString(), l.CreatedAt, l.ExpiresAt,
         l.Images.OrderBy(i => i.SortOrder).Select(i => i.ImageUrl).ToList());
@@ -41,12 +41,12 @@ public record CreateBuyRequestRequest(
     string? Description);
 
 public record BuyRequestResponse(
-    int Id, int BuyerId, string? BuyerName, DateTime? BuyerJoinedAt, int BuyerActiveBuyRequestCount,
+    int Id, int BuyerId, string? BuyerName, DateTime? BuyerJoinedAt, string? BuyerAvatarUrl, int BuyerActiveBuyRequestCount,
     int ProductId, decimal DesiredQuantity, string Unit, int RegionId,
     decimal? MaxPricePerUnit, string? Description, string Status, DateTime CreatedAt)
 {
     public static BuyRequestResponse FromEntity(BuyRequest br, int buyerActiveBuyRequestCount = 0) => new(
-        br.Id, br.BuyerId, br.BuyerName, br.BuyerJoinedAt, buyerActiveBuyRequestCount,
+        br.Id, br.BuyerId, br.BuyerName, br.BuyerJoinedAt, br.BuyerAvatarUrl, buyerActiveBuyRequestCount,
         br.ProductId, br.DesiredQuantity, br.Unit, br.RegionId,
         br.MaxPricePerUnit, br.Description, br.Status.ToString(), br.CreatedAt);
 }

@@ -42,6 +42,7 @@ public class MarketplaceDbContext(DbContextOptions<MarketplaceDbContext> options
             entity.Property(l => l.Unit).HasMaxLength(50);
             entity.Property(l => l.Status).HasConversion<string>().HasMaxLength(20);
             entity.Property(l => l.FarmerName).HasMaxLength(200);
+            entity.Property(l => l.FarmerAvatarUrl).HasMaxLength(500);
 
             entity.HasIndex(l => new { l.Status, l.ProductId, l.RegionId });
             entity.HasIndex(l => l.FarmerId);
@@ -62,6 +63,7 @@ public class MarketplaceDbContext(DbContextOptions<MarketplaceDbContext> options
             entity.Property(br => br.MaxPricePerUnit).HasColumnType("decimal(12,2)");
             entity.Property(br => br.Status).HasConversion<string>().HasMaxLength(20);
             entity.Property(br => br.BuyerName).HasMaxLength(200);
+            entity.Property(br => br.BuyerAvatarUrl).HasMaxLength(500);
 
             entity.HasIndex(br => new { br.Status, br.ProductId, br.RegionId });
             entity.HasIndex(br => br.BuyerId);

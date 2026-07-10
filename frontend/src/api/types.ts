@@ -126,6 +126,7 @@ export interface ListingResponse {
   farmerId: number
   farmerName: string | null
   farmerJoinedAt: string | null
+  farmerAvatarUrl: string | null
   farmerActiveListingCount: number
   productId: number
   quantity: number
@@ -162,6 +163,7 @@ export interface BuyRequestResponse {
   buyerId: number
   buyerName: string | null
   buyerJoinedAt: string | null
+  buyerAvatarUrl: string | null
   buyerActiveBuyRequestCount: number
   productId: number
   desiredQuantity: number

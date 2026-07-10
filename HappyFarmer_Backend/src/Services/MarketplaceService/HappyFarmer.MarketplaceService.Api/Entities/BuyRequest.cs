@@ -6,6 +6,7 @@ public class BuyRequest
     public int BuyerId { get; set; }
     public string? BuyerName { get; set; }
     public DateTime? BuyerJoinedAt { get; set; }
+    public string? BuyerAvatarUrl { get; set; }
     public int ProductId { get; set; }
     public decimal DesiredQuantity { get; set; }
     public required string Unit { get; set; }

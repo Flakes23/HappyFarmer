@@ -6,8 +6,6 @@ interface PriceDeviationBadgeProps {
   pricePerUnit: number
 }
 
-const THRESHOLD_PERCENT = 10
-
 export function PriceDeviationBadge({ productId, regionId, pricePerUnit }: PriceDeviationBadgeProps) {
   const prices = usePrices({ productId })
   const reference = prices.data?.items.find((p) => p.regionId === regionId)
@@ -16,8 +14,6 @@ export function PriceDeviationBadge({ productId, regionId, pricePerUnit }: Price
 
   const deviationPercent = ((pricePerUnit - reference.price) / reference.price) * 100
   const isEqual = deviationPercent === 0
-  if (!isEqual && Math.abs(deviationPercent) < THRESHOLD_PERCENT) return null
-
   const isHigher = deviationPercent > 0
 
   return (

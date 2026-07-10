@@ -90,6 +90,7 @@ public class ListingsController(MarketplaceDbContext db, AuthServiceClient authS
             FarmerId = farmerId,
             FarmerName = farmer?.FullName,
             FarmerJoinedAt = farmer?.CreatedAt,
+            FarmerAvatarUrl = farmer?.AvatarUrl,
             ProductId = request.ProductId,
             Quantity = request.Quantity,
             Unit = request.Unit,

@@ -27,7 +27,7 @@ public record UserResponse(int Id, string? PhoneNumber, string? Email, string Fu
         user.Id, user.PhoneNumber, user.Email, user.FullName, user.Role.ToString(), user.ProvinceId, user.IsActive, user.CreatedAt, user.AvatarUrl);
 }
 
-public record UserLookupResponse(int Id, string FullName, DateTime CreatedAt)
+public record UserLookupResponse(int Id, string FullName, DateTime CreatedAt, string? AvatarUrl)
 {
-    public static UserLookupResponse FromEntity(User user) => new(user.Id, user.FullName, user.CreatedAt);
+    public static UserLookupResponse FromEntity(User user) => new(user.Id, user.FullName, user.CreatedAt, user.AvatarUrl);
 }

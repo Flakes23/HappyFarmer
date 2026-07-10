@@ -63,6 +63,7 @@ export function ListingCard({ listing }: { listing: ListingResponse }) {
 
             <SellerInfo
               name={listing.farmerName}
+              avatarUrl={listing.farmerAvatarUrl}
               joinedAt={listing.farmerJoinedAt}
               otherActiveCount={otherActiveCount}
               otherActiveLabel="tin khác đang bán"

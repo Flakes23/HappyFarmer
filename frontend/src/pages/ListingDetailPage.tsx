@@ -112,6 +112,7 @@ export function ListingDetailPage() {
             <div className="space-y-1 border-t border-border pt-4">
               <SellerInfo
                 name={listing.data.farmerName}
+                avatarUrl={listing.data.farmerAvatarUrl}
                 joinedAt={listing.data.farmerJoinedAt}
                 otherActiveCount={
                   listing.data.status === 'Active'

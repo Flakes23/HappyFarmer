@@ -11,6 +11,7 @@ public class Listing
     public int FarmerId { get; set; }
     public string? FarmerName { get; set; }
     public DateTime? FarmerJoinedAt { get; set; }
+    public string? FarmerAvatarUrl { get; set; }
     public int ProductId { get; set; }
     public decimal Quantity { get; set; }
     public required string Unit { get; set; }

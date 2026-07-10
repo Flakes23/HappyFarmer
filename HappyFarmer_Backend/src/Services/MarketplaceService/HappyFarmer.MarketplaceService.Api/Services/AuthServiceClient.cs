@@ -8,7 +8,7 @@ namespace HappyFarmer.MarketplaceService.Api.Services;
 /// đầu tiên trong codebase — chỉ dùng ở luồng tạo tin (denormalize 1 lần), không gọi khi đọc, để tránh
 /// N+1 và không làm luồng đọc phụ thuộc Auth Service còn sống hay không.
 /// </summary>
-public record UserLookupDto(int Id, string FullName, DateTime CreatedAt);
+public record UserLookupDto(int Id, string FullName, DateTime CreatedAt, string? AvatarUrl);
 
 public class AuthServiceClient(IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger<AuthServiceClient> logger)
 {

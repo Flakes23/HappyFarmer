@@ -1,14 +1,17 @@
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { cn, getInitial } from '@/lib/utils'
 import { formatJoinedSince } from '@/lib/relativeTime'
 
 export function SellerInfo({
   name,
+  avatarUrl,
   joinedAt,
   otherActiveCount,
   otherActiveLabel,
   className,
 }: {
   name: string | null
+  avatarUrl?: string | null
   joinedAt: string | null
   otherActiveCount: number
   otherActiveLabel: string
@@ -18,9 +21,12 @@ export function SellerInfo({
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
-      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-light text-[10px] font-semibold text-white">
-        {getInitial(name)}
-      </span>
+      <Avatar className="h-5 w-5 shrink-0">
+        <AvatarImage src={avatarUrl ?? undefined} alt={name} />
+        <AvatarFallback className="bg-primary-light text-[10px] font-semibold text-white">
+          {getInitial(name)}
+        </AvatarFallback>
+      </Avatar>
       <span className="min-w-0 truncate text-xs text-text-muted">
         <span className="font-medium text-text">{name}</span>
         {joinedAt ? <> · {formatJoinedSince(joinedAt)}</> : null}

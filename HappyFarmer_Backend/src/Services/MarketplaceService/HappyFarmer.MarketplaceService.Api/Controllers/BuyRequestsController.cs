@@ -73,6 +73,7 @@ public class BuyRequestsController(MarketplaceDbContext db, AuthServiceClient au
             BuyerId = buyerId,
             BuyerName = buyer?.FullName,
             BuyerJoinedAt = buyer?.CreatedAt,
+            BuyerAvatarUrl = buyer?.AvatarUrl,
             ProductId = request.ProductId,
             DesiredQuantity = request.DesiredQuantity,
             Unit = request.Unit,

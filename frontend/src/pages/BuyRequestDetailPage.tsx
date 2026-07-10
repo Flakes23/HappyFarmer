@@ -111,6 +111,7 @@ export function BuyRequestDetailPage() {
             <div className="space-y-1 border-t border-border pt-4">
               <SellerInfo
                 name={buyRequest.data.buyerName}
+                avatarUrl={buyRequest.data.buyerAvatarUrl}
                 joinedAt={buyRequest.data.buyerJoinedAt}
                 otherActiveCount={
                   buyRequest.data.status === 'Active'

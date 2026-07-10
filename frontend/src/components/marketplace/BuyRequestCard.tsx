@@ -52,6 +52,7 @@ export function BuyRequestCard({ buyRequest }: { buyRequest: BuyRequestResponse 
 
           <SellerInfo
             name={buyRequest.buyerName}
+            avatarUrl={buyRequest.buyerAvatarUrl}
             joinedAt={buyRequest.buyerJoinedAt}
             otherActiveCount={otherActiveCount}
             otherActiveLabel="yêu cầu khác"

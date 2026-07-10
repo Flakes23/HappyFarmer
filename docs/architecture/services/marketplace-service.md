@@ -28,6 +28,9 @@
 Listings
   Id            (PK)
   FarmerId
+  FarmerName        (denormalize 1 lần lúc tạo tin, xem AuthServiceClient)
+  FarmerJoinedAt
+  FarmerAvatarUrl
   ProductId
   Quantity
   Unit
@@ -47,6 +50,9 @@ ListingImages
 BuyRequests
   Id                (PK)
   BuyerId
+  BuyerName         (denormalize 1 lần lúc tạo, xem AuthServiceClient)
+  BuyerJoinedAt
+  BuyerAvatarUrl
   ProductId
   DesiredQuantity
   RegionId
