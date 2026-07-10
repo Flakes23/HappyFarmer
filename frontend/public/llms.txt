@@ -1,0 +1,9 @@
+# HappyFarmer
+
+> Nền tảng hỗ trợ nông dân Việt Nam: tra cứu giá nông sản, chợ nông sản kết nối nông dân với người mua.
+
+## Trang chính
+
+- [Trang chủ](https://happy-farmer-beige.vercel.app/): Giới thiệu HappyFarmer
+- [Giá nông sản](https://happy-farmer-beige.vercel.app/prices): Tra cứu giá nông sản theo danh mục, khu vực, biểu đồ lịch sử giá
+- [Chợ nông sản](https://happy-farmer-beige.vercel.app/marketplace): Đăng bán / tìm mua nông sản, liên hệ trực tiếp giữa nông dân và người mua
