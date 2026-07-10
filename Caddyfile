@@ -1,0 +1,6 @@
+# "20.196.128.100.sslip.io" tự phân giải về IP 20.196.128.100 (dịch vụ sslip.io miễn phí, không
+# cần đăng ký) — cho Caddy 1 hostname công khai thật để tự xin chứng chỉ Let's Encrypt (bắt buộc
+# phải có hostname, không xin được cho IP trần). Đổi domain thật vào đây khi có sau này.
+20.196.128.100.sslip.io {
+	reverse_proxy gateway:8080
+}

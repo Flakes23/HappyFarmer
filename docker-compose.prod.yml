@@ -1,0 +1,159 @@
+# Chạy trên VPS — chỉ pull image đã build sẵn từ GitHub Container Registry (GHCR) qua CI/CD,
+# không build từ source tại VPS (máy nhỏ, build sẽ rất chậm). Xem docs/architecture/03-infrastructure-deployment.md.
+#
+# 2 service AI Advisory / Notification CHƯA deploy (còn là skeleton) — chỉ 3 service + Gateway.
+#
+# Dùng: docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d
+# Cần file .env cùng thư mục (không commit) — xem .env.prod.example.
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SQLSERVER_SA_PASSWORD}
+      MSSQL_PID: Developer
+    ports:
+      # Chỉ bind vào loopback của VPS (không public ra Internet) — dùng để SSH tunnel từ máy cá
+      # nhân chạy migration (`dotnet ef database update`), không truy cập được từ ngoài.
+      - "127.0.0.1:1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - happyfarmer-net
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    volumes:
+      - redis-data:/data
+    networks:
+      - happyfarmer-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  auth-service:
+    image: ghcr.io/flakes23/happyfarmer-auth-service:latest
+    container_name: auth-service
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__AuthDb: "Server=sqlserver,1433;Database=HappyFarmer_AuthDb;User Id=sa;Password=${SQLSERVER_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False"
+      ConnectionStrings__Redis: "redis:6379"
+      Internal__ApiKey: ${INTERNAL_API_KEY}
+    volumes:
+      # Giữ key JWT (RS256) qua các lần redeploy — mất key = mọi token cũ (đăng nhập cũ) bị vô hiệu,
+      # JWKS Gateway cache cũng lệch tạm thời cho tới khi refetch.
+      - auth-keys:/app/keys
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - happyfarmer-net
+    restart: unless-stopped
+
+  market-price-service:
+    image: ghcr.io/flakes23/happyfarmer-market-price-service:latest
+    container_name: market-price-service
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__MarketPriceDb: "Server=sqlserver,1433;Database=HappyFarmer_MarketPriceDb;User Id=sa;Password=${SQLSERVER_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False"
+      ConnectionStrings__Redis: "redis:6379"
+      Internal__ApiKey: ${INTERNAL_API_KEY}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - happyfarmer-net
+    restart: unless-stopped
+
+  marketplace-service:
+    image: ghcr.io/flakes23/happyfarmer-marketplace-service:latest
+    container_name: marketplace-service
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__MarketplaceDb: "Server=sqlserver,1433;Database=HappyFarmer_MarketplaceDb;User Id=sa;Password=${SQLSERVER_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False"
+      Cloudinary__CloudName: ${CLOUDINARY_CLOUD_NAME}
+      Cloudinary__ApiKey: ${CLOUDINARY_API_KEY}
+      Cloudinary__ApiSecret: ${CLOUDINARY_API_SECRET}
+      Services__AuthServiceBaseUrl: "http://auth-service:8080"
+      Internal__ApiKey: ${INTERNAL_API_KEY}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - happyfarmer-net
+    restart: unless-stopped
+
+  gateway:
+    image: ghcr.io/flakes23/happyfarmer-gateway:latest
+    container_name: gateway
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Jwt__JwksUrl: "http://auth-service:8080/.well-known/jwks.json"
+      Jwt__Issuer: happyfarmer-auth
+      Jwt__Audience: happyfarmer-services
+      Cors__AllowedOrigins: ${CORS_ALLOWED_ORIGINS}
+      ReverseProxy__Routes__auth-route__ClusterId: auth-cluster
+      ReverseProxy__Routes__auth-route__Match__Path: "/api/auth/{**remainder}"
+      ReverseProxy__Routes__jwks-route__ClusterId: auth-cluster
+      ReverseProxy__Routes__jwks-route__Match__Path: "/.well-known/jwks.json"
+      ReverseProxy__Routes__market-price-route__ClusterId: market-price-cluster
+      ReverseProxy__Routes__market-price-route__Match__Path: "/api/market-price/{**remainder}"
+      ReverseProxy__Routes__marketplace-route__ClusterId: marketplace-cluster
+      ReverseProxy__Routes__marketplace-route__Match__Path: "/api/marketplace/{**remainder}"
+      ReverseProxy__Clusters__auth-cluster__Destinations__destination1__Address: "http://auth-service:8080"
+      ReverseProxy__Clusters__market-price-cluster__Destinations__destination1__Address: "http://market-price-service:8080"
+      ReverseProxy__Clusters__marketplace-cluster__Destinations__destination1__Address: "http://marketplace-service:8080"
+      ReverseProxy__Clusters__marketplace-cluster__HttpRequest__ActivityTimeout: "00:10:00"
+    depends_on:
+      - auth-service
+      - market-price-service
+      - marketplace-service
+    networks:
+      - happyfarmer-net
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - gateway
+    networks:
+      - happyfarmer-net
+    restart: unless-stopped
+
+networks:
+  happyfarmer-net:
+    driver: bridge
+
+volumes:
+  sqlserver-data:
+  redis-data:
+  auth-keys:
+  caddy-data:
+  caddy-config:

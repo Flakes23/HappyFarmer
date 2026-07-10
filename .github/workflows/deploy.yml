@@ -1,0 +1,88 @@
+name: Deploy backend
+
+# Chạy khi merge/push vào main — build 4 image, push lên GHCR, rồi SSH vào VPS pull + up.
+# 2 service AI Advisory/Notification chưa deploy (còn skeleton).
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_OWNER: flakes23
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - service: auth-service
+            dockerfile: HappyFarmer_Backend/src/Services/AuthService/HappyFarmer.AuthService.Api/Dockerfile
+          - service: market-price-service
+            dockerfile: HappyFarmer_Backend/src/Services/MarketPriceService/HappyFarmer.MarketPriceService.Api/Dockerfile
+          - service: marketplace-service
+            dockerfile: HappyFarmer_Backend/src/Services/MarketplaceService/HappyFarmer.MarketplaceService.Api/Dockerfile
+          - service: gateway
+            dockerfile: HappyFarmer_Backend/src/Gateway/HappyFarmer.ApiGateway/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ${{ matrix.service }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ./HappyFarmer_Backend
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/happyfarmer-${{ matrix.service }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/happyfarmer-${{ matrix.service }}:${{ github.sha }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy compose files to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "docker-compose.prod.yml,Caddyfile"
+          target: "~/happyfarmer"
+
+      - name: Write .env and redeploy on VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd ~/happyfarmer
+            cat > .env <<EOF
+            SQLSERVER_SA_PASSWORD=${{ secrets.SQLSERVER_SA_PASSWORD }}
+            INTERNAL_API_KEY=${{ secrets.INTERNAL_API_KEY }}
+            CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
+            CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
+            CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
+            CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}
+            EOF
+            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
+            docker image prune -f

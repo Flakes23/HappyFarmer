@@ -69,6 +69,7 @@ build/
 .env
 .env.*
 !.env.example
+!.env.prod.example
 appsettings.*.local.json
 *.pem
 *.key
@@ -86,6 +87,11 @@ docker-compose.override.yml
 data/uploads/
 *.log
 logs/
+
+## =========================
+## Ghi chú học tập cá nhân (không thuộc tài liệu chính thức)
+## =========================
+DEPLOY_LEARNING_NOTES.md
 
 ## =========================
 ## OS / Editor
