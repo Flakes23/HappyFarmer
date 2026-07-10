@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { computePriceStats } from '@/lib/priceStats'
 import type { PriceHistoryPoint } from '@/api/types'
 
@@ -6,9 +7,20 @@ const currencyFormatter = new Intl.NumberFormat('vi-VN', { style: 'currency', cu
 
 interface PriceStatCardsProps {
   data: PriceHistoryPoint[] | undefined
+  isLoading: boolean
 }
 
-export function PriceStatCards({ data }: PriceStatCardsProps) {
+export function PriceStatCards({ data, isLoading }: PriceStatCardsProps) {
+  if (isLoading) {
+    return (
+      <div className="grid gap-3 sm:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-[76px] w-full" />
+        ))}
+      </div>
+    )
+  }
+
   const stats = computePriceStats(data)
   if (!stats) return null
 

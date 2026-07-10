@@ -1,11 +1,19 @@
 import { Link } from 'react-router-dom'
-import { LogOut } from 'lucide-react'
+import { LogOut, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { MobileNav } from '@/components/layout/MobileNav'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { useAuthStore } from '@/store/authStore'
 import { useLogout } from '@/hooks/mutations/useLogout'
 import { useUnreadInterestsCount } from '@/hooks/queries/useUnreadInterestsCount'
+import { getInitial } from '@/lib/utils'
 import logo from '@/assets/logo.svg'
 
 export function Navbar() {
@@ -44,18 +52,31 @@ export function Navbar() {
           <ThemeToggle />
 
           {isAuthenticated && user ? (
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-text-muted">{user.fullName}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => logout.mutate()}
-                disabled={logout.isPending}
-              >
-                <LogOut className="h-4 w-4" />
-                Đăng xuất
-              </Button>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 rounded-full text-sm text-text-muted hover:text-primary">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.avatarUrl ?? undefined} alt={user.fullName} />
+                    <AvatarFallback className="bg-primary-light text-white">
+                      {getInitial(user.fullName)}
+                    </AvatarFallback>
+                  </Avatar>
+                  {user.fullName}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link to="/profile">
+                    <User className="h-4 w-4" />
+                    Hồ sơ của tôi
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => logout.mutate()} disabled={logout.isPending}>
+                  <LogOut className="h-4 w-4" />
+                  {logout.isPending ? 'Đang đăng xuất...' : 'Đăng xuất'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="sm" asChild>

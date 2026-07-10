@@ -21,6 +21,14 @@ export interface UserResponse {
   provinceId: number | null
   isActive: boolean
   createdAt: string
+  avatarUrl: string | null
+}
+
+export interface UpdateProfileRequest {
+  fullName?: string
+  email?: string
+  provinceId?: number
+  avatarUrl?: string
 }
 
 export interface AuthResponse {

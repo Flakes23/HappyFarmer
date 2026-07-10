@@ -5,6 +5,8 @@ import type {
   LoginRequest,
   RefreshTokenRequest,
   RegisterRequest,
+  UpdateProfileRequest,
+  UploadSignatureResponse,
   UserResponse,
 } from '@/api/types'
 
@@ -22,6 +24,12 @@ export const authApi = {
     rawAuthClient.post<void>('/api/auth/logout', body).then((r) => r.data),
 
   getMe: () => httpAuth.get<UserResponse>('/api/auth/me').then((r) => r.data),
+
+  updateMe: (body: UpdateProfileRequest) =>
+    httpAuth.put<UserResponse>('/api/auth/me', body).then((r) => r.data),
+
+  getUploadSignature: () =>
+    httpAuth.get<UploadSignatureResponse>('/api/auth/uploads/signature').then((r) => r.data),
 }
 
 /** Backend duplicate-conflict bodies have been observed with inconsistent casing (`message`/`Message`). */

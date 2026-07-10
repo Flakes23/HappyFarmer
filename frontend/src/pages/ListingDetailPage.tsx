@@ -53,7 +53,13 @@ export function ListingDetailPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{product?.nameVi ?? `Sản phẩm #${listing.data?.productId ?? ''}`}</BreadcrumbPage>
+              <BreadcrumbPage>
+                {products.isLoading ? (
+                  <Skeleton className="inline-block h-4 w-24 align-middle" />
+                ) : (
+                  (product?.nameVi ?? `Sản phẩm #${listing.data?.productId ?? ''}`)
+                )}
+              </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -88,7 +94,11 @@ export function ListingDetailPage() {
               <div>
                 <dt className="text-text-muted">Khu vực</dt>
                 <dd className="font-medium">
-                  {region ? region.provinceName : `#${listing.data.regionId}`}
+                  {regions.isLoading ? (
+                    <Skeleton className="inline-block h-4 w-20 align-middle" />
+                  ) : (
+                    (region ? region.provinceName : `#${listing.data.regionId}`)
+                  )}
                 </dd>
               </div>
               <div>

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { StatusBadge } from '@/components/marketplace/StatusBadge'
 import { SellerInfo } from '@/components/marketplace/SellerInfo'
+import { PriceDeviationBadge } from '@/components/marketplace/PriceDeviationBadge'
 import { useProducts } from '@/hooks/queries/useProducts'
 import { useRegions } from '@/hooks/queries/useRegions'
 import { formatRelativeTime } from '@/lib/relativeTime'
@@ -23,7 +24,14 @@ export function BuyRequestCard({ buyRequest }: { buyRequest: BuyRequestResponse 
 
   return (
     <Link to={`/marketplace/buy-requests/${buyRequest.id}`}>
-      <Card className="h-full transition-colors hover:border-primary">
+      <Card className="relative h-full transition-colors hover:border-primary">
+        {buyRequest.maxPricePerUnit ? (
+          <PriceDeviationBadge
+            productId={buyRequest.productId}
+            regionId={buyRequest.regionId}
+            pricePerUnit={buyRequest.maxPricePerUnit}
+          />
+        ) : null}
         <CardContent className="space-y-1 p-4">
           <div className="flex items-start justify-between gap-2">
             <p className="font-medium text-text">{product?.nameVi ?? `Sản phẩm #${buyRequest.productId}`}</p>

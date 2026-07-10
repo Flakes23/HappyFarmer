@@ -54,9 +54,10 @@ export function MarketplaceFilterBar({
       <Select
         value={regionId ? String(regionId) : ALL_REGIONS}
         onValueChange={(v) => onRegionChange(v === ALL_REGIONS ? undefined : Number(v))}
+        disabled={regions.isLoading}
       >
         <SelectTrigger className="w-48">
-          <SelectValue placeholder="Tất cả khu vực" />
+          <SelectValue placeholder={regions.isLoading ? 'Đang tải...' : 'Tất cả khu vực'} />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={ALL_REGIONS}>Tất cả khu vực</SelectItem>

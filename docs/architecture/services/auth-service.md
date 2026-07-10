@@ -17,8 +17,9 @@ Xem luồng xác thực tổng thể tại [../02-security-auth.md](../02-securi
 | POST | `/api/auth/refresh-token` | Cấp accessToken mới từ refreshToken |
 | POST | `/api/auth/logout` | Thu hồi refreshToken hiện tại |
 | GET | `/api/auth/me` | Lấy thông tin user hiện tại (yêu cầu JWT) |
-| PUT | `/api/auth/me` | Cập nhật profile |
+| PUT | `/api/auth/me` | Cập nhật profile (kèm `avatarUrl` sau khi đã upload lên Cloudinary) |
 | POST | `/api/auth/change-password` | Đổi mật khẩu |
+| GET | `/api/auth/uploads/signature` | Lấy chữ ký signed upload ảnh đại diện lên Cloudinary (mọi role) |
 | GET | `/.well-known/jwks.json` | Public key (RS256) cho service khác verify JWT |
 | GET | `/api/auth/users` | Danh sách user (Admin), phục vụ duyệt/khoá tài khoản |
 
@@ -33,6 +34,7 @@ Users
   FullName
   Role          (Farmer | Buyer | Admin)
   ProvinceId
+  AvatarUrl
   IsActive
   CreatedAt
 

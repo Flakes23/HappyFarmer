@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { HubConnectionState } from '@microsoft/signalr'
-import { Send } from 'lucide-react'
+import { Loader2, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -127,7 +127,7 @@ export function ChatThread({ interestId }: { interestId: number }) {
           onClick={handleSend}
           disabled={sendMessage.isPending || !draft.trim()}
         >
-          <Send className="h-4 w-4" />
+          {sendMessage.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         </Button>
       </div>
     </div>

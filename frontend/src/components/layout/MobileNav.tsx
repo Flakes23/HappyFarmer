@@ -63,6 +63,11 @@ export function MobileNav() {
           {isAuthenticated && user ? (
             <>
               <span className="text-sm text-text-muted">{user.fullName}</span>
+              <Button variant="outline" asChild>
+                <Link to="/profile" onClick={close}>
+                  Hồ sơ của tôi
+                </Link>
+              </Button>
               <Button
                 variant="outline"
                 onClick={() => {
@@ -72,7 +77,7 @@ export function MobileNav() {
                 disabled={logout.isPending}
               >
                 <LogOut className="h-4 w-4" />
-                Đăng xuất
+                {logout.isPending ? 'Đang đăng xuất...' : 'Đăng xuất'}
               </Button>
             </>
           ) : (

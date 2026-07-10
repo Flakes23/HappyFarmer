@@ -54,9 +54,10 @@ export function PriceFilterBar({
           onCategoryChange(v === ALL ? undefined : Number(v))
           onSubCategoryChange(undefined)
         }}
+        disabled={categories.isLoading}
       >
         <SelectTrigger className="w-48">
-          <SelectValue placeholder="Tất cả danh mục" />
+          <SelectValue placeholder={categories.isLoading ? 'Đang tải...' : 'Tất cả danh mục'} />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={ALL}>Tất cả danh mục</SelectItem>
@@ -71,10 +72,10 @@ export function PriceFilterBar({
       <Select
         value={subCategoryId ? String(subCategoryId) : ALL}
         onValueChange={(v) => onSubCategoryChange(v === ALL ? undefined : Number(v))}
-        disabled={!categoryId}
+        disabled={!categoryId || subCategories.isLoading}
       >
         <SelectTrigger className="w-48">
-          <SelectValue placeholder="Tất cả loại" />
+          <SelectValue placeholder={subCategories.isLoading ? 'Đang tải...' : 'Tất cả loại'} />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={ALL}>Tất cả loại</SelectItem>
@@ -89,9 +90,10 @@ export function PriceFilterBar({
       <Select
         value={regionId ? String(regionId) : ALL}
         onValueChange={(v) => onRegionChange(v === ALL ? undefined : Number(v))}
+        disabled={regions.isLoading}
       >
         <SelectTrigger className="w-56">
-          <SelectValue placeholder="Tất cả khu vực" />
+          <SelectValue placeholder={regions.isLoading ? 'Đang tải...' : 'Tất cả khu vực'} />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={ALL}>Tất cả khu vực</SelectItem>

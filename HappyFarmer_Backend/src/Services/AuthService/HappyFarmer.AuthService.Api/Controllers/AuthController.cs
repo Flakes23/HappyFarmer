@@ -128,6 +128,7 @@ public class AuthController(
         if (!string.IsNullOrWhiteSpace(request.FullName)) user.FullName = request.FullName;
         if (request.Email is not null) user.Email = request.Email;
         if (request.ProvinceId is not null) user.ProvinceId = request.ProvinceId;
+        if (request.AvatarUrl is not null) user.AvatarUrl = request.AvatarUrl;
 
         await db.SaveChangesAsync();
         return Ok(UserResponse.FromEntity(user));

@@ -1,9 +1,5 @@
-import { cn } from '@/lib/utils'
+import { cn, getInitial } from '@/lib/utils'
 import { formatJoinedSince } from '@/lib/relativeTime'
-
-function getInitial(name: string) {
-  return name.trim().charAt(0).toUpperCase() || '?'
-}
 
 export function SellerInfo({
   name,

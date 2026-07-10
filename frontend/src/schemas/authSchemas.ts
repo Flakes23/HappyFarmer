@@ -23,3 +23,17 @@ export const registerSchema = z.object({
 
 export type RegisterFormValues = z.input<typeof registerSchema>
 export type RegisterFormOutput = z.output<typeof registerSchema>
+
+export const editProfileSchema = z.object({
+  fullName: z.string().min(1, 'Họ tên là bắt buộc'),
+  email: z
+    .string()
+    .email('Email không hợp lệ')
+    .optional()
+    .or(z.literal(''))
+    .transform((v) => (v ? v : undefined)),
+  provinceId: z.coerce.number().optional(),
+})
+
+export type EditProfileFormValues = z.input<typeof editProfileSchema>
+export type EditProfileFormOutput = z.output<typeof editProfileSchema>

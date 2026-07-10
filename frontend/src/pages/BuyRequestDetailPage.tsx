@@ -52,7 +52,13 @@ export function BuyRequestDetailPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{product?.nameVi ?? `Sản phẩm #${buyRequest.data?.productId ?? ''}`}</BreadcrumbPage>
+              <BreadcrumbPage>
+                {products.isLoading ? (
+                  <Skeleton className="inline-block h-4 w-24 align-middle" />
+                ) : (
+                  (product?.nameVi ?? `Sản phẩm #${buyRequest.data?.productId ?? ''}`)
+                )}
+              </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -86,7 +92,13 @@ export function BuyRequestDetailPage() {
               ) : null}
               <div>
                 <dt className="text-text-muted">Khu vực</dt>
-                <dd className="font-medium">{region ? region.provinceName : `#${buyRequest.data.regionId}`}</dd>
+                <dd className="font-medium">
+                  {regions.isLoading ? (
+                    <Skeleton className="inline-block h-4 w-20 align-middle" />
+                  ) : (
+                    (region ? region.provinceName : `#${buyRequest.data.regionId}`)
+                  )}
+                </dd>
               </div>
               <div>
                 <dt className="text-text-muted">Ngày đăng</dt>

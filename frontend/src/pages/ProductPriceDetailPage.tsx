@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -49,27 +50,38 @@ export function ProductPriceDetailPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{product?.nameVi ?? `Sản phẩm #${productIdNum ?? ''}`}</BreadcrumbPage>
+              <BreadcrumbPage>
+                {products.isLoading ? (
+                  <Skeleton className="inline-block h-4 w-24 align-middle" />
+                ) : (
+                  (product?.nameVi ?? `Sản phẩm #${productIdNum ?? ''}`)
+                )}
+              </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
       </div>
 
-      <PriceStatCards data={history.data} />
+      <PriceStatCards data={history.data} isLoading={history.isLoading} />
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4">
           <CardTitle>
-            {product ? `Lịch sử giá — ${product.nameVi}` : 'Lịch sử giá'}
+            {products.isLoading ? (
+              <Skeleton className="inline-block h-5 w-40 align-middle" />
+            ) : (
+              (product ? `Lịch sử giá — ${product.nameVi}` : 'Lịch sử giá')
+            )}
             {product?.unit ? <span className="ml-1 text-sm font-normal text-text-muted">({product.unit})</span> : null}
           </CardTitle>
 
           <Select
             value={regionId ? String(regionId) : ALL}
             onValueChange={(v) => setRegionId(v === ALL ? undefined : Number(v))}
+            disabled={regions.isLoading}
           >
             <SelectTrigger className="w-56">
-              <SelectValue placeholder="Tất cả khu vực" />
+              <SelectValue placeholder={regions.isLoading ? 'Đang tải...' : 'Tất cả khu vực'} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>Tất cả khu vực</SelectItem>

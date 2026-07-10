@@ -22,6 +22,9 @@ builder.Services.AddSingleton<RsaKeyProvider>();
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddScoped<LoginRateLimiter>();
 
+builder.Services.Configure<CloudinaryOptions>(builder.Configuration.GetSection(CloudinaryOptions.SectionName));
+builder.Services.AddScoped<CloudinarySignatureService>();
+
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
     ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
 

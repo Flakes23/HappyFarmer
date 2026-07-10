@@ -15,6 +15,7 @@ public class AuthDbContext(DbContextOptions<AuthDbContext> options) : DbContext(
             entity.Property(u => u.FullName).HasMaxLength(200);
             entity.Property(u => u.PhoneNumber).HasMaxLength(20);
             entity.Property(u => u.Email).HasMaxLength(256);
+            entity.Property(u => u.AvatarUrl).HasMaxLength(500);
             entity.Property(u => u.Role).HasConversion<string>().HasMaxLength(20);
             entity.HasIndex(u => u.PhoneNumber).IsUnique().HasFilter("[PhoneNumber] IS NOT NULL");
             entity.HasIndex(u => u.Email).IsUnique().HasFilter("[Email] IS NOT NULL");
