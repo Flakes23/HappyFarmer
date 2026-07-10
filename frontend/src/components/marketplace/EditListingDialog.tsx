@@ -73,7 +73,7 @@ export function EditListingDialog({ listing }: { listing: ListingResponse }) {
                 <FormItem>
                   <FormLabel>Số lượng ({listing.unit})</FormLabel>
                   <FormControl>
-                    <Input type="number" step="0.01" {...field} />
+                    <Input type="number" step="0.01" {...field} value={field.value as number | string} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -87,7 +87,7 @@ export function EditListingDialog({ listing }: { listing: ListingResponse }) {
                 <FormItem>
                   <FormLabel>Giá (VNĐ) / đơn vị</FormLabel>
                   <FormControl>
-                    <Input type="number" step="1000" {...field} />
+                    <Input type="number" step="1000" {...field} value={field.value as number | string} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

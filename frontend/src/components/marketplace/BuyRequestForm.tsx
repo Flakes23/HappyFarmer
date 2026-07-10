@@ -51,7 +51,7 @@ export function BuyRequestForm() {
     ? extractApiErrorMessage(createBuyRequest.error, 'Đăng yêu cầu thất bại. Vui lòng thử lại.')
     : null
 
-  const productIdValue = form.watch('productId')
+  const productIdValue = form.watch('productId') as number | undefined
   const regionIdValue = form.watch('regionId')
   const desiredQuantityValue = Number(form.watch('desiredQuantity'))
   const maxTotalPriceValue = Number(form.watch('maxTotalPrice'))
@@ -96,7 +96,7 @@ export function BuyRequestForm() {
               <FormItem>
                 <FormLabel>Số lượng cần mua ({form.watch('unit') || 'kg'})</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" {...field} />
+                  <Input type="number" step="0.01" {...field} value={field.value as number | string} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -153,7 +153,7 @@ export function BuyRequestForm() {
             <FormItem>
               <FormLabel>Tổng giá tối đa sẵn sàng trả (VNĐ, tuỳ chọn)</FormLabel>
               <FormControl>
-                <Input type="number" step="1000" {...field} />
+                <Input type="number" step="1000" {...field} value={field.value as number | string} />
               </FormControl>
               <FormMessage />
             </FormItem>

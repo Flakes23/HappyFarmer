@@ -55,7 +55,7 @@ export function ListingForm() {
     ? extractApiErrorMessage(createListing.error, 'Đăng tin thất bại. Vui lòng thử lại.')
     : null
 
-  const productIdValue = form.watch('productId')
+  const productIdValue = form.watch('productId') as number | undefined
   const regionIdValue = form.watch('regionId')
   const quantityValue = Number(form.watch('quantity'))
   const totalPriceValue = Number(form.watch('totalPrice'))
@@ -98,7 +98,7 @@ export function ListingForm() {
               <FormItem>
                 <FormLabel>Số lượng ({form.watch('unit') || 'kg'})</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" {...field} />
+                  <Input type="number" step="0.01" {...field} value={field.value as number | string} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -127,7 +127,7 @@ export function ListingForm() {
             <FormItem>
               <FormLabel>Tổng giá bán (VNĐ)</FormLabel>
               <FormControl>
-                <Input type="number" step="1000" {...field} />
+                <Input type="number" step="1000" {...field} value={field.value as number | string} />
               </FormControl>
               <FormMessage />
             </FormItem>
