@@ -94,6 +94,11 @@ logs/
 DEPLOY_LEARNING_NOTES.md
 
 ## =========================
+## Chứa thông tin hạ tầng thật (IP VPS...) — không đẩy lên repo public
+## =========================
+CLAUDE.md
+
+## =========================
 ## OS / Editor
 ## =========================
 .DS_Store

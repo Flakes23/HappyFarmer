@@ -1,62 +1,119 @@
 # Hạ tầng & triển khai
 
-## 1. Docker Compose topology
+> Đã deploy thật (không còn là kế hoạch) — chỉ Auth Service, Market Price Service, Marketplace
+> Service + API Gateway. AI Advisory/Notification Service (còn skeleton) và Kafka **chưa** nằm
+> trong lần deploy này, để dành khi 2 service đó code xong.
 
-Mô tả kiến trúc container (chưa tạo file `docker-compose.yml` thật ở giai đoạn tài liệu này):
+## 1. Hạ tầng thật đang chạy
 
-| Container | Vai trò | Expose ra host/public? |
+| Thành phần | Ở đâu | Ghi chú |
 |---|---|---|
-| `api-gateway` | API Gateway (.NET YARP): routing theo path prefix, verify JWT tập trung, TLS termination | Có — 80/443 |
-| `auth-service` | Auth Service (.NET) | Không |
-| `market-price-service` | Market Price Service (.NET) | Không |
-| `ai-advisory-service` | AI Advisory Service (.NET) | Không |
-| `marketplace-service` | Marketplace Service (.NET) | Không |
-| `notification-service` | Notification Service (.NET) | Không |
-| `sqlserver` | 1 instance SQL Server duy nhất, host 5 database logic (`AuthDb`, `MarketPriceDb`, `AiAdvisoryDb`, `MarketplaceDb`, `NotificationDb`) | Không |
-| `redis` | 1 instance dùng chung, namespace theo prefix key | Không |
-| `kafka` | Chế độ KRaft (không cần Zookeeper riêng), 1 broker | Không |
-| `kafka-ui` | Debug topic/message (chỉ dev) | Dev only |
+| Backend (4 container: Gateway + 3 service + SQL Server + Redis + Caddy) | 1 VPS Azure (Ubuntu 24.04, `Standard_B2als_v2` — 2 vCPU/4GB, gói **Azure for Students**) | Domain tạm `https://20.196.128.100.sslip.io` (chưa có domain thật — [sslip.io](https://sslip.io) tự phân giải `<ip>.sslip.io` về đúng IP, không cần đăng ký) |
+| Frontend | Vercel (`https://happy-farmer-beige.vercel.app`) | Deploy tự động theo Git integration, Root Directory = `frontend/` |
+| CI/CD | GitHub Actions — `.github/workflows/deploy.yml` | Trigger khi push nhánh `master` (không phải `main` — nhánh chính của repo này là `master`) |
 
-**Trade-off SQL Server dùng chung**: mỗi service chỉ có connection string trỏ vào database riêng của mình (logical database-per-service). Đây là "logical isolation" chứ chưa phải "physical isolation" (5 container SQL Server riêng) — chấp nhận được ở cấp độ học tập/chi phí gần 0, tiết kiệm tài nguyên VPS free-tier.
+**Vì sao Azure thay vì Oracle Cloud/DigitalOcean như bàn ban đầu**: thử Oracle Cloud Free Tier
+trước nhưng gặp lỗi tạo account (capacity/region, không liên quan tới thẻ) lặp lại nhiều lần
+không qua được — chuyển sang Azure for Students (không cần khai báo thẻ tín dụng, $100 credit)
+để không bị kẹt ở bước đăng ký.
 
-**Volumes**: `sqlserver-data`, `redis-data` (tuỳ chọn AOF), `kafka-data`, `ai-uploads` (ảnh bệnh cây).
+## 2. Docker Compose topology (`docker-compose.prod.yml` ở root repo)
 
-**Frontend**: không đóng gói trong compose production (deploy Vercel riêng). Có thể có `docker-compose.dev.yml` thêm container `frontend` (Vite dev server) chỉ cho local dev.
+| Container | Image | Expose ra host/public? |
+|---|---|---|
+| `caddy` | `caddy:2-alpine` | **Có** — 80/443 (duy nhất container này chạm public Internet trực tiếp) |
+| `gateway` | `ghcr.io/flakes23/happyfarmer-gateway` | Không (chỉ `caddy` gọi vào qua network nội bộ) |
+| `auth-service` | `ghcr.io/flakes23/happyfarmer-auth-service` | Không |
+| `market-price-service` | `ghcr.io/flakes23/happyfarmer-market-price-service` | Không |
+| `marketplace-service` | `ghcr.io/flakes23/happyfarmer-marketplace-service` | Không |
+| `sqlserver` | `mcr.microsoft.com/mssql/server:2022-latest` | Chỉ bind `127.0.0.1:1433` (loopback VPS) — dùng để SSH tunnel chạy migration từ xa, không lộ ra Internet |
+| `redis` | `redis:7-alpine` | Không |
 
-## 2. Networking
+Database hiện có 3 (không phải 5 như kế hoạch cũ, vì AI Advisory/Notification chưa deploy):
+`HappyFarmer_AuthDb`, `HappyFarmer_MarketPriceDb`, `HappyFarmer_MarketplaceDb` — cùng 1 instance
+SQL Server, tách theo database logic (trade-off logical isolation, xem lý do ở bản kế hoạch gốc
+— vẫn giữ nguyên).
 
-- Một bridge network duy nhất `happyfarmer-net` dùng chung cho toàn bộ container.
-- Chỉ `api-gateway` (và `kafka-ui` khi dev) expose port ra ngoài; `sqlserver`, `redis`, `kafka`, 5 service .NET chỉ giao tiếp nội bộ qua tên container (xem [service discovery](01-overview.md#4-service-discovery-ở-mức-docker-compose)).
+**Dockerfile mỗi service** nằm cùng thư mục `Program.cs` của service đó (vd.
+`src/Services/AuthService/HappyFarmer.AuthService.Api/Dockerfile`) — build context phải là
+`HappyFarmer_Backend/` (thư mục chứa `.slnx`) vì mọi service đều tham chiếu chéo tới
+`src/Shared/HappyFarmer.Shared.Contracts`.
 
-## 3. Biến môi trường (`.env.example`)
+**Khác với kế hoạch gốc**: TLS **không** do API Gateway tự làm — có thêm **Caddy** đứng trước
+Gateway, tự lấy chứng chỉ Let's Encrypt (HTTP-01 challenge qua domain sslip.io) và reverse-proxy
+vào `gateway:8080`. Cấu hình ở file `Caddyfile` (root repo), chỉ 3 dòng. Lý do: tự cấu hình Kestrel
+HTTPS + cert renewal thủ công trong YARP phức tạp hơn nhiều so với để Caddy làm (auto HTTPS là
+tính năng mặc định của Caddy, gần như không cần cấu hình).
 
+**Volumes**: `sqlserver-data`, `redis-data`, `auth-keys` (giữ RSA key JWT của Auth Service qua
+các lần redeploy — mất key = mọi token cũ bị vô hiệu), `caddy-data`/`caddy-config` (cert Let's
+Encrypt, tránh xin cấp lại mỗi lần redeploy vì Let's Encrypt có rate limit).
+
+## 3. Biến môi trường thật đang dùng
+
+Không dùng `appsettings.Production.json` — toàn bộ cấu hình production (kể cả các giá trị không
+bí mật như route nội bộ) truyền qua `environment:` trong `docker-compose.prod.yml`, giá trị thật
+lấy từ file `.env` (không commit) trên VPS, do CI/CD tự ghi từ GitHub Secrets mỗi lần deploy
+(xem mục 4). Xem `.env.prod.example` ở root repo để biết đủ danh sách biến cần thiết
+(`SQLSERVER_SA_PASSWORD`, `INTERNAL_API_KEY`, `CLOUDINARY_CLOUD_NAME`/`ApiKey`/`ApiSecret`,
+`CORS_ALLOWED_ORIGINS`) — chưa cần `KAFKA_BOOTSTRAP_SERVERS`/`SMTP_*`/`ANTHROPIC_API_KEY`/
+`OPENWEATHERMAP_API_KEY` vì các tính năng dùng chúng chưa deploy.
+
+## 4. CI/CD (GitHub Actions — `.github/workflows/deploy.yml`)
+
+Job `build-and-push` (matrix 4 service) → job `deploy` (cần `build-and-push` xong hết mới chạy):
+
+1. **Build & push**: `docker/build-push-action` build từng Dockerfile, push lên
+   **GitHub Container Registry** (`ghcr.io/flakes23/happyfarmer-<service>:latest` +
+   `:<git-sha>`), đăng nhập bằng `secrets.GITHUB_TOKEN` có sẵn (không cần tạo Personal Access
+   Token riêng như bản kế hoạch cũ ghi `GHCR_TOKEN`).
+2. **Deploy**: `appleboy/scp-action` chép `docker-compose.prod.yml` + `Caddyfile` sang VPS →
+   `appleboy/ssh-action` SSH vào VPS, ghi đè `.env` từ GitHub Secrets, `docker login ghcr.io`,
+   `docker compose pull && docker compose up -d`, dọn image cũ (`docker image prune -f`).
+3. **Migration**: **không** tự chạy khi service khởi động (khác kế hoạch gốc — service hiện tại
+   không gọi `Database.Migrate()` trong `Program.cs`). Cách thật đang làm: SQL Server chỉ bind
+   loopback VPS (mục 2), nên chạy `dotnet ef database update` **thủ công từ máy local**, trỏ qua
+   SSH tunnel: `ssh -i <key> -L 14330:127.0.0.1:1433 <user>@<vps-ip>` rồi
+   `dotnet ef database update --connection "Server=127.0.0.1,14330;Database=<TênDb>;User Id=sa;Password=<mật khẩu>;TrustServerCertificate=True;Encrypt=False"`
+   chạy ở đúng thư mục project của từng service. **Lưu ý**: dùng `Server=localhost,...` từng bị
+   timeout khó hiểu dù tunnel hoạt động bình thường — đổi sang `127.0.0.1` tường minh mới chạy
+   được (nghi do `Microsoft.Data.SqlClient` xử lý resolve "localhost" không nhất quán trên
+   Windows khi có cả IPv4/IPv6).
+4. **Frontend**: Vercel tự deploy theo Git integration (không cần workflow riêng) — nhưng bắt
+   buộc phải có `frontend/vercel.json` với rewrite rule `"/(.*)" -> "/index.html"`, nếu không
+   mọi route ngoài `/` (vd. `/prices`, F5 reload) sẽ bị Vercel trả 404 vì React Router chỉ xử lý
+   route ở phía client, server Vercel không có file thật ở path đó.
+5. **Secrets cần khai báo trong GitHub repo Settings → Secrets and variables → Actions**:
+   `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` (nội dung private key `.pem` đầy đủ), rồi 6 biến ở mục 3
+   (`SQLSERVER_SA_PASSWORD`, `INTERNAL_API_KEY`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`,
+   `CLOUDINARY_API_SECRET`, `CORS_ALLOWED_ORIGINS`). Không cần `GHCR_TOKEN` riêng.
+
+## 5. Nạp dữ liệu Market Price sau deploy
+
+Database production mới chỉ có schema rỗng sau migration, chưa có sản phẩm/giá nào — chạy
+`HappyFarmer.MarketPriceCrawler` (`src/Tools/HappyFarmer.MarketPriceCrawler/`) nhắm vào domain
+Gateway thật để nạp dữ liệu lần đầu:
 ```
-ANTHROPIC_API_KEY=
-OPENWEATHERMAP_API_KEY=
-JWT_ISSUER=happyfarmer-auth
-JWT_AUDIENCE=happyfarmer-services
-JWT_PRIVATE_KEY_PATH=/keys/private.pem      # chỉ auth-service dùng
-JWT_PUBLIC_KEY_URL=http://auth-service:8080/.well-known/jwks.json
-SQLSERVER_SA_PASSWORD=
-REDIS_CONNECTION=redis:6379
-KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-CORS_ALLOWED_ORIGINS=https://happyfarmer.vercel.app,http://localhost:5173
-SMTP_HOST=
-SMTP_USER=
-SMTP_PASS=
+dotnet user-secrets set "Api:BaseUrl" "https://20.196.128.100.sslip.io"
+dotnet user-secrets set "Internal:ApiKey" "<đúng giá trị INTERNAL_API_KEY đã dùng cho VPS>"
+dotnet run
 ```
+Endpoint `POST /api/market-price/internal/crawl-ingest` là `[AllowAnonymous]` ở tầng ASP.NET
+(Gateway không chặn), tự xác thực riêng bằng header `X-Internal-Api-Key` — không cần JWT người
+dùng, Gateway chỉ forward nguyên header này xuống Market Price Service.
 
-Không commit `.env` thật — chỉ commit `.env.example`.
+## 6. Việc còn thiếu / để dành Phase sau
 
-## 4. CI/CD (GitHub Actions)
-
-1. **On Pull Request**: restore + build + unit test (matrix theo từng service `.csproj`), lint frontend (eslint), `docker build` validate (không push).
-2. **On merge main**: build & test lại → `docker build` 6 image (API Gateway + 5 service), tag `git-sha` + `latest` → push GitHub Container Registry (ghcr.io, miễn phí) → SSH vào VPS (vd. `appleboy/ssh-action`) chạy `docker compose pull && docker compose up -d`.
-3. **Migration**: mỗi service tự chạy `dotnet ef database update` khi khởi động (guard theo `ASPNETCORE_ENVIRONMENT`) — đơn giản hoá cho dự án nhỏ, chấp nhận trade-off so với migration job riêng.
-4. **Frontend**: không cần workflow riêng — Vercel tự deploy khi push (Git integration).
-5. **Secrets cần khai báo trong GitHub repo settings**: `VPS_HOST`, `VPS_SSH_KEY`, `ANTHROPIC_API_KEY`, `OPENWEATHERMAP_API_KEY`, `GHCR_TOKEN`.
-
-## 5. Deploy
-
-- **Backend**: VPS (Oracle Cloud free tier / DigitalOcean) chạy `docker compose up -d` với toàn bộ container ở mục 1.
-- **Frontend**: Vercel, tự động deploy theo Git integration.
+- **AI Advisory Service, Notification Service**: chưa có Dockerfile, chưa nằm trong
+  `docker-compose.prod.yml`, chưa có route trong Gateway production — thêm khi 2 service code
+  xong (theo đúng mẫu 3 service đã deploy: Dockerfile cùng thư mục `Program.cs`, thêm service +
+  route/cluster vào compose + Gateway env, thêm secrets tương ứng).
+- **Kafka**: chưa setup ở cả local lẫn production (Marketplace Service chưa publish
+  `marketplace.new-interest.v1`, xem TODO trong `ListingsController.Contact`).
+- **Domain thật**: hiện dùng `sslip.io` tạm — khi có domain riêng chỉ cần đổi 1 dòng trong
+  `Caddyfile` (Caddy tự xin lại cert Let's Encrypt cho domain mới) và trỏ DNS domain đó về IP VPS.
+- **Migration tự động khi deploy**: hiện vẫn làm thủ công qua SSH tunnel (mục 4.3) — có thể cải
+  thiện sau bằng cách thêm 1 job trong CI/CD chạy migration qua container SDK tạm trên VPS, thay
+  vì phải làm tay từ máy local mỗi lần có migration mới.
+- **CORS_ALLOWED_ORIGINS**: phải cập nhật tay trong GitHub Secrets + chạy lại workflow
+  (`workflow_dispatch`) mỗi khi đổi domain frontend — chưa tự động hoá.
