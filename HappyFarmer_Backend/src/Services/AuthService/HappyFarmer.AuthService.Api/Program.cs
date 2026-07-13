@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using HappyFarmer.AuthService.Api.Data;
 using HappyFarmer.AuthService.Api.Services;
 using HappyFarmer.Shared.Contracts.Auth;
+using HappyFarmer.Shared.Contracts.Events;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 
@@ -27,6 +28,8 @@ builder.Services.AddScoped<CloudinarySignatureService>();
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
     ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
+
+builder.Services.AddKafkaProducer(builder.Configuration);
 
 builder.Services.AddTrustedHeaderAuthentication();
 

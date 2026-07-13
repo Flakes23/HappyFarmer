@@ -13,7 +13,9 @@ graph TD
 
   MP -- publish event --> KAFKA[("Kafka - KRaft")]
   MKT -- publish event --> KAFKA
+  AUTH -- publish event --> KAFKA
   KAFKA -- subscribe --> NOTI
+  KAFKA -- subscribe --> MKT
 
   AI --> CLAUDE[Claude API]
   AI --> OWM[OpenWeatherMap API]
@@ -36,6 +38,7 @@ Frontend (React) chỉ nói chuyện với một cổng public duy nhất — AP
 - **Bất đồng bộ (Kafka)** — chỉ dùng cho sự kiện "báo cho bên khác biết, không cần phản hồi ngay":
   - `market-price.price-changed.v1`
   - `marketplace.new-interest.v1`
+  - `auth.user-updated.v1` — **đã setup** (Auth Service publish khi FullName/AvatarUrl đổi, Marketplace Service subscribe để đồng bộ lại dữ liệu denormalize; xem [services/auth-service.md](services/auth-service.md#kafka) và [services/marketplace-service.md](services/marketplace-service.md#kafka))
   - (optional) `auth.user-registered.v1`
 
   Frontend không bao giờ giao tiếp trực tiếp với Kafka.
@@ -76,6 +79,8 @@ Không dùng Consul/Eureka/Kubernetes. Dùng chính DNS nội bộ của Docker 
 | Market Price Service | Kafka topic `market-price.price-changed.v1` | Publish | Báo giá thay đổi |
 | Marketplace Service | Kafka topic `marketplace.new-interest.v1` | Publish | Báo có người quan tâm tin đăng |
 | Notification Service | 2 topic trên | Subscribe | Sinh thông báo, gửi kênh phù hợp |
+| Auth Service | Kafka topic `auth.user-updated.v1` | Publish | Báo FullName/AvatarUrl thay đổi |
+| Marketplace Service | Kafka topic `auth.user-updated.v1` | Subscribe | Đồng bộ lại FarmerName/BuyerName/avatar đã denormalize |
 | API Gateway | Auth Service `.well-known/jwks.json` | REST (cache) | Lấy public key verify JWT tập trung — chỉ Gateway fetch, service phía sau không tự verify JWT nữa |
 
 Chi tiết từng service xem tại thư mục [services/](services/), chi tiết từng luồng sự kiện/AI xem tại [data-flows/](data-flows/).

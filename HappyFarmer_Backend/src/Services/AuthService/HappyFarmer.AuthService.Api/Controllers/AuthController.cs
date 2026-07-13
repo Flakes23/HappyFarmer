@@ -1,8 +1,11 @@
 using System.Security.Claims;
+using System.Text.Json;
+using Confluent.Kafka;
 using HappyFarmer.AuthService.Api.Data;
 using HappyFarmer.AuthService.Api.Dtos;
 using HappyFarmer.AuthService.Api.Entities;
 using HappyFarmer.AuthService.Api.Services;
+using HappyFarmer.Shared.Contracts.Events;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +17,9 @@ namespace HappyFarmer.AuthService.Api.Controllers;
 public class AuthController(
     AuthDbContext db,
     JwtTokenService tokenService,
-    LoginRateLimiter rateLimiter) : ControllerBase
+    LoginRateLimiter rateLimiter,
+    IProducer<string, string> kafkaProducer,
+    ILogger<AuthController> logger) : ControllerBase
 {
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request)
@@ -125,13 +130,41 @@ public class AuthController(
         var user = await GetCurrentUserAsync();
         if (user is null) return NotFound();
 
+        var oldFullName = user.FullName;
+        var oldAvatarUrl = user.AvatarUrl;
+
         if (!string.IsNullOrWhiteSpace(request.FullName)) user.FullName = request.FullName;
         if (request.Email is not null) user.Email = request.Email;
         if (request.ProvinceId is not null) user.ProvinceId = request.ProvinceId;
         if (request.AvatarUrl is not null) user.AvatarUrl = request.AvatarUrl;
 
         await db.SaveChangesAsync();
+
+        if (user.FullName != oldFullName || user.AvatarUrl != oldAvatarUrl)
+        {
+            await PublishUserUpdatedEventAsync(user);
+        }
+
         return Ok(UserResponse.FromEntity(user));
+    }
+
+    /// <summary>
+    /// Best-effort — lỗi publish Kafka KHÔNG được làm fail request cập nhật profile của người
+    /// dùng. Marketplace Service chỉ mất 1 lần đồng bộ tên/avatar (không critical), tự khớp lại
+    /// ở lần đổi profile tiếp theo, hoặc chạy tay POST /api/marketplace/internal/backfill-avatars.
+    /// </summary>
+    private async Task PublishUserUpdatedEventAsync(User user)
+    {
+        try
+        {
+            var evt = new UserProfileUpdatedEvent(Guid.NewGuid(), user.Id, user.FullName, user.AvatarUrl, DateTime.UtcNow);
+            var message = new Message<string, string> { Value = JsonSerializer.Serialize(evt) };
+            await kafkaProducer.ProduceAsync(KafkaTopics.UserUpdated, message);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Không publish được sự kiện {Topic} cho user {UserId}", KafkaTopics.UserUpdated, user.Id);
+        }
     }
 
     [Authorize]

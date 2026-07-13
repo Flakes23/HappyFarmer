@@ -21,6 +21,7 @@
 | GET | `/api/marketplace/my-listings` | Quản lý tin đăng của tôi |
 | GET | `/api/marketplace/my-interests` | Quản lý liên hệ của tôi |
 | GET | `/api/marketplace/uploads/signature` | Sinh chữ ký signed upload lên Cloudinary (Farmer, dùng khi đăng ảnh tin bán — xem mục Upload ảnh) |
+| POST | `/api/marketplace/internal/backfill-avatars` | Nội bộ (xác thực bằng `X-Internal-Api-Key`, không phải JWT) — đồng bộ lại FarmerName/BuyerName/avatar cho dữ liệu tạo trước khi có Kafka `auth.user-updated.v1`, chạy tay khi cần |
 
 ## DB schema (MarketplaceDb)
 
@@ -28,7 +29,7 @@
 Listings
   Id            (PK)
   FarmerId
-  FarmerName        (denormalize 1 lần lúc tạo tin, xem AuthServiceClient)
+  FarmerName        (denormalize lúc tạo tin, tự cập nhật lại qua Kafka auth.user-updated.v1)
   FarmerJoinedAt
   FarmerAvatarUrl
   ProductId
@@ -50,7 +51,7 @@ ListingImages
 BuyRequests
   Id                (PK)
   BuyerId
-  BuyerName         (denormalize 1 lần lúc tạo, xem AuthServiceClient)
+  BuyerName         (denormalize lúc tạo, tự cập nhật lại qua Kafka auth.user-updated.v1)
   BuyerJoinedAt
   BuyerAvatarUrl
   ProductId
@@ -74,7 +75,9 @@ Interests
 
 ## Kafka
 
-Publish `marketplace.new-interest.v1`:
+### Publish
+
+`marketplace.new-interest.v1` (**chưa wiring** — chờ Notification Service, xem TODO trong `ListingsController.Contact`/`BuyRequestsController`):
 
 ```json
 {
@@ -87,7 +90,11 @@ Publish `marketplace.new-interest.v1`:
 }
 ```
 
-Consumer: xem [Notification Service](notification-service.md).
+Consumer (khi làm): xem [Notification Service](notification-service.md).
+
+### Subscribe
+
+`auth.user-updated.v1` (đã setup, consumer group `marketplace-service-group`) — khi [Auth Service](auth-service.md#kafka) báo `FullName`/`AvatarUrl` đổi, cập nhật lại `Listings.FarmerName`/`FarmerAvatarUrl` và `BuyRequests.BuyerName`/`BuyerAvatarUrl` tương ứng (xem `UserProfileUpdatedConsumer`, `DenormalizedUserSyncService` — dùng chung logic với `InternalController.BackfillAvatars`). Xử lý idempotent (ghi đè cùng giá trị nhiều lần vô hại) — lỗi xử lý 1 message chỉ log rồi bỏ qua, không retry/dead-letter (cache denormalize không critical, tự khớp lại ở lần đổi profile tiếp theo).
 
 ## Redis
 

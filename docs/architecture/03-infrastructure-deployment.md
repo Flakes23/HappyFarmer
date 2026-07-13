@@ -1,14 +1,17 @@
 # Hạ tầng & triển khai
 
 > Đã deploy thật (không còn là kế hoạch) — chỉ Auth Service, Market Price Service, Marketplace
-> Service + API Gateway. AI Advisory/Notification Service (còn skeleton) và Kafka **chưa** nằm
-> trong lần deploy này, để dành khi 2 service đó code xong.
+> Service + API Gateway. AI Advisory/Notification Service (còn skeleton) **chưa** nằm trong lần
+> deploy này, để dành khi 2 service đó code xong. **Kafka đã setup** (single-node KRaft,
+> `apache/kafka` image) — nhưng hiện chỉ phục vụ 1 topic `auth.user-updated.v1` giữa Auth Service
+> và Marketplace Service; `marketplace.new-interest.v1` (Marketplace → Notification) vẫn để dành
+> Phase 4 khi Notification Service code xong.
 
 ## 1. Hạ tầng thật đang chạy
 
 | Thành phần | Ở đâu | Ghi chú |
 |---|---|---|
-| Backend (4 container: Gateway + 3 service + SQL Server + Redis + Caddy) | 1 VPS Azure (Ubuntu 24.04, `Standard_B2als_v2` — 2 vCPU/4GB, gói **Azure for Students**) | Domain tạm `https://20.196.128.100.sslip.io` (chưa có domain thật — [sslip.io](https://sslip.io) tự phân giải `<ip>.sslip.io` về đúng IP, không cần đăng ký) |
+| Backend (Gateway + 3 service + SQL Server + Redis + Kafka + Caddy) | 1 VPS Azure (Ubuntu 24.04, `Standard_B2als_v2` — 2 vCPU/4GB, gói **Azure for Students**) | Domain tạm `https://20.196.128.100.sslip.io` (chưa có domain thật — [sslip.io](https://sslip.io) tự phân giải `<ip>.sslip.io` về đúng IP, không cần đăng ký). RAM khá sát (4GB) — xem mục 2 về cách chia bộ nhớ giữa SQL Server/Kafka |
 | Frontend | Vercel (`https://happy-farmer-beige.vercel.app`) | Deploy tự động theo Git integration, Root Directory = `frontend/` |
 | CI/CD | GitHub Actions — `.github/workflows/deploy.yml` | Trigger khi push nhánh `master` (không phải `main` — nhánh chính của repo này là `master`) |
 
@@ -28,11 +31,22 @@ không qua được — chuyển sang Azure for Students (không cần khai báo
 | `marketplace-service` | `ghcr.io/flakes23/happyfarmer-marketplace-service` | Không |
 | `sqlserver` | `mcr.microsoft.com/mssql/server:2022-latest` | Chỉ bind `127.0.0.1:1433` (loopback VPS) — dùng để SSH tunnel chạy migration từ xa, không lộ ra Internet |
 | `redis` | `redis:7-alpine` | Không |
+| `kafka` | `apache/kafka:latest` | Không (chỉ 3 service .NET gọi qua network nội bộ `kafka:9092`, không ai từ ngoài VPS cần chạm trực tiếp) |
 
 Database hiện có 3 (không phải 5 như kế hoạch cũ, vì AI Advisory/Notification chưa deploy):
 `HappyFarmer_AuthDb`, `HappyFarmer_MarketPriceDb`, `HappyFarmer_MarketplaceDb` — cùng 1 instance
 SQL Server, tách theo database logic (trade-off logical isolation, xem lý do ở bản kế hoạch gốc
 — vẫn giữ nguyên).
+
+**Chia RAM giữa SQL Server và Kafka** (VPS chỉ 4GB tổng, xem mục 1): `sqlserver` được cap
+`MSSQL_MEMORY_LIMIT_MB: 2048` (mặc định SQL Server cố chiếm gần hết RAM host nếu không giới hạn),
+`kafka` giới hạn heap JVM `KAFKA_HEAP_OPTS: -Xmx512m -Xms512m` (single-node KRaft, không có khối
+lượng sự kiện lớn nên không cần heap to). Nên `free -h`/`docker stats --no-stream` kiểm tra lại
+sau mỗi lần deploy có đổi cấu hình 2 service này. Nếu VPS không đủ tài nguyên, rollback an toàn:
+`docker compose -f docker-compose.prod.yml stop kafka`, bỏ service `kafka` + 2 dòng
+`Kafka__BootstrapServers`/`depends_on: kafka` khỏi `docker-compose.prod.yml` rồi redeploy — Auth
+Service/Marketplace Service đã xử lý Kafka down gracefully (publish/consume best-effort), không
+gãy tính năng chính khi thiếu Kafka.
 
 **Dockerfile mỗi service** nằm cùng thư mục `Program.cs` của service đó (vd.
 `src/Services/AuthService/HappyFarmer.AuthService.Api/Dockerfile`) — build context phải là
@@ -56,8 +70,10 @@ bí mật như route nội bộ) truyền qua `environment:` trong `docker-compo
 lấy từ file `.env` (không commit) trên VPS, do CI/CD tự ghi từ GitHub Secrets mỗi lần deploy
 (xem mục 4). Xem `.env.prod.example` ở root repo để biết đủ danh sách biến cần thiết
 (`SQLSERVER_SA_PASSWORD`, `INTERNAL_API_KEY`, `CLOUDINARY_CLOUD_NAME`/`ApiKey`/`ApiSecret`,
-`CORS_ALLOWED_ORIGINS`) — chưa cần `KAFKA_BOOTSTRAP_SERVERS`/`SMTP_*`/`ANTHROPIC_API_KEY`/
-`OPENWEATHERMAP_API_KEY` vì các tính năng dùng chúng chưa deploy.
+`CORS_ALLOWED_ORIGINS`) — chưa cần `SMTP_*`/`ANTHROPIC_API_KEY`/`OPENWEATHERMAP_API_KEY` vì các
+tính năng dùng chúng chưa deploy. **Không có `KAFKA_BOOTSTRAP_SERVERS` dạng secret** — giá trị
+`Kafka__BootstrapServers: "kafka:9092"` hardcode thẳng trong `docker-compose.prod.yml` (giống
+`ConnectionStrings__Redis: "redis:6379"`), vì đây là tên DNS nội bộ Docker, không phải bí mật.
 
 ## 4. CI/CD (GitHub Actions — `.github/workflows/deploy.yml`)
 
@@ -108,8 +124,11 @@ dùng, Gateway chỉ forward nguyên header này xuống Market Price Service.
   `docker-compose.prod.yml`, chưa có route trong Gateway production — thêm khi 2 service code
   xong (theo đúng mẫu 3 service đã deploy: Dockerfile cùng thư mục `Program.cs`, thêm service +
   route/cluster vào compose + Gateway env, thêm secrets tương ứng).
-- **Kafka**: chưa setup ở cả local lẫn production (Marketplace Service chưa publish
-  `marketplace.new-interest.v1`, xem TODO trong `ListingsController.Contact`).
+- **Kafka**: đã setup ở cả local lẫn production, nhưng chỉ dùng cho `auth.user-updated.v1`
+  (Auth → Marketplace). Marketplace Service vẫn chưa publish `marketplace.new-interest.v1` (xem
+  TODO trong `ListingsController.Contact`/`BuyRequestsController`) — để dành khi Notification
+  Service code xong, hạ tầng broker đã sẵn nên chỉ cần thêm producer call + consumer, không cần
+  setup lại Kafka.
 - **Domain thật**: hiện dùng `sslip.io` tạm — khi có domain riêng chỉ cần đổi 1 dòng trong
   `Caddyfile` (Caddy tự xin lại cert Let's Encrypt cho domain mới) và trỏ DNS domain đó về IP VPS.
 - **Migration tự động khi deploy**: hiện vẫn làm thủ công qua SSH tunnel (mục 4.3) — có thể cải

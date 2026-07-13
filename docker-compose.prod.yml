@@ -14,6 +14,9 @@ services:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: ${SQLSERVER_SA_PASSWORD}
       MSSQL_PID: Developer
+      # Cap lại RAM SQL Server chiếm — mặc định nó cố chiếm gần hết RAM host, cần chừa chỗ cho
+      # Kafka (JVM) trên VPS chỉ có 4GB tổng (Standard_B2als_v2).
+      MSSQL_MEMORY_LIMIT_MB: "2048"
     ports:
       # Chỉ bind vào loopback của VPS (không public ra Internet) — dùng để SSH tunnel từ máy cá
       # nhân chạy migration (`dotnet ef database update`), không truy cập được từ ngoài.
@@ -44,6 +47,35 @@ services:
       retries: 10
     restart: unless-stopped
 
+  kafka:
+    image: apache/kafka:latest
+    container_name: kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_HEAP_OPTS: "-Xmx512m -Xms512m"
+      CLUSTER_ID: "hf-prod-kraft-cluster-01"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - happyfarmer-net
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
   auth-service:
     image: ghcr.io/flakes23/happyfarmer-auth-service:latest
     container_name: auth-service
@@ -54,6 +86,7 @@ services:
       Cloudinary__CloudName: ${CLOUDINARY_CLOUD_NAME}
       Cloudinary__ApiKey: ${CLOUDINARY_API_KEY}
       Cloudinary__ApiSecret: ${CLOUDINARY_API_SECRET}
+      Kafka__BootstrapServers: "kafka:9092"
       Internal__ApiKey: ${INTERNAL_API_KEY}
     volumes:
       # Giữ key JWT (RS256) qua các lần redeploy — mất key = mọi token cũ (đăng nhập cũ) bị vô hiệu,
@@ -63,6 +96,8 @@ services:
       sqlserver:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
     networks:
       - happyfarmer-net
@@ -95,12 +130,15 @@ services:
       Cloudinary__ApiKey: ${CLOUDINARY_API_KEY}
       Cloudinary__ApiSecret: ${CLOUDINARY_API_SECRET}
       Services__AuthServiceBaseUrl: "http://auth-service:8080"
+      Kafka__BootstrapServers: "kafka:9092"
       Internal__ApiKey: ${INTERNAL_API_KEY}
     depends_on:
       sqlserver:
         condition: service_healthy
       auth-service:
         condition: service_started
+      kafka:
+        condition: service_healthy
     networks:
       - happyfarmer-net
     restart: unless-stopped
@@ -157,6 +195,7 @@ networks:
 volumes:
   sqlserver-data:
   redis-data:
+  kafka-data:
   auth-keys:
   caddy-data:
   caddy-config:

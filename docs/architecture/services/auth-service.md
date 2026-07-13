@@ -50,7 +50,15 @@ RefreshTokens
 
 ## Kafka
 
-Publish tuỳ chọn (optional, Phase 3+): `auth.user-registered.v1`
+Publish `auth.user-updated.v1` (đã setup) — khi `FullName` hoặc `AvatarUrl` thay đổi qua `PUT /api/auth/me` (chỉ đổi `Email`/`ProvinceId` thì không publish):
+
+```json
+{ "eventId": "...", "userId": 1, "fullName": "...", "avatarUrl": "...", "occurredAt": "..." }
+```
+
+Consumer: [Marketplace Service](marketplace-service.md#kafka) — đồng bộ lại `FarmerName`/`BuyerName`/`FarmerAvatarUrl`/`BuyerAvatarUrl` đã denormalize. Publish là best-effort (bọc try/catch, chỉ log warning nếu lỗi) — không bao giờ làm fail request cập nhật profile của người dùng.
+
+Publish tuỳ chọn (optional, Phase 3+, chưa setup): `auth.user-registered.v1`
 
 ```json
 { "eventId": "...", "userId": 1, "role": "Farmer", "fullName": "...", "provinceId": 5, "occurredAt": "..." }

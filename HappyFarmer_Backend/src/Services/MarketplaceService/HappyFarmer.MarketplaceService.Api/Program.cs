@@ -3,6 +3,7 @@ using HappyFarmer.MarketplaceService.Api.Data;
 using HappyFarmer.MarketplaceService.Api.Hubs;
 using HappyFarmer.MarketplaceService.Api.Services;
 using HappyFarmer.Shared.Contracts.Auth;
+using HappyFarmer.Shared.Contracts.Events;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +25,10 @@ builder.Services.AddHttpClient("AuthService", client =>
 });
 builder.Services.AddScoped<AuthServiceClient>();
 builder.Services.AddScoped<InterestNotificationService>();
+builder.Services.AddScoped<DenormalizedUserSyncService>();
+
+builder.Services.AddKafkaConsumer(builder.Configuration, groupId: "marketplace-service-group");
+builder.Services.AddHostedService<UserProfileUpdatedConsumer>();
 
 builder.Services.AddTrustedHeaderAuthentication();
 
