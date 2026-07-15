@@ -10,6 +10,7 @@ public class AiAdvisoryDbContext(DbContextOptions<AiAdvisoryDbContext> options) 
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<CropProfile> CropProfiles => Set<CropProfile>();
     public DbSet<HarvestPrediction> HarvestPredictions => Set<HarvestPrediction>();
+    public DbSet<DiseaseDetection> DiseaseDetections => Set<DiseaseDetection>();
 
     /// <summary>
     /// SQL Server "datetime2" không lưu Kind — mọi giá trị ghi vào là DateTime.UtcNow (Kind=Utc)
@@ -64,6 +65,18 @@ public class AiAdvisoryDbContext(DbContextOptions<AiAdvisoryDbContext> options) 
             entity.Property(h => h.ConfidenceLevel).HasMaxLength(20).IsRequired();
             entity.Property(h => h.ReasoningText).HasMaxLength(2000).IsRequired();
             entity.HasIndex(h => h.FarmerId);
+        });
+
+        modelBuilder.Entity<DiseaseDetection>(entity =>
+        {
+            entity.Property(d => d.ImageUrl).HasMaxLength(500).IsRequired();
+            entity.Property(d => d.CropTypeHint).HasMaxLength(100);
+            entity.Property(d => d.Note).HasMaxLength(1000);
+            entity.Property(d => d.IdentifiedCropType).HasMaxLength(100).IsRequired();
+            entity.Property(d => d.DiseaseName).HasMaxLength(200);
+            entity.Property(d => d.Severity).HasMaxLength(20);
+            entity.Property(d => d.Description).HasMaxLength(2000).IsRequired();
+            entity.HasIndex(d => d.FarmerId);
         });
     }
 }

@@ -3,7 +3,7 @@
 ## Trách nhiệm
 
 Ba luồng AI cốt lõi:
-1. Nhận diện bệnh cây trồng từ ảnh (Claude Vision — chưa build)
+1. Nhận diện bệnh cây trồng từ ảnh (Gemini Vision + Cloudinary)
 2. Chatbot tư vấn canh tác bằng tiếng Việt (Gemini)
 3. Dự đoán thời điểm thu hoạch tối ưu (OpenWeatherMap + Gemini)
 
@@ -16,8 +16,11 @@ Chi tiết từng luồng (input/output schema, xử lý lỗi) nằm ở các f
 
 | Method | Path | Mô tả |
 |---|---|---|
-| POST | `/api/ai-advisory/disease-detection` | Upload ảnh (multipart) → trả kết quả chẩn đoán |
+| GET | `/api/ai-advisory/disease-detection/cloudinary-signature` | Ký request để FE upload ảnh thẳng lên Cloudinary (API secret không rời server) |
+| POST | `/api/ai-advisory/disease-detection` | Gửi `imageUrl` (đã upload Cloudinary) → trả kết quả chẩn đoán, không giới hạn theo danh sách cây (xem [ai-disease-detection-flow.md](../data-flows/ai-disease-detection-flow.md)) |
 | GET | `/api/ai-advisory/disease-detection/history` | Lịch sử chẩn đoán của farmer |
+| GET | `/api/ai-advisory/disease-detection/{id}` | Chi tiết 1 lần chẩn đoán |
+| DELETE | `/api/ai-advisory/disease-detection/{id}` | Xóa 1 lần chẩn đoán |
 | GET | `/api/ai-advisory/chat/sessions` | Danh sách phiên chat của user, sort theo hoạt động gần nhất |
 | POST | `/api/ai-advisory/chat/sessions` | Tạo phiên chat mới |
 | DELETE | `/api/ai-advisory/chat/sessions/{id}` | Xóa phiên chat (cascade xóa tin nhắn + Redis context) |
@@ -30,15 +33,24 @@ Chi tiết từng luồng (input/output schema, xử lý lỗi) nằm ở các f
 
 ```
 DiseaseDetections
-  Id                  (PK)
+  Id                       (PK)
   FarmerId
-  ImageUrl
-  CropType
-  DiseaseName
+  ImageUrl                     # URL Cloudinary (frontend upload thẳng, BE chỉ lưu URL)
+  CropTypeHint                 # gợi ý tùy chọn từ farmer, không phải nguồn xác định chính
+  Note                         # ghi chú tùy chọn từ farmer
+  IsHealthy                    # true = cây khỏe mạnh, không phát hiện bệnh (vẫn là kết quả hợp lệ)
+  IdentifiedCropType           # Gemini tự nhận diện từ ảnh
+  DiseaseName                  # null nếu IsHealthy=true
   ConfidenceScore
-  Severity
-  AnalysisResultJson
+  Severity                     # null nếu IsHealthy=true
+  Description
+  TreatmentOrganicJson
+  TreatmentChemicalJson
+  PreventionTipsJson
+  RecommendedActionsJson
   CreatedAt
+                                # Lưu ý: ảnh không hợp lệ (isValidPlantImage=false từ Gemini) bị từ chối
+                                # (422) ở controller, KHÔNG tới bước insert — bảng này chỉ chứa kết quả hợp lệ.
 
 ChatSessions
   Id              (PK)
@@ -95,4 +107,4 @@ Optional nâng cao (Phase 6): publish `ai-advisory.disease-detected.v1` nếu ch
 | `chat:session:{sessionId}:context` | Mảng JSON các tin nhắn gần nhất (sliding window ~10 tin) | 30 phút, refresh mỗi tin nhắn mới |
 | `geo:province:{provinceName}` | Cache tọa độ lat/lon (OpenWeatherMap Geocoding API) — tọa độ tỉnh không đổi | 30 ngày |
 | `weather:forecast:{lat},{lon}` | Cache response OpenWeatherMap 5 Day/3 Hour Forecast (free tier — KHÔNG phải 16 ngày) | 3 giờ |
-| `ai:ratelimit:{feature}:{userId}:{date}` | Đếm số lượt gọi Gemini/user/ngày theo từng tính năng (`chat` hoặc `harvest`) — tách riêng để dùng hết quota 1 tính năng không chặn tính năng kia | 24 giờ |
+| `ai:ratelimit:{feature}:{userId}:{date}` | Đếm số lượt gọi Gemini/user/ngày theo từng tính năng (`chat`/`harvest`/`disease`) — tách riêng để dùng hết quota 1 tính năng không chặn tính năng kia | 24 giờ |

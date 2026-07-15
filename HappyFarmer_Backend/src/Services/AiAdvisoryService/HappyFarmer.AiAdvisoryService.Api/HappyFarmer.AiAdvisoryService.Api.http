@@ -102,3 +102,57 @@ X-User-Id: 1
 X-User-Role: Farmer
 
 ###
+
+### Disease detection — lấy chữ ký Cloudinary (cần user-secrets thật mới không lỗi)
+GET {{HappyFarmer.AiAdvisoryService.Api_HostAddress}}/api/ai-advisory/disease-detection/cloudinary-signature
+X-User-Id: 1
+X-User-Role: Farmer
+
+###
+
+### Disease detection — ảnh lá cây bị bệnh rõ ràng (test, ảnh công khai Wikimedia Commons)
+### Kỳ vọng: isHealthy=false, có diseaseName/severity/khuyến nghị
+POST {{HappyFarmer.AiAdvisoryService.Api_HostAddress}}/api/ai-advisory/disease-detection
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: Farmer
+
+{
+  "imageUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Tomato_late_blight_foliar_lesions_(5816740026).jpg",
+  "cropTypeHint": "Cà chua"
+}
+
+###
+
+### Disease detection — cây khỏe mạnh (test, ảnh công khai Wikimedia Commons)
+### Kỳ vọng: isHealthy=true, diseaseName=null
+POST {{HappyFarmer.AiAdvisoryService.Api_HostAddress}}/api/ai-advisory/disease-detection
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: Farmer
+
+{
+  "imageUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Tomato_P5260299b.jpg"
+}
+
+###
+
+### Disease detection — ảnh không liên quan (test, ảnh công khai Wikimedia Commons)
+### Kỳ vọng: 422, không lưu DB
+POST {{HappyFarmer.AiAdvisoryService.Api_HostAddress}}/api/ai-advisory/disease-detection
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: Farmer
+
+{
+  "imageUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Mountain_Landscape_I.jpg"
+}
+
+###
+
+### Lấy lịch sử chẩn đoán bệnh cây
+GET {{HappyFarmer.AiAdvisoryService.Api_HostAddress}}/api/ai-advisory/disease-detection/history
+X-User-Id: 1
+X-User-Role: Farmer
+
+###

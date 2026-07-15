@@ -327,3 +327,35 @@ export interface HarvestPredictionSummaryDto {
   confidenceLevel: string
   createdAt: string
 }
+
+export interface CreateDiseaseDetectionRequest {
+  imageUrl: string
+  cropTypeHint?: string
+  note?: string
+}
+
+export interface DiseaseDetectionResponse {
+  id: number
+  imageUrl: string
+  isHealthy: boolean
+  identifiedCropType: string
+  diseaseName: string | null
+  confidenceScore: number
+  severity: string | null
+  description: string
+  treatmentOrganic: string[]
+  treatmentChemical: string[]
+  preventionTips: string[]
+  recommendedActions: string[]
+  createdAt: string
+}
+
+export interface DiseaseDetectionSummaryDto {
+  id: number
+  imageUrl: string
+  identifiedCropType: string
+  isHealthy: boolean
+  diseaseName: string | null
+  severity: string | null
+  createdAt: string
+}

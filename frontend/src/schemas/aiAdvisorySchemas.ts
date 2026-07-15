@@ -8,3 +8,11 @@ export const harvestPredictionSchema = z.object({
 
 export type HarvestPredictionFormValues = z.input<typeof harvestPredictionSchema>
 export type HarvestPredictionFormOutput = z.output<typeof harvestPredictionSchema>
+
+export const diseaseDetectionSchema = z.object({
+  cropTypeHint: z.string().trim().optional(),
+  note: z.string().trim().optional(),
+})
+
+export type DiseaseDetectionFormValues = z.input<typeof diseaseDetectionSchema>
+export type DiseaseDetectionFormOutput = z.output<typeof diseaseDetectionSchema>

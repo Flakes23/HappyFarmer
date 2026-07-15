@@ -26,6 +26,7 @@ builder.Services.AddScoped<DailyQuotaService>();
 builder.Services.AddSingleton(_ => new Client(apiKey: builder.Configuration["Gemini:ApiKey"]));
 builder.Services.AddScoped<GeminiChatService>();
 builder.Services.AddScoped<GeminiHarvestPredictionService>();
+builder.Services.AddScoped<GeminiDiseaseDetectionService>();
 
 // OpenWeatherMap: API public bên ngoài, URL cố định (không cần config theo môi trường như
 // AuthServiceClient — đó là service nội bộ đổi host giữa local/production).
@@ -35,6 +36,17 @@ builder.Services.AddHttpClient("OpenWeatherMap", client =>
 });
 builder.Services.AddScoped<OpenWeatherMapClient>();
 builder.Services.AddScoped<WeatherCacheService>();
+
+// Tải ảnh disease-detection từ URL Cloudinary (frontend upload thẳng lên Cloudinary trước) —
+// không BaseAddress vì URL đến từ Cloudinary, không cố định. Cần User-Agent rõ ràng vì nhiều host
+// (Cloudinary/CDN, kể cả ảnh test từ Wikimedia) chặn request thiếu/có User-Agent mặc định của HttpClient.
+builder.Services.AddHttpClient("ImageDownload", client =>
+{
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("HappyFarmer/1.0 (AI Advisory Service disease detection)");
+});
+
+builder.Services.Configure<CloudinaryOptions>(builder.Configuration.GetSection(CloudinaryOptions.SectionName));
+builder.Services.AddScoped<CloudinarySignatureService>();
 
 builder.Services.AddTrustedHeaderAuthentication();
 
