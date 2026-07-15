@@ -2,6 +2,7 @@
 // - AuthService: Dtos/AuthDtos.cs
 // - MarketPriceService: Dtos/MarketPriceDtos.cs
 // - MarketplaceService: Dtos/MarketplaceDtos.cs, Services/CloudinarySignatureService.cs
+// - AiAdvisoryService: Dtos/ChatDtos.cs
 
 export interface PagedResult<T> {
   items: T[]
@@ -246,4 +247,83 @@ export interface UploadSignatureResponse {
   apiKey: string
   cloudName: string
   folder: string
+}
+
+export type ChatSender = 'User' | 'AI'
+export type ChatSessionStatus = 'Active' | 'Ended'
+
+export interface ChatSessionSummaryResponse {
+  id: number
+  title: string | null
+  startedAt: string
+  lastActivityAt: string
+  status: ChatSessionStatus
+}
+
+export interface CreateChatSessionResponse {
+  sessionId: number
+  startedAt: string
+}
+
+export interface ChatMessageDto {
+  id: number
+  sender: ChatSender
+  content: string
+  createdAt: string
+}
+
+export interface SendChatMessageResponse {
+  sessionId: number
+  reply: string
+  timestamp: string
+}
+
+export interface WeatherSummaryDto {
+  avgTempC: number
+  totalRainfallMm: number
+}
+
+export interface CreateHarvestPredictionRequest {
+  cropType: string
+  plantingDate: string
+  location: string
+}
+
+export interface DailyForecastSummaryDto {
+  date: string
+  avgTempC: number
+  minTempC: number
+  maxTempC: number
+  totalRainfallMm: number
+  popPercent: number
+  weatherId: number
+  weatherDescription: string
+}
+
+export interface HarvestPredictionResponse {
+  id: number
+  cropType: string
+  plantingDate: string
+  location: string
+  recommendedStartDate: string
+  recommendedEndDate: string
+  confidenceLevel: string
+  riskFactors: string[]
+  reasoning: string
+  weatherSummary: WeatherSummaryDto | null
+  usedVerifiedCropProfile: boolean
+  weatherDataIncluded: boolean
+  transparencyNote: string
+  createdAt: string
+}
+
+export interface HarvestPredictionSummaryDto {
+  id: number
+  cropType: string
+  location: string
+  plantingDate: string
+  recommendedStartDate: string
+  recommendedEndDate: string
+  confidenceLevel: string
+  createdAt: string
 }

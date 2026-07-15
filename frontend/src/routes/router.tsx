@@ -33,6 +33,7 @@ const InterestThreadPage = lazy(() =>
 const EditProfilePage = lazy(() =>
   import('@/pages/EditProfilePage').then((m) => ({ default: m.EditProfilePage })),
 )
+const AiAdvisoryPage = lazy(() => import('@/pages/AiAdvisoryPage').then((m) => ({ default: m.AiAdvisoryPage })))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
 
 export const router = createBrowserRouter([
@@ -95,6 +96,14 @@ export const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <InterestThreadPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: 'tu-van-ai',
+        element: (
+          <RequireAuth>
+            <AiAdvisoryPage />
           </RequireAuth>
         ),
       },

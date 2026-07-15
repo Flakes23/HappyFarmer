@@ -1,6 +1,104 @@
 @HappyFarmer.AiAdvisoryService.Api_HostAddress = http://localhost:5224
 
-GET {{HappyFarmer.AiAdvisoryService.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### Tạo phiên chat mới (giả lập header Gateway gắn khi test độc lập, bypass Gateway)
+POST {{HappyFarmer.AiAdvisoryService.Api_HostAddress}}/api/ai-advisory/chat/sessions
+X-User-Id: 1
+X-User-Role: Farmer
+
+###
+
+### Gửi tin nhắn — test ranh giới chủ đề (câu hỏi ngoài nông nghiệp)
+POST {{HappyFarmer.AiAdvisoryService.Api_HostAddress}}/api/ai-advisory/chat/sessions/1/messages
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: Farmer
+
+{
+  "message": "Bitcoin có nên đầu tư không?"
+}
+
+###
+
+### Gửi tin nhắn — test hỏi lại khi thiếu thông tin
+POST {{HappyFarmer.AiAdvisoryService.Api_HostAddress}}/api/ai-advisory/chat/sessions/1/messages
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: Farmer
+
+{
+  "message": "cây tôi bị bệnh"
+}
+
+###
+
+### Gửi tin nhắn — câu hỏi nông nghiệp bình thường
+POST {{HappyFarmer.AiAdvisoryService.Api_HostAddress}}/api/ai-advisory/chat/sessions/1/messages
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: Farmer
+
+{
+  "message": "Cây lúa nhà tôi ở Đồng Tháp bị vàng lá ở phần rìa, đang giai đoạn đẻ nhánh, phải làm sao?"
+}
+
+###
+
+### Lấy lịch sử hội thoại
+GET {{HappyFarmer.AiAdvisoryService.Api_HostAddress}}/api/ai-advisory/chat/sessions/1/messages
+X-User-Id: 1
+X-User-Role: Farmer
+
+###
+
+### Harvest prediction — Lúa, trồng ~95 ngày trước (thu hoạch sắp tới, trong 5 ngày dự báo)
+### Kỳ vọng: usedVerifiedCropProfile=true (khớp CropProfiles), weatherDataIncluded=true
+POST {{HappyFarmer.AiAdvisoryService.Api_HostAddress}}/api/ai-advisory/harvest-prediction
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: Farmer
+
+{
+  "cropType": "Lúa",
+  "plantingDate": "2026-04-11",
+  "location": "Cần Thơ"
+}
+
+###
+
+### Harvest prediction — Lúa, trồng hôm nay (thu hoạch còn xa ~100 ngày, ngoài phạm vi dự báo 5 ngày)
+### Kỳ vọng: usedVerifiedCropProfile=true, weatherDataIncluded=false
+POST {{HappyFarmer.AiAdvisoryService.Api_HostAddress}}/api/ai-advisory/harvest-prediction
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: Farmer
+
+{
+  "cropType": "Lúa",
+  "plantingDate": "2026-07-15",
+  "location": "Cần Thơ"
+}
+
+###
+
+### Harvest prediction — cây không có trong CropProfiles (Dưa hấu), gần thu hoạch
+### Kỳ vọng: usedVerifiedCropProfile=false (Gemini tự ước tính), weatherDataIncluded=true nếu Gemini
+### ước tính thu hoạch trong 5 ngày tới
+POST {{HappyFarmer.AiAdvisoryService.Api_HostAddress}}/api/ai-advisory/harvest-prediction
+Content-Type: application/json
+X-User-Id: 1
+X-User-Role: Farmer
+
+{
+  "cropType": "Dưa hấu",
+  "plantingDate": "2026-05-20",
+  "location": "Long An"
+}
+
+###
+
+### Lấy lịch sử dự đoán thu hoạch
+GET {{HappyFarmer.AiAdvisoryService.Api_HostAddress}}/api/ai-advisory/harvest-prediction/history
+X-User-Id: 1
+X-User-Role: Farmer
 
 ###

@@ -35,7 +35,7 @@ export function ConfirmDialog({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
-      <AlertDialogContent>
+      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           {description ? <AlertDialogDescription>{description}</AlertDialogDescription> : null}

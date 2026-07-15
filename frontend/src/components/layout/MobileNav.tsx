@@ -52,6 +52,11 @@ export function MobileNav() {
               ) : null}
             </Link>
           ) : null}
+          {isAuthenticated ? (
+            <Link to="/tu-van-ai" className="text-base text-text hover:text-primary" onClick={close}>
+              Tư vấn AI
+            </Link>
+          ) : null}
         </nav>
 
         <div className="flex items-center justify-between">

@@ -49,6 +49,12 @@ export function Navbar() {
             </Link>
           ) : null}
 
+          {isAuthenticated ? (
+            <Link to="/tu-van-ai" className="text-sm text-text hover:text-primary">
+              Tư vấn AI
+            </Link>
+          ) : null}
+
           <ThemeToggle />
 
           {isAuthenticated && user ? (
