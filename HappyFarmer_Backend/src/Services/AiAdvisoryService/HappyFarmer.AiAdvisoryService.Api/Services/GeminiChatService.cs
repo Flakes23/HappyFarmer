@@ -78,6 +78,9 @@ public class GeminiChatService(
         {
             SystemInstruction = new Content { Parts = [new Part { Text = SystemPrompt }] },
             MaxOutputTokens = 1024,
+            // Nhiệt độ thấp — câu trả lời tư vấn nên nhất quán/factual hơn là "sáng tạo", nhất là khi
+            // đã có dữ liệu thật từ function-calling (không cần model tự do diễn giải số liệu).
+            Temperature = 0.2,
             // Tắt thinking — chatbot tư vấn ngắn không cần bước suy luận sâu, và thinking mặc định
             // (AUTOMATIC) là nguyên nhân gây độ trễ lớn (nhiều giây) cho một câu trả lời hội thoại đơn giản.
             ThinkingConfig = new ThinkingConfig { ThinkingBudget = 0 },

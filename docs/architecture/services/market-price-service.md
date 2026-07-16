@@ -11,7 +11,9 @@ Danh mục nông sản (Category → SubCategory → Product), khu vực/nguồn
 | Method | Path | Mô tả |
 |---|---|---|
 | GET | `/api/market-price/products` | Toàn bộ danh sách nông sản (kèm `subCategoryId`/`subCategoryName`/`categoryId`/`categoryName`), không phân trang |
+| GET | `/api/market-price/products/by-ids?ids=1,2,3` | Tra tên/đơn vị theo đúng vài Id cụ thể — dùng khi caller (vd. chatbot AI Advisory resolve tên hiển thị cho vài listing/giá vừa tìm được) không muốn tải toàn bộ catalog rồi tự lọc |
 | GET | `/api/market-price/regions` | Danh sách khu vực/nguồn giá |
+| GET | `/api/market-price/regions/by-ids?ids=1,2,3` | Tương tự `products/by-ids` nhưng cho khu vực |
 | GET | `/api/market-price/categories` | Danh sách Category cha (hiện chỉ có 1: "Rau, củ, quả") |
 | GET | `/api/market-price/categories/{categoryId}/sub-categories` | Danh sách SubCategory con của 1 Category (Dạng lá, Dạng củ, Dạng quả (trái), Dạng nấm, Dạng hạt, Rau gia vị tây, Trái cây, Rau củ quả khác) |
 | GET | `/api/market-price/prices?productId=&regionId=&date=&search=&categoryId=&subCategoryId=&page=&pageSize=` | Giá hiện tại/theo ngày, có lọc theo tên (search, khớp `Contains`)/Category/SubCategory, **trả về `PagedResult<PriceResponse>`** (`page` mặc định 1, `pageSize` mặc định 20, tối đa 100) |

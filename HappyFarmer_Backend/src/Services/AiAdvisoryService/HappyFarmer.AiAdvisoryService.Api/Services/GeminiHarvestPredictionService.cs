@@ -56,6 +56,10 @@ public class GeminiHarvestPredictionService(Client client, IConfiguration config
         {
             SystemInstruction = new Content { Parts = [new Part { Text = SystemPrompt }] },
             MaxOutputTokens = 1024,
+            // Nhiệt độ thấp — cùng 1 loại cây/ngày trồng phải cho kết quả nhất quán giữa các lần gọi,
+            // mặc định SDK (không set) để model quá "sáng tạo" khiến 2 tên gọi dân gian của cùng 1
+            // loài (vd. "trâu cổ" vs "xộp" đều là Ficus pumila) ra 2 khoảng ngày thu hoạch lệch hẳn nhau.
+            Temperature = 0.2,
             ThinkingConfig = new ThinkingConfig { ThinkingBudget = 0 },
             ResponseMimeType = "application/json",
             ResponseSchema = BuildResponseSchema(),

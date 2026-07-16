@@ -88,6 +88,9 @@ public class GeminiDiseaseDetectionService(
         {
             SystemInstruction = new Content { Parts = [new Part { Text = SystemPrompt }] },
             MaxOutputTokens = 1536,
+            // Nhiệt độ thấp — chẩn đoán cần nhất quán giữa các lần gọi cùng 1 ảnh, tránh model "sáng
+            // tạo" thêm chi tiết bệnh/khuyến nghị không chắc chắn.
+            Temperature = 0.2,
             ThinkingConfig = new ThinkingConfig { ThinkingBudget = 0 },
             ResponseMimeType = "application/json",
             ResponseSchema = BuildResponseSchema(),

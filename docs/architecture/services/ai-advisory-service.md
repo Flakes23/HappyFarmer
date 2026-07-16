@@ -4,13 +4,23 @@
 
 Ba luồng AI cốt lõi:
 1. Nhận diện bệnh cây trồng từ ảnh (Gemini Vision + Cloudinary)
-2. Chatbot tư vấn canh tác bằng tiếng Việt (Gemini)
+2. Chatbot tư vấn canh tác bằng tiếng Việt (Gemini, có function-calling gọi sang Market Price
+   Service/Marketplace Service/Auth Service để trả lời bằng dữ liệu thật — xem
+   [ai-chatbot-flow.md](../data-flows/ai-chatbot-flow.md))
 3. Dự đoán thời điểm thu hoạch tối ưu (OpenWeatherMap + Gemini)
 
 Chi tiết từng luồng (input/output schema, xử lý lỗi) nằm ở các file riêng trong [../data-flows/](../data-flows/):
 - [ai-disease-detection-flow.md](../data-flows/ai-disease-detection-flow.md)
 - [ai-chatbot-flow.md](../data-flows/ai-chatbot-flow.md)
 - [ai-harvest-prediction-flow.md](../data-flows/ai-harvest-prediction-flow.md)
+
+Là service **duy nhất** trong hệ thống chủ động gọi service-to-service tới 3 service khác (Market
+Price Service, Marketplace Service, Auth Service) qua network nội bộ (không qua Gateway) — dùng
+`IHttpClientFactory` + `Microsoft.Extensions.Http.Resilience` (`AddStandardResilienceHandler`, retry
++ circuit-breaker + timeout, cấu hình chặt hơn mặc định vì nằm trong 1 lượt chat của user: attempt
+timeout 2s, tổng timeout 5s, tối đa 2 lần retry). Endpoint Market Price/Marketplace Service gọi tới
+đều public (`[AllowAnonymous]`); riêng Auth Service dùng key riêng, xem
+[auth-service.md#internal-api-key](auth-service.md#internal-api-key).
 
 ## API chính
 
@@ -24,7 +34,7 @@ Chi tiết từng luồng (input/output schema, xử lý lỗi) nằm ở các f
 | GET | `/api/ai-advisory/chat/sessions` | Danh sách phiên chat của user, sort theo hoạt động gần nhất |
 | POST | `/api/ai-advisory/chat/sessions` | Tạo phiên chat mới |
 | DELETE | `/api/ai-advisory/chat/sessions/{id}` | Xóa phiên chat (cascade xóa tin nhắn + Redis context) |
-| POST | `/api/ai-advisory/chat/sessions/{id}/messages` | Gửi tin nhắn, nhận phản hồi AI |
+| POST | `/api/ai-advisory/chat/sessions/{id}/messages` | Gửi tin nhắn, nhận phản hồi AI — kèm `cards` (giá/tin đăng) nếu chatbot tra được dữ liệu thật qua function-calling, xem [ai-chatbot-flow.md](../data-flows/ai-chatbot-flow.md) |
 | GET | `/api/ai-advisory/chat/sessions/{id}/messages` | Lấy lịch sử hội thoại (fallback khi Redis hết hạn) |
 | POST | `/api/ai-advisory/harvest-prediction` | Dự đoán thời điểm thu hoạch tối ưu (không giới hạn theo danh sách cây, xem [ai-harvest-prediction-flow.md](../data-flows/ai-harvest-prediction-flow.md)) |
 | GET | `/api/ai-advisory/harvest-prediction/history` | Lịch sử dự đoán thu hoạch của farmer |
@@ -66,6 +76,8 @@ ChatMessages
   Sender      (User | AI)
   Content
   CreatedAt
+  CardsJson   # card giá/tin đăng (JSON, polymorphic PriceCard|ListingCard) chatbot tra được qua
+              # function-calling — chỉ tin nhắn AI mới set, null nếu lượt đó không tra dữ liệu gì
 
 CropProfiles                 # bảng OVERRIDE tùy chọn — hiện chỉ seed 1 dòng (Lúa), KHÔNG giới hạn
   Id                (PK)      # phạm vi cây trồng được dự đoán (cây không có ở đây vẫn dự đoán được,
