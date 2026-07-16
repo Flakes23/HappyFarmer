@@ -27,7 +27,13 @@ public record UserResponse(int Id, string? PhoneNumber, string? Email, string Fu
         user.Id, user.PhoneNumber, user.Email, user.FullName, user.Role.ToString(), user.ProvinceId, user.IsActive, user.CreatedAt, user.AvatarUrl);
 }
 
-public record UserLookupResponse(int Id, string FullName, DateTime CreatedAt, string? AvatarUrl)
+public record UserLookupResponse(int Id, string FullName, DateTime CreatedAt, string? AvatarUrl, string? ProvinceName)
 {
-    public static UserLookupResponse FromEntity(User user) => new(user.Id, user.FullName, user.CreatedAt, user.AvatarUrl);
+    public static UserLookupResponse FromEntity(User user, string? provinceName) => new(
+        user.Id, user.FullName, user.CreatedAt, user.AvatarUrl, provinceName);
+}
+
+public record ProvinceResponse(int Id, string Name)
+{
+    public static ProvinceResponse FromEntity(Province p) => new(p.Id, p.Name);
 }

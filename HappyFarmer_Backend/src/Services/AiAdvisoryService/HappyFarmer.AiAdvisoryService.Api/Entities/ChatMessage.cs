@@ -13,4 +13,7 @@ public class ChatMessage
     public ChatSender Sender { get; set; }
     public string Content { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>Card (giá/tin đăng) chatbot tra được qua function-calling, serialize JSON — chỉ tin nhắn AI mới set.</summary>
+    public string? CardsJson { get; set; }
 }

@@ -40,6 +40,11 @@ public class AuthController(
             return Conflict(new { message = "Email đã được sử dụng." });
         }
 
+        if (request.ProvinceId is not null && !await db.Provinces.AnyAsync(p => p.Id == request.ProvinceId))
+        {
+            return BadRequest(new { message = "Tỉnh/thành không hợp lệ." });
+        }
+
         var user = new User
         {
             PhoneNumber = request.PhoneNumber,
@@ -129,6 +134,11 @@ public class AuthController(
     {
         var user = await GetCurrentUserAsync();
         if (user is null) return NotFound();
+
+        if (request.ProvinceId is not null && !await db.Provinces.AnyAsync(p => p.Id == request.ProvinceId))
+        {
+            return BadRequest(new { message = "Tỉnh/thành không hợp lệ." });
+        }
 
         var oldFullName = user.FullName;
         var oldAvatarUrl = user.AvatarUrl;

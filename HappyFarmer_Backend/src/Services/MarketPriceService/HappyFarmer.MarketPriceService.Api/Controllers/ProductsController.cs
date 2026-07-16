@@ -28,4 +28,24 @@ public class ProductsController(MarketPriceDbContext db) : ControllerBase
 
         return Ok(products.Select(ProductResponse.FromEntity));
     }
+
+    /// <summary>
+    /// Tra tên hiển thị cho đúng vài Id cụ thể (vd. chatbot AI Advisory resolve tên sản phẩm cho
+    /// listing/giá vừa tìm được) — tránh phải tải toàn bộ catalog (GET không search) rồi tự lọc.
+    /// </summary>
+    [HttpGet("by-ids")]
+    public async Task<ActionResult<List<ProductResponse>>> GetProductsByIds([FromQuery] List<int> ids)
+    {
+        if (ids is not { Count: > 0 })
+        {
+            return Ok(new List<ProductResponse>());
+        }
+
+        var products = await db.Products
+            .Include(p => p.SubCategory).ThenInclude(sc => sc.Category)
+            .Where(p => ids.Contains(p.Id))
+            .ToListAsync();
+
+        return Ok(products.Select(ProductResponse.FromEntity));
+    }
 }

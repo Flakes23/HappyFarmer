@@ -23,11 +23,12 @@ import {
 import { registerSchema, type RegisterFormValues } from '@/schemas/authSchemas'
 import { useRegister } from '@/hooks/mutations/useRegister'
 import { extractApiErrorMessage } from '@/api/authApi'
-import { PROVINCES } from '@/lib/provinces'
+import { useProvinces } from '@/hooks/queries/useProvinces'
 
 export function RegisterForm() {
   const navigate = useNavigate()
   const register = useRegister()
+  const provinces = useProvinces()
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -151,7 +152,7 @@ export function RegisterForm() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {PROVINCES.map((p) => (
+                  {(provinces.data ?? []).map((p) => (
                     <SelectItem key={p.id} value={String(p.id)}>
                       {p.name}
                     </SelectItem>

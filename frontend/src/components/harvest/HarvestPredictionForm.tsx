@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -16,7 +16,7 @@ import { useCreateHarvestPrediction } from '@/hooks/mutations/useCreateHarvestPr
 import { harvestPredictionSchema, type HarvestPredictionFormValues } from '@/schemas/aiAdvisorySchemas'
 import { extractApiErrorMessage } from '@/api/authApi'
 import { useAuthStore } from '@/store/authStore'
-import { PROVINCES } from '@/lib/provinces'
+import { useProvinces } from '@/hooks/queries/useProvinces'
 import { cn, parseIsoDate } from '@/lib/utils'
 import type { HarvestPredictionResponse } from '@/api/types'
 
@@ -28,12 +28,20 @@ export function HarvestPredictionForm({ onResult }: HarvestPredictionFormProps) 
   const predict = useCreateHarvestPrediction()
   const [plantingDateOpen, setPlantingDateOpen] = useState(false)
   const user = useAuthStore((s) => s.user)
-  const defaultLocation = PROVINCES.find((p) => p.id === user?.provinceId)?.name ?? ''
+  const provinces = useProvinces()
 
   const form = useForm<HarvestPredictionFormValues>({
     resolver: zodResolver(harvestPredictionSchema),
-    defaultValues: { cropType: '', plantingDate: '', location: defaultLocation },
+    defaultValues: { cropType: '', plantingDate: '', location: '' },
   })
+
+  // provinces tải bất đồng bộ nên không thể đưa thẳng vào defaultValues (chỉ áp dụng 1 lần lúc mount) —
+  // set khi tải xong, chỉ nếu người dùng chưa tự chọn khu vực khác.
+  useEffect(() => {
+    if (!provinces.data || form.getValues('location')) return
+    const match = provinces.data.find((p) => p.id === user?.provinceId)
+    if (match) form.setValue('location', match.name)
+  }, [provinces.data, user?.provinceId, form])
 
   const location = form.watch('location')
 
@@ -68,7 +76,7 @@ export function HarvestPredictionForm({ onResult }: HarvestPredictionFormProps) 
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {PROVINCES.map((p) => (
+                  {(provinces.data ?? []).map((p) => (
                     <SelectItem key={p.id} value={p.name}>
                       {p.name}
                     </SelectItem>

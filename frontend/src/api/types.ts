@@ -13,6 +13,11 @@ export interface PagedResult<T> {
 
 export type UserRole = 'Farmer' | 'Buyer' | 'Admin'
 
+export interface ProvinceResponse {
+  id: number
+  name: string
+}
+
 export interface UserResponse {
   id: number
   phoneNumber: string | null
@@ -265,17 +270,45 @@ export interface CreateChatSessionResponse {
   startedAt: string
 }
 
+export interface PriceCard {
+  type: 'price'
+  productId: number
+  productName: string
+  regionName: string
+  currentPrice: number
+  changePercent: number | null
+  unit: string | null
+  url: string
+}
+
+export interface ListingCard {
+  type: 'listing'
+  listingId: number
+  productName: string
+  regionName: string
+  pricePerUnit: number
+  quantity: number
+  unit: string
+  imageUrl: string | null
+  farmerName: string | null
+  url: string
+}
+
+export type ChatCard = PriceCard | ListingCard
+
 export interface ChatMessageDto {
   id: number
   sender: ChatSender
   content: string
   createdAt: string
+  cards: ChatCard[] | null
 }
 
 export interface SendChatMessageResponse {
   sessionId: number
   reply: string
   timestamp: string
+  cards: ChatCard[] | null
 }
 
 export interface WeatherSummaryDto {

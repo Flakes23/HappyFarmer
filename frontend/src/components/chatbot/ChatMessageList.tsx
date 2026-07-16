@@ -3,6 +3,7 @@ import Markdown from 'react-markdown'
 import { Bot } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ChatCardList } from '@/components/chatbot/cards/ChatCardList'
 import { useChatHistory } from '@/hooks/queries/useChatHistory'
 import { cn } from '@/lib/utils'
 
@@ -72,6 +73,8 @@ export function ChatMessageList({ sessionId, pendingMessage }: ChatMessageListPr
                   >
                     {new Date(m.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                   </p>
+
+                  {!isMine && m.cards && m.cards.length > 0 ? <ChatCardList cards={m.cards} /> : null}
                 </div>
               </div>
             )

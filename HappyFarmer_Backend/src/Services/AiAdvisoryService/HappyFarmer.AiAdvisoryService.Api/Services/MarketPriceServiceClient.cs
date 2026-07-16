@@ -60,6 +60,46 @@ public class MarketPriceServiceClient(IHttpClientFactory httpClientFactory, ILog
         }
     }
 
+    /// <summary>
+    /// Tra tên hiển thị theo đúng vài Id cụ thể (vd. build card cho danh sách listing vừa tìm được) —
+    /// tránh tải toàn bộ catalog rồi tự lọc như GetRegionsAsync()/SearchProductsAsync(null) trước đây.
+    /// </summary>
+    public async Task<List<MarketPriceProductDto>> GetProductsByIdsAsync(IEnumerable<int> ids, CancellationToken ct)
+    {
+        var idList = ids.Distinct().ToList();
+        if (idList.Count == 0) return [];
+
+        try
+        {
+            var url = "api/market-price/products/by-ids?" + string.Join("&", idList.Select(id => $"ids={id}"));
+            var products = await CreateClient().GetFromJsonAsync<List<MarketPriceProductDto>>(url, JsonOptions, ct);
+            return products ?? [];
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
+        {
+            logger.LogWarning(ex, "Không gọi được Market Price Service để tra tên sản phẩm theo id");
+            return [];
+        }
+    }
+
+    public async Task<List<MarketPriceRegionDto>> GetRegionsByIdsAsync(IEnumerable<int> ids, CancellationToken ct)
+    {
+        var idList = ids.Distinct().ToList();
+        if (idList.Count == 0) return [];
+
+        try
+        {
+            var url = "api/market-price/regions/by-ids?" + string.Join("&", idList.Select(id => $"ids={id}"));
+            var regions = await CreateClient().GetFromJsonAsync<List<MarketPriceRegionDto>>(url, JsonOptions, ct);
+            return regions ?? [];
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
+        {
+            logger.LogWarning(ex, "Không gọi được Market Price Service để tra tên khu vực theo id");
+            return [];
+        }
+    }
+
     public async Task<List<MarketPriceCurrentDto>> GetCurrentPricesAsync(int? productId, int? regionId, CancellationToken ct)
     {
         try

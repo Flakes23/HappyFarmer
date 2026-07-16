@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using HappyFarmer.AiAdvisoryService.Api.Data;
 using HappyFarmer.AiAdvisoryService.Api.Dtos;
 using HappyFarmer.AiAdvisoryService.Api.Entities;
@@ -115,7 +116,7 @@ public class ChatController(
         }
 
         // 3. Gọi Gemini (đã bị giới hạn concurrency qua [EnableRateLimiting] ở trên).
-        var result = await gemini.GetReplyAsync(history, request.Message, HttpContext.RequestAborted);
+        var result = await gemini.GetReplyAsync(history, request.Message, userId.Value, HttpContext.RequestAborted);
         var reply = result.Success ? result.Reply! : result.FallbackMessage!;
 
         // 4. Chỉ refresh Redis context khi Gemini trả lời thành công — refusal/lỗi không phải
@@ -125,9 +126,11 @@ public class ChatController(
             await contextCache.AppendAsync(id, new ChatTurn("user", request.Message), new ChatTurn("assistant", reply));
         }
 
-        // 5. Lưu vĩnh viễn cả 2 tin nhắn vào DB.
+        // 5. Lưu vĩnh viễn cả 2 tin nhắn vào DB — CardsJson chỉ set khi chatbot tra được dữ liệu thật
+        //    qua function-calling (giá/tin đăng), để lần sau xem lại lịch sử vẫn render đúng card.
+        var cardsJson = result.Cards is { Count: > 0 } ? JsonSerializer.Serialize(result.Cards) : null;
         db.ChatMessages.Add(new ChatMessage { SessionId = id, Sender = ChatSender.User, Content = request.Message, CreatedAt = DateTime.UtcNow });
-        db.ChatMessages.Add(new ChatMessage { SessionId = id, Sender = ChatSender.AI, Content = reply, CreatedAt = DateTime.UtcNow });
+        db.ChatMessages.Add(new ChatMessage { SessionId = id, Sender = ChatSender.AI, Content = reply, CreatedAt = DateTime.UtcNow, CardsJson = cardsJson });
         session.LastActivityAt = DateTime.UtcNow;
 
         if (string.IsNullOrEmpty(session.Title))
@@ -138,7 +141,7 @@ public class ChatController(
 
         await db.SaveChangesAsync();
 
-        return Ok(new SendChatMessageResponse(id, reply, DateTime.UtcNow));
+        return Ok(new SendChatMessageResponse(id, reply, DateTime.UtcNow, result.Cards));
     }
 
     [HttpGet("sessions/{id:int}/messages")]
@@ -153,9 +156,12 @@ public class ChatController(
         var messages = await db.ChatMessages
             .Where(m => m.SessionId == id)
             .OrderBy(m => m.Id)
-            .Select(m => new ChatMessageDto(m.Id, m.Sender.ToString(), m.Content, m.CreatedAt))
             .ToListAsync();
 
-        return Ok(messages);
+        var dtos = messages.Select(m => new ChatMessageDto(
+            m.Id, m.Sender.ToString(), m.Content, m.CreatedAt,
+            m.CardsJson is null ? null : JsonSerializer.Deserialize<List<ChatCard>>(m.CardsJson)));
+
+        return Ok(dtos);
     }
 }

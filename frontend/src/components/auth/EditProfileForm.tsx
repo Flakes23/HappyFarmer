@@ -25,11 +25,12 @@ import { useUpdateProfile } from '@/hooks/mutations/useUpdateProfile'
 import { extractApiErrorMessage } from '@/api/authApi'
 import { useAuthStore } from '@/store/authStore'
 import { getInitial } from '@/lib/utils'
-import { PROVINCES } from '@/lib/provinces'
+import { useProvinces } from '@/hooks/queries/useProvinces'
 
 export function EditProfileForm() {
   const user = useAuthStore((s) => s.user)
   const updateProfile = useUpdateProfile()
+  const provinces = useProvinces()
   const [avatarUrl, setAvatarUrl] = useState<string | null>(user?.avatarUrl ?? null)
 
   const form = useForm<EditProfileFormValues>({
@@ -105,7 +106,7 @@ export function EditProfileForm() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {PROVINCES.map((p) => (
+                  {(provinces.data ?? []).map((p) => (
                     <SelectItem key={p.id} value={String(p.id)}>
                       {p.name}
                     </SelectItem>

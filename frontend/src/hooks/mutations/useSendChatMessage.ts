@@ -9,8 +9,8 @@ export function useSendChatMessage(sessionId: number) {
     mutationFn: (message: string) => aiAdvisoryApi.sendMessage(sessionId, message),
     onSuccess: (res, message) => {
       const now = Date.now()
-      const userMsg: ChatMessageDto = { id: now, sender: 'User', content: message, createdAt: res.timestamp }
-      const aiMsg: ChatMessageDto = { id: now + 1, sender: 'AI', content: res.reply, createdAt: res.timestamp }
+      const userMsg: ChatMessageDto = { id: now, sender: 'User', content: message, createdAt: res.timestamp, cards: null }
+      const aiMsg: ChatMessageDto = { id: now + 1, sender: 'AI', content: res.reply, createdAt: res.timestamp, cards: res.cards }
       queryClient.setQueryData<ChatMessageDto[]>(['chat-history', sessionId], (old) => [
         ...(old ?? []),
         userMsg,

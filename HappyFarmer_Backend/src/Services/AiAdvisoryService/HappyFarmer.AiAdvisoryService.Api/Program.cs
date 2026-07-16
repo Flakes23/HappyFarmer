@@ -5,9 +5,23 @@ using HappyFarmer.AiAdvisoryService.Api.Services;
 using HappyFarmer.Shared.Contracts.Auth;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Http.Resilience;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Cấu hình resilience (retry + circuit-breaker + timeout) dùng chung cho 3 HttpClient nội bộ —
+// pipeline mặc định của AddStandardResilienceHandler khá "rộng rãi" (tổng timeout ~30s, nhiều lần
+// retry), không phù hợp vì các lệnh gọi này nằm TRONG 1 lượt chat của user (đã có MaxToolIterations
+// riêng ở GeminiChatService) — thu hẹp lại để 1 tool-call chậm không kéo dài cả lượt chat.
+void ConfigureInternalResilience(HttpStandardResilienceOptions options)
+{
+    // AttemptTimeout phải nhỏ hơn TotalRequestTimeout (validate lúc startup) — mỗi lần thử tối đa 2s,
+    // tổng cả retry tối đa 5s, để 1 tool-call chậm không kéo dài cả lượt chat của user.
+    options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(2);
+    options.Retry.MaxRetryAttempts = 2;
+    options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(5);
+}
 
 // Add services to the container.
 
@@ -47,6 +61,24 @@ builder.Services.AddHttpClient("ImageDownload", client =>
 
 builder.Services.Configure<CloudinaryOptions>(builder.Configuration.GetSection(CloudinaryOptions.SectionName));
 builder.Services.AddScoped<CloudinarySignatureService>();
+
+// Gọi service khác qua network nội bộ (không qua Gateway) để chatbot tra giá/tin đăng/thông tin
+// người dùng thật qua function calling — cùng pattern AuthServiceClient đã có ở Marketplace Service.
+builder.Services.AddHttpClient("MarketPriceService", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Services:MarketPriceServiceBaseUrl"]!);
+}).AddStandardResilienceHandler(ConfigureInternalResilience);
+builder.Services.AddHttpClient("MarketplaceService", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Services:MarketplaceServiceBaseUrl"]!);
+}).AddStandardResilienceHandler(ConfigureInternalResilience);
+builder.Services.AddHttpClient("AuthService", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Services:AuthServiceBaseUrl"]!);
+}).AddStandardResilienceHandler(ConfigureInternalResilience);
+builder.Services.AddScoped<MarketPriceServiceClient>();
+builder.Services.AddScoped<MarketplaceServiceClient>();
+builder.Services.AddScoped<AuthServiceClient>();
 
 builder.Services.AddTrustedHeaderAuthentication();
 

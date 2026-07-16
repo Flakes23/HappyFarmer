@@ -3,6 +3,7 @@ import { httpAuth } from '@/api/httpAuth'
 import type {
   AuthResponse,
   LoginRequest,
+  ProvinceResponse,
   RefreshTokenRequest,
   RegisterRequest,
   UpdateProfileRequest,
@@ -11,6 +12,8 @@ import type {
 } from '@/api/types'
 
 export const authApi = {
+  getProvinces: () => rawAuthClient.get<ProvinceResponse[]>('/api/auth/provinces').then((r) => r.data),
+
   register: (body: RegisterRequest) =>
     rawAuthClient.post<AuthResponse>('/api/auth/register', body).then((r) => r.data),
 
