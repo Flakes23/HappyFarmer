@@ -72,7 +72,7 @@ export function MarketPricePage() {
                 <PaginationItem>
                   <PaginationPrevious onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} />
                 </PaginationItem>
-                <PaginationItem className="px-3 text-sm text-text-muted">
+                <PaginationItem className="px-3 text-body-sm text-text-muted">
                   Trang {page} / {totalPages}
                 </PaginationItem>
                 <PaginationItem>

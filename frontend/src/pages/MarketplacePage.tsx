@@ -144,7 +144,7 @@ export function MarketplacePage() {
                         disabled={listingsPage === 1}
                       />
                     </PaginationItem>
-                    <PaginationItem className="px-3 text-sm text-text-muted">
+                    <PaginationItem className="px-3 text-body-sm text-text-muted">
                       Trang {listingsPage} / {totalPages(listings.data.totalCount)}
                     </PaginationItem>
                     <PaginationItem>
@@ -186,7 +186,7 @@ export function MarketplacePage() {
                         disabled={buyRequestsPage === 1}
                       />
                     </PaginationItem>
-                    <PaginationItem className="px-3 text-sm text-text-muted">
+                    <PaginationItem className="px-3 text-body-sm text-text-muted">
                       Trang {buyRequestsPage} / {totalPages(buyRequests.data.totalCount)}
                     </PaginationItem>
                     <PaginationItem>

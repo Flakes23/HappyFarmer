@@ -15,8 +15,8 @@ function ListSection({ title, items }: { title: string; items: string[] }) {
   if (items.length === 0) return null
   return (
     <div>
-      <p className="mb-1 text-sm font-medium text-text">{title}</p>
-      <ul className="list-disc space-y-1 pl-5 text-sm text-text-muted">
+      <p className="mb-1 text-body-sm font-medium text-text">{title}</p>
+      <ul className="list-disc space-y-1 pl-5 text-body-sm text-text-muted">
         {items.map((item, i) => (
           <li key={i}>{item}</li>
         ))}
@@ -52,10 +52,10 @@ export function DiseaseDetectionResult({ result }: DiseaseDetectionResultProps) 
       </div>
 
       {!result.isHealthy && result.diseaseName ? (
-        <p className="text-sm font-medium text-text">Bệnh/sâu hại: {result.diseaseName}</p>
+        <p className="text-body-sm font-medium text-text">Bệnh/sâu hại: {result.diseaseName}</p>
       ) : null}
 
-      <p className="text-sm text-text-muted">{result.description}</p>
+      <p className="text-body-sm text-text-muted">{result.description}</p>
 
       <ListSection title="Biện pháp hữu cơ" items={result.treatmentOrganic} />
       <ListSection title="Biện pháp hóa học" items={result.treatmentChemical} />

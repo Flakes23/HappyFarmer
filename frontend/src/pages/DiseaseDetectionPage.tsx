@@ -23,7 +23,7 @@ export function DiseaseDetectionPage() {
       />
 
       {invalidImage ? (
-        <div className="flex items-start gap-3 rounded-lg border border-accent bg-secondary p-4 text-sm text-text">
+        <div className="flex items-start gap-3 rounded-lg border border-accent bg-secondary p-4 text-body-sm text-text">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
           <div>
             <p className="font-medium">{invalidImage.message}</p>
@@ -43,7 +43,7 @@ export function DiseaseDetectionPage() {
       ) : null}
 
       <div>
-        <h2 className="mb-2 text-sm font-medium text-text">Lịch sử chẩn đoán</h2>
+        <h2 className="mb-2 text-body-sm font-medium text-text">Lịch sử chẩn đoán</h2>
         <DiseaseDetectionHistoryList />
       </div>
     </div>

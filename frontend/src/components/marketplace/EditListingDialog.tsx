@@ -108,7 +108,7 @@ export function EditListingDialog({ listing }: { listing: ListingResponse }) {
               )}
             />
 
-            {errorMessage ? <p className="text-sm font-medium text-error">{errorMessage}</p> : null}
+            {errorMessage ? <p className="text-body-sm font-medium text-error">{errorMessage}</p> : null}
 
             <DialogFooter>
               <DialogClose asChild>

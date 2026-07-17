@@ -47,7 +47,7 @@ export function MyListingsPage() {
                   >
                     Tin #{listing.id}
                   </Link>
-                  <p className="text-sm text-text-muted">
+                  <p className="text-body-sm text-text-muted">
                     {listing.quantity} {listing.unit} · {currencyFormatter.format(listing.pricePerUnit)}/
                     {listing.unit}
                   </p>

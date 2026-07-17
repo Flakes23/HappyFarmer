@@ -34,7 +34,7 @@ export function EmptyState({
         </span>
       )}
       <p className="font-medium text-text">{title}</p>
-      {description ? <p className="max-w-sm text-sm text-text-muted">{description}</p> : null}
+      {description ? <p className="max-w-sm text-body-sm text-text-muted">{description}</p> : null}
       {actionLabel && onAction ? (
         <Button size="sm" onClick={onAction} className="mt-2">
           {actionLabel}

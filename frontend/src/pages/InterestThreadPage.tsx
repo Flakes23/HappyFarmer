@@ -21,7 +21,7 @@ export function InterestThreadPage() {
 
   return (
     <div className="space-y-4">
-      <Link to="/marketplace/my-interests" className="flex items-center gap-1 text-sm text-primary hover:underline">
+      <Link to="/marketplace/my-interests" className="flex items-center gap-1 text-body-sm text-primary hover:underline">
         <ArrowLeft className="h-4 w-4" />
         Quay lại liên hệ của tôi
       </Link>
@@ -34,7 +34,7 @@ export function InterestThreadPage() {
         <>
           <div className="space-y-3 rounded-lg border border-border bg-surface p-3">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-medium text-text">
+              <p className="text-body-sm font-medium text-text">
                 {interest.initiatorUserId === userId ? 'Bạn đã gửi liên hệ' : 'Bạn nhận được liên hệ'}
               </p>
               <StatusBadge status={interest.status} />

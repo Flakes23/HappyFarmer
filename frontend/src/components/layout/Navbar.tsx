@@ -37,7 +37,7 @@ export function Navbar() {
           {isAuthenticated && user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 rounded-full text-sm text-text-muted hover:text-primary">
+                <button className="flex items-center gap-2 rounded-full text-body-sm text-text-muted hover:text-primary">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user.avatarUrl ?? undefined} alt={user.fullName} />
                     <AvatarFallback className="bg-primary-light text-white">

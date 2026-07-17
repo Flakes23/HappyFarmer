@@ -199,7 +199,7 @@ export function ListingForm() {
           <ImageUploadField value={images} onChange={setImages} />
         </div>
 
-        {errorMessage ? <p className="text-sm font-medium text-error">{errorMessage}</p> : null}
+        {errorMessage ? <p className="text-body-sm font-medium text-error">{errorMessage}</p> : null}
 
         <Button type="submit" className="w-full" disabled={createListing.isPending}>
           {createListing.isPending ? 'Đang đăng tin...' : 'Đăng tin bán'}

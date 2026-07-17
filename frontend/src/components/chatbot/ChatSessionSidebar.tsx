@@ -61,7 +61,7 @@ export function ChatSessionSidebar({ selectedSessionId, onSelect }: ChatSessionS
               type="button"
               onClick={() => onSelect(s.id)}
               className={cn(
-                'group flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-secondary',
+                'group flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-body-sm transition-colors hover:bg-secondary',
                 s.id === selectedSessionId && 'bg-secondary'
               )}
             >

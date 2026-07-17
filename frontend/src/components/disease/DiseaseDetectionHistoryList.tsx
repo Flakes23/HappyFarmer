@@ -68,7 +68,7 @@ export function DiseaseDetectionHistoryList() {
                   <p className="text-xs text-text-muted">{format(new Date(item.createdAt), 'dd/MM/yyyy HH:mm')}</p>
                 </div>
                 {!item.isHealthy && item.diseaseName ? (
-                  <p className="text-sm text-text-muted">{item.diseaseName}</p>
+                  <p className="text-body-sm text-text-muted">{item.diseaseName}</p>
                 ) : null}
               </div>
             </div>

@@ -14,7 +14,7 @@ export function NavLinks({ orientation = 'horizontal', onNavigate }: NavLinksPro
   const unreadCount = useUnreadInterestsCount()
   const isVertical = orientation === 'vertical'
 
-  const linkClassName = isVertical ? 'text-base text-text hover:text-primary' : 'text-sm text-text hover:text-primary'
+  const linkClassName = isVertical ? 'text-base text-text hover:text-primary' : 'text-body-sm text-text hover:text-primary'
 
   return (
     <nav className={isVertical ? 'flex flex-col gap-4' : 'flex items-center gap-3'}>

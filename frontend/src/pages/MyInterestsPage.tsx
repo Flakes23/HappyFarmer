@@ -36,7 +36,7 @@ export function MyInterestsPage() {
                 <Link to={`/marketplace/my-interests/${interest.id}`} className="block">
                   <CardContent className="space-y-2 p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-medium text-text">
+                      <span className="text-body-sm font-medium text-text">
                         {isSent ? 'Bạn đã gửi liên hệ' : 'Bạn nhận được liên hệ'}
                       </span>
                       <StatusBadge status={interest.status} />
@@ -45,7 +45,7 @@ export function MyInterestsPage() {
                     <InterestSummary interest={interest} />
 
                     {interest.lastMessage ? (
-                      <p className="truncate text-sm text-text-muted">
+                      <p className="truncate text-body-sm text-text-muted">
                         {interest.lastMessage.senderUserId === userId ? 'Bạn: ' : ''}
                         {interest.lastMessage.body}
                       </p>

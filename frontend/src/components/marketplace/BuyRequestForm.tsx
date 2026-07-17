@@ -192,7 +192,7 @@ export function BuyRequestForm() {
           )}
         />
 
-        {errorMessage ? <p className="text-sm font-medium text-error">{errorMessage}</p> : null}
+        {errorMessage ? <p className="text-body-sm font-medium text-error">{errorMessage}</p> : null}
 
         <Button type="submit" className="w-full" disabled={createBuyRequest.isPending}>
           {createBuyRequest.isPending ? 'Đang đăng...' : 'Đăng yêu cầu mua'}

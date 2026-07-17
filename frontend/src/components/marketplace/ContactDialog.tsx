@@ -81,7 +81,7 @@ export function ContactDialog({ id, kind }: { id: number; kind: 'listing' | 'buy
               )}
             />
 
-            {errorMessage ? <p className="text-sm font-medium text-error">{errorMessage}</p> : null}
+            {errorMessage ? <p className="text-body-sm font-medium text-error">{errorMessage}</p> : null}
 
             <DialogFooter>
               <DialogClose asChild>

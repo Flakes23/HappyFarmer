@@ -82,7 +82,7 @@ export function LoginForm() {
           )}
         />
 
-        {errorMessage ? <p className="text-sm font-medium text-error">{errorMessage}</p> : null}
+        {errorMessage ? <p className="text-body-sm font-medium text-error">{errorMessage}</p> : null}
 
         <Button type="submit" className="w-full" disabled={login.isPending}>
           {login.isPending ? 'Đang đăng nhập...' : 'Đăng nhập'}

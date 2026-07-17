@@ -33,14 +33,14 @@ export function MobileNav() {
         <NavLinks orientation="vertical" onNavigate={close} />
 
         <div className="flex items-center justify-between">
-          <span className="text-sm text-text-muted">Giao diện</span>
+          <span className="text-body-sm text-text-muted">Giao diện</span>
           <ThemeToggle />
         </div>
 
         <div className="mt-auto flex flex-col gap-3 border-t border-border pt-4">
           {isAuthenticated && user ? (
             <>
-              <span className="text-sm text-text-muted">{user.fullName}</span>
+              <span className="text-body-sm text-text-muted">{user.fullName}</span>
               <Button variant="outline" asChild>
                 <Link to="/profile" onClick={close}>
                   Hồ sơ của tôi

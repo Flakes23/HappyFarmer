@@ -34,15 +34,15 @@ export function ProductSearchInput({
       {showDropdown ? (
         <div className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-border bg-card p-1 shadow-md">
           {results.isFetching ? (
-            <p className="px-2 py-2 text-sm text-text-muted">Đang tìm...</p>
+            <p className="px-2 py-2 text-body-sm text-text-muted">Đang tìm...</p>
           ) : !results.data || results.data.length === 0 ? (
-            <p className="px-2 py-2 text-sm text-text-muted">Không tìm thấy sản phẩm.</p>
+            <p className="px-2 py-2 text-body-sm text-text-muted">Không tìm thấy sản phẩm.</p>
           ) : (
             results.data.map((p) => (
               <button
                 key={p.id}
                 type="button"
-                className="flex w-full items-center rounded-sm px-2 py-1.5 text-left text-sm hover:bg-secondary"
+                className="flex w-full items-center rounded-sm px-2 py-1.5 text-left text-body-sm hover:bg-secondary"
                 onClick={() => {
                   onChange(p.id)
                   setSelectedName(p.nameVi)

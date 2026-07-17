@@ -31,7 +31,7 @@ export function DiseasePhotoUploadField({ value, onChange, onUploadingChange }: 
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 flex items-center justify-center">
       {value ? (
         <div className="relative h-48 w-full max-w-xs overflow-hidden rounded-lg border border-border">
           <img src={value} alt="Ảnh cây trồng" className="h-full w-full object-cover" />
@@ -52,7 +52,7 @@ export function DiseasePhotoUploadField({ value, onChange, onUploadingChange }: 
           className="flex h-48 w-full max-w-xs flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border text-text-muted hover:border-primary hover:text-primary disabled:opacity-50"
         >
           {isUploading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Camera className="h-6 w-6" />}
-          <span className="text-sm">{isUploading ? 'Đang tải ảnh...' : 'Chụp/tải ảnh cây trồng'}</span>
+          <span className="text-body-sm">{isUploading ? 'Đang tải ảnh...' : 'Chụp/tải ảnh cây trồng'}</span>
         </button>
       )}
 

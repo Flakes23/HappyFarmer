@@ -38,7 +38,7 @@ export function BuyRequestDetailPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Link to="/marketplace" className="flex items-center gap-1 text-sm text-primary hover:underline">
+        <Link to="/marketplace" className="flex items-center gap-1 text-body-sm text-primary hover:underline">
           <ArrowLeft className="h-4 w-4" />
           Quay lại chợ nông sản
         </Link>
@@ -75,7 +75,7 @@ export function BuyRequestDetailPage() {
             <StatusBadge status={buyRequest.data.status} />
           </CardHeader>
           <CardContent className="space-y-4">
-            <dl className="grid grid-cols-2 gap-3 text-sm">
+            <dl className="grid grid-cols-2 gap-3 text-body-sm">
               <div>
                 <dt className="text-text-muted">Cần mua</dt>
                 <dd className="font-medium">

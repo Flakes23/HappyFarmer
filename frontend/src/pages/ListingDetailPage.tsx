@@ -39,7 +39,7 @@ export function ListingDetailPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Link to="/marketplace" className="flex items-center gap-1 text-sm text-primary hover:underline">
+        <Link to="/marketplace" className="flex items-center gap-1 text-body-sm text-primary hover:underline">
           <ArrowLeft className="h-4 w-4" />
           Quay lại chợ nông sản
         </Link>
@@ -78,7 +78,7 @@ export function ListingDetailPage() {
           <CardContent className="space-y-4">
             <ImageGallery images={listing.data.imageUrls} alt={product?.nameVi} />
 
-            <dl className="grid grid-cols-2 gap-3 text-sm">
+            <dl className="grid grid-cols-2 gap-3 text-body-sm">
               <div>
                 <dt className="text-text-muted">Số lượng</dt>
                 <dd className="font-medium">

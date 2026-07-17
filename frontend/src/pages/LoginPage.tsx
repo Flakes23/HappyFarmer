@@ -16,7 +16,7 @@ export function LoginPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <LoginForm />
-          <p className="text-center text-sm text-text-muted">
+          <p className="text-center text-body-sm text-text-muted">
             Chưa có tài khoản?{' '}
             <Link to="/register" className="font-medium text-primary hover:underline">
               Đăng ký

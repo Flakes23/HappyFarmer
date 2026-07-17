@@ -15,7 +15,7 @@ export function ListingCard({ card }: { card: ListingCardData }) {
           ) : null}
         </div>
         <div className="min-w-0 flex-1 space-y-0.5">
-          <p className="truncate text-sm font-medium text-text">{card.productName}</p>
+          <p className="truncate text-body-sm font-medium text-text">{card.productName}</p>
           <p className="text-xs text-text-muted">{card.regionName}</p>
           <p className="text-xs text-text-muted">
             {card.quantity} {card.unit}

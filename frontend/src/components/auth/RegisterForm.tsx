@@ -164,7 +164,7 @@ export function RegisterForm() {
           )}
         />
 
-        {errorMessage ? <p className="text-sm font-medium text-error">{errorMessage}</p> : null}
+        {errorMessage ? <p className="text-body-sm font-medium text-error">{errorMessage}</p> : null}
 
         <Button type="submit" className="w-full" disabled={register.isPending}>
           {register.isPending ? 'Đang đăng ký...' : 'Đăng ký'}

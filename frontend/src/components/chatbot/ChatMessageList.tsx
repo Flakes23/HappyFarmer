@@ -29,7 +29,7 @@ export function ChatMessageList({ sessionId, pendingMessage }: ChatMessageListPr
       ) : (!history.data || history.data.length === 0) && !pendingMessage ? (
         <div className="flex justify-start gap-2">
           <BotAvatar />
-          <div className="max-w-[75%] rounded-lg bg-secondary px-3 py-2 text-sm text-secondary-foreground">
+          <div className="max-w-[75%] rounded-lg bg-secondary px-3 py-2 text-body-sm text-secondary-foreground">
             {GREETING}
           </div>
         </div>
@@ -42,7 +42,7 @@ export function ChatMessageList({ sessionId, pendingMessage }: ChatMessageListPr
                 {isMine ? null : <BotAvatar />}
                 <div
                   className={cn(
-                    'max-w-[75%] rounded-lg px-3 py-2 text-sm',
+                    'max-w-[75%] rounded-lg px-3 py-2 text-body-sm',
                     isMine ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
                   )}
                 >
@@ -88,7 +88,7 @@ export function ChatMessageList({ sessionId, pendingMessage }: ChatMessageListPr
             <>
               {/* Bong bóng tin nhắn vừa gửi — hiện ngay lập tức, không đợi phản hồi AI */}
               <div className="flex justify-end gap-2">
-                <div className="max-w-[75%] rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground">
+                <div className="max-w-[75%] rounded-lg bg-primary px-3 py-2 text-body-sm text-primary-foreground">
                   <p className="whitespace-pre-wrap break-words">{pendingMessage}</p>
                 </div>
               </div>

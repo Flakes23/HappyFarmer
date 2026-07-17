@@ -36,7 +36,7 @@ export function ProductPriceDetailPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Link to="/prices" className="flex items-center gap-1 text-sm text-primary hover:underline">
+        <Link to="/prices" className="flex items-center gap-1 text-body-sm text-primary hover:underline">
           <ArrowLeft className="h-4 w-4" />
           Quay lại danh sách giá
         </Link>
@@ -72,7 +72,7 @@ export function ProductPriceDetailPage() {
             ) : (
               (product ? `Lịch sử giá — ${product.nameVi}` : 'Lịch sử giá')
             )}
-            {product?.unit ? <span className="ml-1 text-sm font-normal text-text-muted">({product.unit})</span> : null}
+            {product?.unit ? <span className="ml-1 text-body-sm font-normal text-text-muted">({product.unit})</span> : null}
           </CardTitle>
 
           <Select

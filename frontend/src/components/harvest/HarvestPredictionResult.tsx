@@ -19,9 +19,9 @@ interface HarvestPredictionResultProps {
 export function HarvestPredictionResult({ result }: HarvestPredictionResultProps) {
   return (
     <div className="space-y-4 rounded-lg border border-border bg-surface p-4">
-      <div className="rounded-md bg-secondary px-3 py-2 text-sm text-text">{result.transparencyNote}</div>
+      <div className="rounded-md bg-secondary px-3 py-2 text-body-sm text-text">{result.transparencyNote}</div>
 
-      <p className="text-sm text-text-muted">Ngày trồng: {formatViDate(result.plantingDate)}</p>
+      <p className="text-body-sm text-text-muted">Ngày trồng: {formatViDate(result.plantingDate)}</p>
 
       <div className="flex flex-wrap items-center gap-3">
         <p className="text-lg font-semibold text-text">
@@ -34,8 +34,8 @@ export function HarvestPredictionResult({ result }: HarvestPredictionResultProps
 
       {result.riskFactors.length > 0 ? (
         <div>
-          <p className="mb-1 text-sm font-medium text-text">Rủi ro cần lưu ý</p>
-          <ul className="list-disc space-y-1 pl-5 text-sm text-text-muted">
+          <p className="mb-1 text-body-sm font-medium text-text">Rủi ro cần lưu ý</p>
+          <ul className="list-disc space-y-1 pl-5 text-body-sm text-text-muted">
             {result.riskFactors.map((risk, i) => (
               <li key={i}>{risk}</li>
             ))}
@@ -43,10 +43,10 @@ export function HarvestPredictionResult({ result }: HarvestPredictionResultProps
         </div>
       ) : null}
 
-      <p className="text-sm text-text-muted">{result.reasoning}</p>
+      <p className="text-body-sm text-text-muted">{result.reasoning}</p>
 
       {result.weatherSummary ? (
-        <p className="text-sm text-text-muted">
+        <p className="text-body-sm text-text-muted">
           Thời tiết dự báo: nhiệt độ TB {result.weatherSummary.avgTempC.toFixed(1)}°C, tổng lượng mưa{' '}
           {result.weatherSummary.totalRainfallMm.toFixed(1)}mm.
         </p>

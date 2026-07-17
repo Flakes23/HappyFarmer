@@ -51,10 +51,10 @@ export function ListingCard({ listing }: { listing: ListingResponse }) {
               <p className="font-medium text-text">{product?.nameVi ?? `Sản phẩm #${listing.productId}`}</p>
               <StatusBadge status={listing.status} />
             </div>
-            <p className="text-sm text-text-muted">
+            <p className="text-body-sm text-text-muted">
               {region ? region.provinceName : `Khu vực #${listing.regionId}`}
             </p>
-            <p className="text-sm text-text-muted">
+            <p className="text-body-sm text-text-muted">
               Đang bán: {listing.quantity} {listing.unit}
             </p>
             <p className="font-semibold text-primary">

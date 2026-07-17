@@ -35,7 +35,7 @@ export function PriceStatCards({ data, isLoading }: PriceStatCardsProps) {
       {items.map((item) => (
         <Card key={item.label}>
           <CardContent className="p-4">
-            <p className="text-sm text-text-muted">{item.label}</p>
+            <p className="text-body-sm text-text-muted">{item.label}</p>
             <p className="text-xl font-semibold text-text">{currencyFormatter.format(item.value)}</p>
           </CardContent>
         </Card>

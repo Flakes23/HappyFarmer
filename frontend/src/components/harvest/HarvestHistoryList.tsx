@@ -68,8 +68,8 @@ export function HarvestHistoryList() {
                   {format(new Date(item.createdAt), 'dd/MM/yyyy HH:mm')}
                 </p>
               </div>
-              <p className="text-sm text-text-muted">Ngày trồng: {formatViDate(item.plantingDate)}</p>
-              <p className="text-sm text-text-muted">
+              <p className="text-body-sm text-text-muted">Ngày trồng: {formatViDate(item.plantingDate)}</p>
+              <p className="text-body-sm text-text-muted">
                 Ngày nên thu hoạch: {formatViDate(item.recommendedStartDate)} — {formatViDate(item.recommendedEndDate)}
               </p>
             </div>

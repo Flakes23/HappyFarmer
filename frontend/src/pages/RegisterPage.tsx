@@ -16,7 +16,7 @@ export function RegisterPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <RegisterForm />
-          <p className="text-center text-sm text-text-muted">
+          <p className="text-center text-body-sm text-text-muted">
             Đã có tài khoản?{' '}
             <Link to="/login" className="font-medium text-primary hover:underline">
               Đăng nhập

@@ -93,8 +93,8 @@ export function PriceTable({ prices, isLoading }: PriceTableProps) {
                   </Link>
                   <SourceBadge source={p.source} />
                 </div>
-                {p.unit ? <p className="text-sm text-text-muted">{p.unit}</p> : null}
-                <p className="text-sm text-text-muted">{p.regionName}</p>
+                {p.unit ? <p className="text-body-sm text-text-muted">{p.unit}</p> : null}
+                <p className="text-body-sm text-text-muted">{p.regionName}</p>
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-text">{currencyFormatter.format(p.price)}</p>
                   <PriceTrendBadge changePercent={changePercent} />

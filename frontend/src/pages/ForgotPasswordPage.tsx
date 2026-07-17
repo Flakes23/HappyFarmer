@@ -22,7 +22,7 @@ export function ForgotPasswordPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-text-muted">
+          <p className="text-body-sm text-text-muted">
             Gửi yêu cầu qua email{' '}
             <a href="mailto:ho-tro@happyfarmer.vn" className="font-medium text-primary hover:underline">
               ho-tro@happyfarmer.vn

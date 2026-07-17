@@ -37,10 +37,10 @@ export function BuyRequestCard({ buyRequest }: { buyRequest: BuyRequestResponse 
             <p className="font-medium text-text">{product?.nameVi ?? `Sản phẩm #${buyRequest.productId}`}</p>
             <StatusBadge status={buyRequest.status} />
           </div>
-          <p className="text-sm text-text-muted">
+          <p className="text-body-sm text-text-muted">
             {region ? region.provinceName : `Khu vực #${buyRequest.regionId}`}
           </p>
-          <p className="text-sm text-text-muted">
+          <p className="text-body-sm text-text-muted">
             Cần mua: {buyRequest.desiredQuantity} {buyRequest.unit}
           </p>
           {buyRequest.maxPricePerUnit ? (
@@ -48,7 +48,7 @@ export function BuyRequestCard({ buyRequest }: { buyRequest: BuyRequestResponse 
               Giá tối đa: {currencyFormatter.format(buyRequest.maxPricePerUnit)} / {buyRequest.unit}
             </p>
           ) : null}
-          {buyRequest.description ? <p className="text-sm text-text-muted">{buyRequest.description}</p> : null}
+          {buyRequest.description ? <p className="text-body-sm text-text-muted">{buyRequest.description}</p> : null}
 
           <SellerInfo
             name={buyRequest.buyerName}

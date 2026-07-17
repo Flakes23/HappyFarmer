@@ -14,7 +14,7 @@ export function PriceCard({ card }: { card: PriceCardData }) {
   return (
     <Card className="w-full max-w-xs">
       <CardContent className="space-y-1 p-3">
-        <p className="text-sm font-medium text-text">{card.productName}</p>
+        <p className="text-body-sm font-medium text-text">{card.productName}</p>
         <p className="text-xs text-text-muted">{card.regionName}</p>
         <div className="flex items-baseline justify-between gap-2 pt-1">
           <p className="font-semibold text-primary">

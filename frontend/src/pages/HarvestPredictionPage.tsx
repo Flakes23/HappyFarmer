@@ -24,7 +24,7 @@ export function HarvestPredictionPage() {
       )}
 
       <div>
-        <h2 className="mb-2 text-sm font-medium text-text">Lịch sử dự đoán</h2>
+        <h2 className="mb-2 text-body-sm font-medium text-text">Lịch sử dự đoán</h2>
         <HarvestHistoryList />
       </div>
     </div>
