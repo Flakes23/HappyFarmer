@@ -6,7 +6,7 @@ import { DiseaseDetectionHistoryList } from '@/components/disease/DiseaseDetecti
 import { EmptyState } from '@/components/shared/EmptyState'
 import type { InvalidPlantImageDetail } from '@/api/aiAdvisoryApi'
 import type { DiseaseDetectionResponse } from '@/api/types'
-import diseaseIllustration from '@/assets/illustrations/illustration-disease-result.png'
+import diseaseIllustration from '@/assets/illustrations/illustration-disease-result.webp'
 
 export function DiseaseDetectionPage() {
   const [result, setResult] = useState<DiseaseDetectionResponse | null>(null)

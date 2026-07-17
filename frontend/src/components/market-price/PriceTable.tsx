@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { TableRowsSkeleton } from '@/components/shared/Skeletons'
 import { useTrending } from '@/hooks/queries/useTrending'
 import type { PriceResponse } from '@/api/types'
-import emptyPricesIllustration from '@/assets/illustrations/illustration-empty-prices.png'
+import emptyPricesIllustration from '@/assets/illustrations/illustration-empty-prices.webp'
 
 interface PriceTableProps {
   prices: PriceResponse[] | undefined

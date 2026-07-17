@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Illustration } from '@/components/shared/Illustration'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import notFoundIllustration from '@/assets/illustrations/illustration-not-found.png'
+import notFoundIllustration from '@/assets/illustrations/illustration-not-found.webp'
 
 export function NotFoundPage() {
   useDocumentTitle('Không tìm thấy trang — HappyFarmer')

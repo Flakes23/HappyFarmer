@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { LoginForm } from '@/components/auth/LoginForm'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import authIllustration from '@/assets/illustrations/illustration-auth.png'
+import authIllustration from '@/assets/illustrations/illustration-auth.webp'
 
 export function LoginPage() {
   useDocumentTitle('Đăng nhập — HappyFarmer')

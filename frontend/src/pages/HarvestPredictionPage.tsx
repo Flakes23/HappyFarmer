@@ -4,7 +4,7 @@ import { HarvestPredictionResult } from '@/components/harvest/HarvestPredictionR
 import { HarvestHistoryList } from '@/components/harvest/HarvestHistoryList'
 import { EmptyState } from '@/components/shared/EmptyState'
 import type { HarvestPredictionResponse } from '@/api/types'
-import harvestIllustration from '@/assets/illustrations/illustration-harvest-result.png'
+import harvestIllustration from '@/assets/illustrations/illustration-harvest-result.webp'
 
 export function HarvestPredictionPage() {
   const [result, setResult] = useState<HarvestPredictionResponse | null>(null)

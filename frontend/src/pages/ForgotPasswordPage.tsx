@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import authIllustration from '@/assets/illustrations/illustration-auth.png'
+import authIllustration from '@/assets/illustrations/illustration-auth.webp'
 
 export function ForgotPasswordPage() {
   useDocumentTitle('Quên mật khẩu — HappyFarmer')

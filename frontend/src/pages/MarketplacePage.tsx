@@ -20,7 +20,7 @@ import { useBuyRequests } from '@/hooks/queries/useBuyRequests'
 import { useAuthStore } from '@/store/authStore'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import type { MarketplaceSort } from '@/api/marketplaceApi'
-import emptyMarketplaceIllustration from '@/assets/illustrations/illustration-empty-marketplace.png'
+import emptyMarketplaceIllustration from '@/assets/illustrations/illustration-empty-marketplace.webp'
 
 const PAGE_SIZE = 20
 

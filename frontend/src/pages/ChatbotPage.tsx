@@ -6,7 +6,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { ChatSessionSidebar } from '@/components/chatbot/ChatSessionSidebar'
 import { ChatMessageList } from '@/components/chatbot/ChatMessageList'
 import { ChatInput } from '@/components/chatbot/ChatInput'
-import chatbotIllustration from '@/assets/illustrations/illustration-empty-chatbot.png'
+import chatbotIllustration from '@/assets/illustrations/illustration-empty-chatbot.webp'
 
 export function ChatbotPage() {
   const [selectedSessionId, setSelectedSessionId] = useState<number | undefined>(undefined)
@@ -29,37 +29,42 @@ export function ChatbotPage() {
         <ChatSessionSidebar selectedSessionId={selectedSessionId} onSelect={setSelectedSessionId} />
       </aside>
 
-      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetTrigger asChild>
-          <Button variant="outline" size="icon" className="md:hidden" aria-label="Danh sách hội thoại">
-            <PanelLeft className="h-4 w-4" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="flex w-4/5 flex-col">
-          <SheetHeader>
-            <SheetTitle>Lịch sử trò chuyện</SheetTitle>
-          </SheetHeader>
-          <div className="flex-1 overflow-hidden py-2">
-            <ChatSessionSidebar selectedSessionId={selectedSessionId} onSelect={selectAndClose} />
-          </div>
-        </SheetContent>
-      </Sheet>
-
       <section className="flex flex-1 flex-col">
-        {selectedSessionId === undefined ? (
-          <div className="flex h-full items-center justify-center rounded-lg border border-border bg-surface">
-            <EmptyState
-              illustration={chatbotIllustration}
-              title="Chưa chọn cuộc trò chuyện"
-              description="Chọn một cuộc trò chuyện ở danh sách bên trái, hoặc bấm 'Chat mới' để bắt đầu."
-            />
-          </div>
-        ) : (
+        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
           <div className="flex h-full flex-col rounded-lg border border-border bg-surface">
-            <ChatMessageList sessionId={selectedSessionId} pendingMessage={pendingMessage} />
-            <ChatInput sessionId={selectedSessionId} onPendingChange={setPendingMessage} />
+            <div className="flex items-center border-b border-border p-2 md:hidden">
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" aria-label="Danh sách hội thoại">
+                  <PanelLeft className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+            </div>
+
+            {selectedSessionId === undefined ? (
+              <div className="flex flex-1 items-center justify-center">
+                <EmptyState
+                  illustration={chatbotIllustration}
+                  title="Chưa chọn cuộc trò chuyện"
+                  description="Chọn một cuộc trò chuyện ở danh sách bên trái, hoặc bấm 'Chat mới' để bắt đầu."
+                />
+              </div>
+            ) : (
+              <>
+                <ChatMessageList sessionId={selectedSessionId} pendingMessage={pendingMessage} />
+                <ChatInput sessionId={selectedSessionId} onPendingChange={setPendingMessage} />
+              </>
+            )}
           </div>
-        )}
+
+          <SheetContent side="left" className="flex w-4/5 flex-col">
+            <SheetHeader>
+              <SheetTitle>Lịch sử trò chuyện</SheetTitle>
+            </SheetHeader>
+            <div className="flex-1 overflow-hidden py-2">
+              <ChatSessionSidebar selectedSessionId={selectedSessionId} onSelect={selectAndClose} />
+            </div>
+          </SheetContent>
+        </Sheet>
       </section>
     </div>
   )

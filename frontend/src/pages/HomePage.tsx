@@ -1,13 +1,11 @@
 import { Link } from 'react-router-dom'
-import { Bot, LineChart, MessageCircle, Plus, ShoppingBasket, type LucideIcon } from 'lucide-react'
+import { Bot, LineChart, MessageCircle, Plus, ShoppingBasket, Sprout, type LucideIcon } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuthStore } from '@/store/authStore'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useMotionVariants } from '@/lib/motion'
-import { Illustration } from '@/components/shared/Illustration'
-import heroIllustration from '@/assets/illustrations/illustration-hero.png'
 
 interface FeatureCard {
   icon: LucideIcon
@@ -57,61 +55,59 @@ export function HomePage() {
 
   return (
     <div className="space-y-16">
-      <section className="grid items-center gap-10 py-4 lg:grid-cols-2">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeInUp}
-          className="flex flex-col items-center gap-6 text-center lg:items-start lg:text-left"
-        >
-          <div className="space-y-3">
-            <h1 className="text-display text-text">Kết nối nông dân và người mua trực tiếp</h1>
-            <p className="text-body text-text-muted lg:max-w-md">
-              Tra cứu giá nông sản mỗi ngày, đăng bán hoặc tìm mua nông sản trên Chợ nông sản HappyFarmer —
-              không qua trung gian.
-            </p>
-          </div>
+      <motion.section
+        initial="hidden"
+        animate="visible"
+        variants={fadeInUp}
+        className="flex flex-col items-center gap-6 py-8 text-center"
+      >
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-primary">
+          <Sprout className="h-7 w-7" />
+        </span>
 
-          <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-            {isAuthenticated ? (
-              <>
-                {user?.role === 'Farmer' ? (
-                  <Button size="lg" asChild>
-                    <Link to="/marketplace/new">
-                      <Plus className="h-4 w-4" />
-                      Đăng tin bán
-                    </Link>
-                  </Button>
-                ) : null}
-                {user?.role === 'Buyer' ? (
-                  <Button size="lg" asChild>
-                    <Link to="/marketplace/buy-requests/new">
-                      <Plus className="h-4 w-4" />
-                      Đăng yêu cầu mua
-                    </Link>
-                  </Button>
-                ) : null}
-                <Button size="lg" variant="outline" asChild>
-                  <Link to="/marketplace">Xem Chợ nông sản</Link>
-                </Button>
-              </>
-            ) : (
-              <>
+        <div className="space-y-3">
+          <h1 className="text-display text-text">Kết nối nông dân và người mua trực tiếp</h1>
+          <p className="mx-auto max-w-xl text-body text-text-muted">
+            Tra cứu giá nông sản mỗi ngày, đăng bán hoặc tìm mua nông sản trên Chợ nông sản HappyFarmer —
+            không qua trung gian.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          {isAuthenticated ? (
+            <>
+              {user?.role === 'Farmer' ? (
                 <Button size="lg" asChild>
-                  <Link to="/register">Đăng ký ngay</Link>
+                  <Link to="/marketplace/new">
+                    <Plus className="h-4 w-4" />
+                    Đăng tin bán
+                  </Link>
                 </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link to="/login">Đăng nhập</Link>
+              ) : null}
+              {user?.role === 'Buyer' ? (
+                <Button size="lg" asChild>
+                  <Link to="/marketplace/buy-requests/new">
+                    <Plus className="h-4 w-4" />
+                    Đăng yêu cầu mua
+                  </Link>
                 </Button>
-              </>
-            )}
-          </div>
-        </motion.div>
-
-        <motion.div initial="hidden" animate="visible" variants={fadeInUp} className="flex justify-center">
-          <Illustration src={heroIllustration} className="w-full max-w-sm" />
-        </motion.div>
-      </section>
+              ) : null}
+              <Button size="lg" variant="outline" asChild>
+                <Link to="/marketplace">Xem Chợ nông sản</Link>
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button size="lg" asChild>
+                <Link to="/register">Đăng ký ngay</Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link to="/login">Đăng nhập</Link>
+              </Button>
+            </>
+          )}
+        </div>
+      </motion.section>
 
       <motion.section
         initial="hidden"

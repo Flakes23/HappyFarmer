@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { RegisterForm } from '@/components/auth/RegisterForm'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import authIllustration from '@/assets/illustrations/illustration-auth.png'
+import authIllustration from '@/assets/illustrations/illustration-auth.webp'
 
 export function RegisterPage() {
   useDocumentTitle('Đăng ký — HappyFarmer')
