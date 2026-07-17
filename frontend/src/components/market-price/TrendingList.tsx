@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
-import { Minus, TrendingUp, TrendingDown } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { PriceTrendBadge } from '@/components/market-price/PriceTrendBadge'
 import { useTrending } from '@/hooks/queries/useTrending'
 
 const currencyFormatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
@@ -26,43 +26,20 @@ export function TrendingList() {
           <EmptyState title="Chưa có dữ liệu biến động" />
         ) : (
           <ul className="divide-y divide-border">
-            {trending.data.map((item) => {
-              const changePercent = item.changePercent ?? 0
-              const isUp = changePercent > 0
-              const isDown = changePercent < 0
-              return (
-                <li key={`${item.productId}-${item.regionId}`} className="flex items-center justify-between py-3">
-                  <div>
-                    <Link
-                      to={`/prices/${item.productId}`}
-                      className="font-medium text-text hover:text-primary"
-                    >
-                      {item.productName}
-                    </Link>
-                    <p className="text-xs text-text-muted">{item.regionName}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium">{currencyFormatter.format(item.currentPrice)}</p>
-                    {item.changePercent !== null ? (
-                      <p
-                        className={`flex items-center justify-end gap-1 text-xs font-medium ${
-                          isUp ? 'text-success' : isDown ? 'text-error' : 'text-text-muted'
-                        }`}
-                      >
-                        {isUp ? (
-                          <TrendingUp className="h-3 w-3" />
-                        ) : isDown ? (
-                          <TrendingDown className="h-3 w-3" />
-                        ) : (
-                          <Minus className="h-3 w-3" />
-                        )}
-                        {Math.abs(item.changePercent).toFixed(1)}%
-                      </p>
-                    ) : null}
-                  </div>
-                </li>
-              )
-            })}
+            {trending.data.map((item) => (
+              <li key={`${item.productId}-${item.regionId}`} className="flex items-center justify-between py-3">
+                <div>
+                  <Link to={`/prices/${item.productId}`} className="font-medium text-text hover:text-primary">
+                    {item.productName}
+                  </Link>
+                  <p className="text-xs text-text-muted">{item.regionName}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium">{currencyFormatter.format(item.currentPrice)}</p>
+                  <PriceTrendBadge changePercent={item.changePercent} className="justify-end" />
+                </div>
+              </li>
+            ))}
           </ul>
         )}
       </CardContent>

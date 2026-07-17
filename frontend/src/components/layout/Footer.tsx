@@ -12,7 +12,7 @@ export function Footer() {
           HappyFarmer
         </Link>
 
-        <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-text-muted">
+        <nav className="flex flex-wrap gap-x-6 gap-y-2 text-body-sm text-text-muted">
           <Link to="/prices" className="hover:text-primary">
             Giá nông sản
           </Link>
@@ -21,7 +21,7 @@ export function Footer() {
           </Link>
         </nav>
 
-        <p className="text-xs text-text-muted">© {year} HappyFarmer. Đồng hành cùng nông dân Việt.</p>
+        <p className="text-caption text-text-muted">© {year} HappyFarmer. Đồng hành cùng nông dân Việt.</p>
       </div>
     </footer>
   )

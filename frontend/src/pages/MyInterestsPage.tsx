@@ -17,7 +17,7 @@ export function MyInterestsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-text">Liên hệ của tôi</h1>
+        <h1 className="text-h1 text-text">Liên hệ của tôi</h1>
         <p className="text-text-muted">Các lượt liên hệ bạn đã gửi và nhận được trên Chợ nông sản.</p>
       </div>
 

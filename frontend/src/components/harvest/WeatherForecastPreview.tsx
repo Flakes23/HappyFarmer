@@ -1,7 +1,7 @@
 import { Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudSnow, CloudSun, Droplets, Sun } from 'lucide-react'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import { Skeleton } from '@/components/ui/skeleton'
+import { WeatherForecastSkeleton } from '@/components/shared/Skeletons'
 import { useWeatherForecast } from '@/hooks/queries/useWeatherForecast'
 import { parseIsoDate } from '@/lib/utils'
 
@@ -32,7 +32,8 @@ export function WeatherForecastPreview({ location }: WeatherForecastPreviewProps
   if (forecast.isLoading) {
     return (
       <div className="rounded-lg border border-border bg-secondary p-4">
-        <Skeleton className="h-24 w-full" />
+        <p className="mb-3 text-sm font-medium text-text">Dự báo thời tiết — {location}</p>
+        <WeatherForecastSkeleton />
       </div>
     )
   }

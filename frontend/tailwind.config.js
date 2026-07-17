@@ -14,6 +14,37 @@ export default {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
+			// Elevation scale — warm-tinted (via --shadow-color), not pure black. `shadow`
+			// (Tailwind default) stays the resting elevation on Card; these are for
+			// hover/interactive/overlay states. See index.css for --shadow-color per theme.
+			// NOTE: none of these keys may match an existing `colors.*` token name (e.g. `card`,
+			// `primary`) — Tailwind's built-in shadow-color utilities silently win that collision
+			// and produce a white/wrong-color shadow instead of this config's value.
+			boxShadow: {
+				raised: '0 4px 8px -2px rgb(var(--shadow-color) / 0.12), 0 2px 4px -2px rgb(var(--shadow-color) / 0.08)',
+				floating: '0 12px 24px -4px rgb(var(--shadow-color) / 0.16), 0 4px 8px -4px rgb(var(--shadow-color) / 0.08)',
+				modal: '0 20px 40px -8px rgb(var(--shadow-color) / 0.24), 0 8px 16px -8px rgb(var(--shadow-color) / 0.12)'
+			},
+			// Type scale — pair size/lineHeight/weight so pages pick e.g. `text-h1`
+			// instead of ad hoc `text-3xl font-semibold`. `body` floors at 16px
+			// (accessibility: default readable size for older/low-tech-literacy users).
+			fontSize: {
+				display: ['2.5rem', { lineHeight: '1.15', fontWeight: '700', letterSpacing: '-0.02em' }],
+				h1: ['2rem', { lineHeight: '1.2', fontWeight: '700' }],
+				h2: ['1.5rem', { lineHeight: '1.3', fontWeight: '600' }],
+				h3: ['1.25rem', { lineHeight: '1.4', fontWeight: '600' }],
+				body: ['1rem', { lineHeight: '1.6', fontWeight: '400' }],
+				'body-sm': ['0.9375rem', { lineHeight: '1.5', fontWeight: '400' }],
+				caption: ['0.875rem', { lineHeight: '1.4', fontWeight: '400' }]
+			},
+			// Shared easing/duration for both framer-motion (imported from lib/motion.ts)
+			// and plain CSS transitions (hover states), so the two systems feel the same.
+			transitionTimingFunction: {
+				brand: 'cubic-bezier(0.16, 1, 0.3, 1)'
+			},
+			transitionDuration: {
+				brand: '300ms'
+			},
 			colors: {
 				// shadcn/ui semantic tokens (used by generated components)
 				background: 'var(--background)',

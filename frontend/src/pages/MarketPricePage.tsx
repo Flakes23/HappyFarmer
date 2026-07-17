@@ -35,8 +35,8 @@ export function MarketPricePage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-text">Giá nông sản</h1>
-        <p className="text-text-muted">Tra cứu giá nông sản mới nhất theo sản phẩm và khu vực.</p>
+        <h1 className="text-h1 text-text">Giá nông sản</h1>
+        <p className="text-body text-text-muted">Tra cứu giá nông sản mới nhất theo sản phẩm và khu vực.</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

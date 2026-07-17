@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { RegisterForm } from '@/components/auth/RegisterForm'
+import { AuthLayout } from '@/layouts/AuthLayout'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import authIllustration from '@/assets/illustrations/illustration-auth.png'
 
 export function RegisterPage() {
   useDocumentTitle('Đăng ký — HappyFarmer')
   return (
-    <div className="mx-auto max-w-sm">
+    <AuthLayout illustration={authIllustration}>
       <Card>
         <CardHeader>
           <CardTitle>Đăng ký</CardTitle>
@@ -22,6 +24,6 @@ export function RegisterPage() {
           </p>
         </CardContent>
       </Card>
-    </div>
+    </AuthLayout>
   )
 }

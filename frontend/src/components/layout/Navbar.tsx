@@ -9,10 +9,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { MobileNav } from '@/components/layout/MobileNav'
+import { NavLinks } from '@/components/layout/NavLinks'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { useAuthStore } from '@/store/authStore'
 import { useLogout } from '@/hooks/mutations/useLogout'
-import { useUnreadInterestsCount } from '@/hooks/queries/useUnreadInterestsCount'
 import { getInitial } from '@/lib/utils'
 import logo from '@/assets/logo.svg'
 
@@ -20,7 +20,6 @@ export function Navbar() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const user = useAuthStore((s) => s.user)
   const logout = useLogout()
-  const unreadCount = useUnreadInterestsCount()
 
   return (
     <header className="border-b border-border bg-surface">
@@ -30,30 +29,8 @@ export function Navbar() {
           HappyFarmer
         </Link>
 
-        <nav className="hidden items-center gap-3 md:flex">
-          <Link to="/prices" className="text-sm text-text hover:text-primary">
-            Giá nông sản
-          </Link>
-          <Link to="/marketplace" className="text-sm text-text hover:text-primary">
-            Chợ nông sản
-          </Link>
-
-          {isAuthenticated ? (
-            <Link to="/marketplace/my-interests" className="relative text-sm text-text hover:text-primary">
-              Liên hệ của tôi
-              {unreadCount.data && unreadCount.data.count > 0 ? (
-                <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-error px-1 text-[10px] font-semibold text-white">
-                  {unreadCount.data.count > 9 ? '9+' : unreadCount.data.count}
-                </span>
-              ) : null}
-            </Link>
-          ) : null}
-
-          {isAuthenticated ? (
-            <Link to="/tu-van-ai" className="text-sm text-text hover:text-primary">
-              Tư vấn AI
-            </Link>
-          ) : null}
+        <div className="hidden items-center gap-3 md:flex">
+          <NavLinks orientation="horizontal" />
 
           <ThemeToggle />
 
@@ -93,7 +70,7 @@ export function Navbar() {
               </Button>
             </div>
           )}
-        </nav>
+        </div>
 
         <MobileNav />
       </div>

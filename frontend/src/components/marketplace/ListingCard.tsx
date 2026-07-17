@@ -24,7 +24,7 @@ export function ListingCard({ listing }: { listing: ListingResponse }) {
 
   return (
     <Link to={`/marketplace/listings/${listing.id}`}>
-      <Card className="relative h-full transition-colors hover:border-primary">
+      <Card className="relative h-full transition hover:border-primary hover:shadow-raised">
         <PriceDeviationBadge
           productId={listing.productId}
           regionId={listing.regionId}

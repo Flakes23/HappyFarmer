@@ -39,9 +39,9 @@ export function DiseasePhotoUploadField({ value, onChange, onUploadingChange }: 
             type="button"
             onClick={() => onChange(null)}
             aria-label="Xoá ảnh"
-            className="absolute right-1.5 top-1.5 rounded-full bg-black/60 p-1 text-white"
+            className="absolute right-1.5 top-1.5 rounded-full bg-black/60 p-2 text-white"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         </div>
       ) : (

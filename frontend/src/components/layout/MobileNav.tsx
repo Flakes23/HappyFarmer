@@ -3,17 +3,16 @@ import { Link } from 'react-router-dom'
 import { LogOut, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { NavLinks } from '@/components/layout/NavLinks'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { useAuthStore } from '@/store/authStore'
 import { useLogout } from '@/hooks/mutations/useLogout'
-import { useUnreadInterestsCount } from '@/hooks/queries/useUnreadInterestsCount'
 
 export function MobileNav() {
   const [open, setOpen] = useState(false)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const user = useAuthStore((s) => s.user)
   const logout = useLogout()
-  const unreadCount = useUnreadInterestsCount()
 
   function close() {
     setOpen(false)
@@ -31,33 +30,7 @@ export function MobileNav() {
           <SheetTitle>HappyFarmer</SheetTitle>
         </SheetHeader>
 
-        <nav className="flex flex-col gap-4">
-          <Link to="/prices" className="text-base text-text hover:text-primary" onClick={close}>
-            Giá nông sản
-          </Link>
-          <Link to="/marketplace" className="text-base text-text hover:text-primary" onClick={close}>
-            Chợ nông sản
-          </Link>
-          {isAuthenticated ? (
-            <Link
-              to="/marketplace/my-interests"
-              className="flex items-center gap-2 text-base text-text hover:text-primary"
-              onClick={close}
-            >
-              Liên hệ của tôi
-              {unreadCount.data && unreadCount.data.count > 0 ? (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-error px-1 text-xs font-semibold text-white">
-                  {unreadCount.data.count > 9 ? '9+' : unreadCount.data.count}
-                </span>
-              ) : null}
-            </Link>
-          ) : null}
-          {isAuthenticated ? (
-            <Link to="/tu-van-ai" className="text-base text-text hover:text-primary" onClick={close}>
-              Tư vấn AI
-            </Link>
-          ) : null}
-        </nav>
+        <NavLinks orientation="vertical" onNavigate={close} />
 
         <div className="flex items-center justify-between">
           <span className="text-sm text-text-muted">Giao diện</span>

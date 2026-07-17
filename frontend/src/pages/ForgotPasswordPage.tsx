@@ -2,12 +2,14 @@ import { Link } from 'react-router-dom'
 import { Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { AuthLayout } from '@/layouts/AuthLayout'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import authIllustration from '@/assets/illustrations/illustration-auth.png'
 
 export function ForgotPasswordPage() {
   useDocumentTitle('Quên mật khẩu — HappyFarmer')
   return (
-    <div className="mx-auto max-w-sm">
+    <AuthLayout illustration={authIllustration}>
       <Card>
         <CardHeader>
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-primary">
@@ -32,6 +34,6 @@ export function ForgotPasswordPage() {
           </Button>
         </CardContent>
       </Card>
-    </div>
+    </AuthLayout>
   )
 }

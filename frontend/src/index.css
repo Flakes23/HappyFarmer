@@ -41,6 +41,11 @@
     --ring: #48bb78;
 
     --radius: 0.5rem;
+
+    /* Warm dark green-grey tint for elevation shadows (not pure black) — see
+       boxShadow.card/raised/floating/modal in tailwind.config.js. RGB triplet
+       (space-separated) so Tailwind can compose it with an alpha via rgb(var(...)/<alpha>). */
+    --shadow-color: 31 41 30;
   }
 
   /*
@@ -79,6 +84,11 @@
     --border: #3a4032;
     --input: #3a4032;
     --ring: #48bb78;
+
+    /* Dark surfaces need a near-black shadow to read as elevation at all —
+       a warm-tinted shadow (like light mode) would be invisible against
+       an already-dark background. */
+    --shadow-color: 0 0 0;
   }
 }
 

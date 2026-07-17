@@ -53,6 +53,28 @@ services:
       retries: 10
     restart: unless-stopped
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    # Chỉ bind loopback VPS (giống sqlserver) — không public ra Internet, chỉ ai-advisory-service
+    # gọi qua network nội bộ + RagIngestor chạy từ máy local qua SSH tunnel khi cần nạp tài liệu.
+    ports:
+      - "127.0.0.1:6334:6334"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    networks:
+      - happyfarmer-net
+    # VPS 4GB đã khá sát (xem docs/architecture/03-infrastructure-deployment.md mục 2) — cap RAM
+    # để Qdrant không cạnh tranh với SQL Server/Kafka nếu tập tài liệu RAG lớn dần.
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
   kafka:
     image: apache/kafka:latest
     container_name: kafka
@@ -149,6 +171,43 @@ services:
       - happyfarmer-net
     restart: unless-stopped
 
+  ai-advisory-service:
+    image: ghcr.io/flakes23/happyfarmer-ai-advisory-service:latest
+    container_name: ai-advisory-service
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__AiAdvisoryDb: "Server=sqlserver,1433;Database=HappyFarmer_AiAdvisoryDb;User Id=sa;Password=${SQLSERVER_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False"
+      ConnectionStrings__Redis: "redis:6379"
+      Gemini__ApiKey: ${GEMINI_API_KEY}
+      Gemini__Model: gemini-3.1-flash-lite
+      Gemini__EmbeddingModel: gemini-embedding-001
+      Qdrant__Host: qdrant
+      Qdrant__Port: "6334"
+      OpenWeatherMap__ApiKey: ${OPENWEATHERMAP_API_KEY}
+      Cloudinary__CloudName: ${CLOUDINARY_CLOUD_NAME}
+      Cloudinary__ApiKey: ${CLOUDINARY_API_KEY}
+      Cloudinary__ApiSecret: ${CLOUDINARY_API_SECRET}
+      Services__MarketPriceServiceBaseUrl: "http://market-price-service:8080"
+      Services__MarketplaceServiceBaseUrl: "http://marketplace-service:8080"
+      Services__AuthServiceBaseUrl: "http://auth-service:8080"
+      Internal__ApiKey: ${INTERNAL_API_KEY}
+      Internal__IngestApiKey: ${INTERNAL_INGEST_API_KEY}
+      # URL public thật của frontend (Vercel) — dùng để chatbot build link sản phẩm/tin đăng trả
+      # về cho người dùng, không phải bí mật nên hardcode thẳng (giống Kafka__BootstrapServers).
+      Frontend__BaseUrl: "https://happy-farmer-beige.vercel.app"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - happyfarmer-net
+    restart: unless-stopped
+
   market-price-crawler:
     image: ghcr.io/flakes23/happyfarmer-market-price-crawler:latest
     profiles: ["cron"]
@@ -180,14 +239,21 @@ services:
       ReverseProxy__Routes__market-price-route__Match__Path: "/api/market-price/{**remainder}"
       ReverseProxy__Routes__marketplace-route__ClusterId: marketplace-cluster
       ReverseProxy__Routes__marketplace-route__Match__Path: "/api/marketplace/{**remainder}"
+      ReverseProxy__Routes__ai-advisory-route__ClusterId: ai-advisory-cluster
+      ReverseProxy__Routes__ai-advisory-route__Match__Path: "/api/ai-advisory/{**remainder}"
       ReverseProxy__Clusters__auth-cluster__Destinations__destination1__Address: "http://auth-service:8080"
       ReverseProxy__Clusters__market-price-cluster__Destinations__destination1__Address: "http://market-price-service:8080"
       ReverseProxy__Clusters__marketplace-cluster__Destinations__destination1__Address: "http://marketplace-service:8080"
       ReverseProxy__Clusters__marketplace-cluster__HttpRequest__ActivityTimeout: "00:10:00"
+      ReverseProxy__Clusters__ai-advisory-cluster__Destinations__destination1__Address: "http://ai-advisory-service:8080"
+      # Gemini (chat/disease-detection/harvest-prediction) có thể mất vài chục giây, dài hơn mặc định
+      # YARP (100s) — nới rộng giống marketplace-cluster để tránh 504 sớm.
+      ReverseProxy__Clusters__ai-advisory-cluster__HttpRequest__ActivityTimeout: "00:05:00"
     depends_on:
       - auth-service
       - market-price-service
       - marketplace-service
+      - ai-advisory-service
     networks:
       - happyfarmer-net
     restart: unless-stopped
@@ -216,6 +282,7 @@ volumes:
   sqlserver-data:
   redis-data:
   kafka-data:
+  qdrant-data:
   auth-keys:
   caddy-data:
   caddy-config:

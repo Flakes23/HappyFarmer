@@ -24,7 +24,7 @@ export function BuyRequestCard({ buyRequest }: { buyRequest: BuyRequestResponse 
 
   return (
     <Link to={`/marketplace/buy-requests/${buyRequest.id}`}>
-      <Card className="relative h-full transition-colors hover:border-primary">
+      <Card className="relative h-full transition hover:border-primary hover:shadow-raised">
         {buyRequest.maxPricePerUnit ? (
           <PriceDeviationBadge
             productId={buyRequest.productId}

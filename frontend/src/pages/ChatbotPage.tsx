@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { ChatSessionSidebar } from '@/components/chatbot/ChatSessionSidebar'
 import { ChatMessageList } from '@/components/chatbot/ChatMessageList'
 import { ChatInput } from '@/components/chatbot/ChatInput'
+import chatbotIllustration from '@/assets/illustrations/illustration-empty-chatbot.png'
 
 export function ChatbotPage() {
   const [selectedSessionId, setSelectedSessionId] = useState<number | undefined>(undefined)
@@ -48,6 +49,7 @@ export function ChatbotPage() {
         {selectedSessionId === undefined ? (
           <div className="flex h-full items-center justify-center rounded-lg border border-border bg-surface">
             <EmptyState
+              illustration={chatbotIllustration}
               title="Chưa chọn cuộc trò chuyện"
               description="Chọn một cuộc trò chuyện ở danh sách bên trái, hoặc bấm 'Chat mới' để bắt đầu."
             />

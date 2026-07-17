@@ -20,6 +20,7 @@ import { useBuyRequests } from '@/hooks/queries/useBuyRequests'
 import { useAuthStore } from '@/store/authStore'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import type { MarketplaceSort } from '@/api/marketplaceApi'
+import emptyMarketplaceIllustration from '@/assets/illustrations/illustration-empty-marketplace.png'
 
 const PAGE_SIZE = 20
 
@@ -54,8 +55,8 @@ export function MarketplacePage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-text">Chợ nông sản</h1>
-          <p className="text-text-muted">Đăng bán, tìm mua nông sản trực tiếp giữa nông dân và người mua.</p>
+          <h1 className="text-h1 text-text">Chợ nông sản</h1>
+          <p className="text-body text-text-muted">Đăng bán, tìm mua nông sản trực tiếp giữa nông dân và người mua.</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -159,6 +160,7 @@ export function MarketplacePage() {
           ) : (
             <EmptyState
               icon={PackageOpen}
+              illustration={emptyMarketplaceIllustration}
               title="Chưa có tin đăng bán phù hợp"
               description="Thử thay đổi bộ lọc, hoặc quay lại sau khi có tin đăng mới."
             />

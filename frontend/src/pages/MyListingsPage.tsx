@@ -29,7 +29,7 @@ export function MyListingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-text">Tin đăng của tôi</h1>
+        <h1 className="text-h1 text-text">Tin đăng của tôi</h1>
         <p className="text-text-muted">Quản lý các tin bán nông sản bạn đã đăng.</p>
       </div>
 

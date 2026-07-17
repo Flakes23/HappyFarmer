@@ -16,7 +16,7 @@ export function RouteErrorBoundary() {
       <span className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-error">
         <AlertTriangle className="h-7 w-7" />
       </span>
-      <h1 className="text-2xl font-semibold text-text">Đã có lỗi xảy ra</h1>
+      <h1 className="text-h1 text-text">Đã có lỗi xảy ra</h1>
       <p className="max-w-sm text-text-muted">{message}</p>
       <div className="flex gap-3">
         <Button variant="outline" onClick={() => window.location.reload()}>

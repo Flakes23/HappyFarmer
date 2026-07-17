@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import Markdown from 'react-markdown'
 import { Bot } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Skeleton } from '@/components/ui/skeleton'
+import { ChatMessageSkeleton } from '@/components/shared/Skeletons'
 import { ChatCardList } from '@/components/chatbot/cards/ChatCardList'
 import { useChatHistory } from '@/hooks/queries/useChatHistory'
 import { cn } from '@/lib/utils'
@@ -25,11 +25,7 @@ export function ChatMessageList({ sessionId, pendingMessage }: ChatMessageListPr
   return (
     <div ref={listRef} className="flex-1 space-y-2 overflow-y-auto p-4">
       {history.isLoading ? (
-        <div className="space-y-2">
-          <Skeleton className="h-10 w-2/3" />
-          <Skeleton className="ml-auto h-10 w-2/3" />
-          <Skeleton className="h-10 w-1/2" />
-        </div>
+        <ChatMessageSkeleton />
       ) : (!history.data || history.data.length === 0) && !pendingMessage ? (
         <div className="flex justify-start gap-2">
           <BotAvatar />

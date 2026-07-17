@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoginForm } from '@/components/auth/LoginForm'
+import { AuthLayout } from '@/layouts/AuthLayout'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import authIllustration from '@/assets/illustrations/illustration-auth.png'
 
 export function LoginPage() {
   useDocumentTitle('Đăng nhập — HappyFarmer')
   return (
-    <div className="mx-auto max-w-sm">
+    <AuthLayout illustration={authIllustration}>
       <Card>
         <CardHeader>
           <CardTitle>Đăng nhập</CardTitle>
@@ -22,6 +24,6 @@ export function LoginPage() {
           </p>
         </CardContent>
       </Card>
-    </div>
+    </AuthLayout>
   )
 }
