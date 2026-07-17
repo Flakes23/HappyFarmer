@@ -23,7 +23,9 @@ public class GeminiChatService(
     ILogger<GeminiChatService> logger,
     MarketPriceServiceClient marketPriceClient,
     MarketplaceServiceClient marketplaceClient,
-    AuthServiceClient authServiceClient)
+    AuthServiceClient authServiceClient,
+    GeminiEmbeddingService embeddingService,
+    QdrantKnowledgeService knowledgeService)
 {
     private const int MaxToolIterations = 4;
     private const int MaxCardsPerCall = 5;
@@ -46,6 +48,16 @@ public class GeminiChatService(
         - search_marketplace_listings: tin đăng bán nông sản thật đang có trên Chợ nông sản (nhận
           productId/regionId dạng số, KHÔNG nhận tên).
         - get_my_profile: tên và tỉnh/thành đã đăng ký của người dùng đang trò chuyện.
+        - search_knowledge_base: tra cứu tài liệu kỹ thuật nông nghiệp (kỹ thuật canh tác, phục hồi
+          vườn sau thiên tai, tiếp cận thị trường...) khi câu hỏi cần kiến thức chuyên sâu hơn kiến
+          thức nền của bạn. Mỗi kết quả trả về kèm `sourceDocument` (tên tài liệu) và `sourceUrl`
+          (link trang chi tiết CHÍNH XÁC của tài liệu đó, có thể null). Khi dùng thông tin từ tool
+          này: LUÔN trích dẫn tên tài liệu nguồn dạng link markdown trỏ đúng `sourceUrl` của tài liệu
+          đó (vd. "Theo tài liệu [tên tài liệu](sourceUrl)...") để người dùng bấm vào xem/tải bản gốc
+          — nếu `sourceUrl` là null thì chỉ nêu tên tài liệu bằng chữ thường, KHÔNG tự bịa link. Nếu
+          dùng nhiều tài liệu khác nguồn trong 1 câu trả lời, mỗi tài liệu link đúng URL riêng của nó,
+          không dùng lẫn URL của tài liệu khác. Nói rõ đây là tài liệu tham khảo kỹ thuật — với tình
+          huống nghiêm trọng vẫn khuyên người dùng hỏi thêm cán bộ khuyến nông/chuyên gia thật.
 
         QUAN TRỌNG: get_current_prices, get_price_history, search_marketplace_listings chỉ nhận ID số,
         không nhận tên. Khi người dùng nhắc tên nông sản/khu vực bằng chữ, BẠN PHẢI gọi search_products/
@@ -166,6 +178,7 @@ public class GeminiChatService(
                 "get_price_history" => await HandleGetPriceHistoryAsync(args, cards, ct),
                 "search_marketplace_listings" => await HandleSearchListingsAsync(args, cards, ct),
                 "get_my_profile" => await HandleGetMyProfileAsync(userId, ct),
+                "search_knowledge_base" => await HandleSearchKnowledgeBaseAsync(args, ct),
                 _ => new Dictionary<string, object> { ["error"] = $"Không rõ hàm {call.Name}." },
             };
         }
@@ -301,6 +314,36 @@ public class GeminiChatService(
         return user is null
             ? new Dictionary<string, object> { ["error"] = "Không lấy được thông tin người dùng hiện tại." }
             : new Dictionary<string, object> { ["output"] = new { user.FullName, user.ProvinceName } };
+    }
+
+    /// <summary>
+    /// RAG — tìm đoạn tài liệu gần nghĩa nhất với câu hỏi (Qdrant, embedding bất đối xứng
+    /// RETRIEVAL_QUERY). Không tạo ChatCard vì đây là văn bản tham khảo, không phải dữ liệu có cấu
+    /// trúc để hiển thị card như giá/tin đăng.
+    /// </summary>
+    private async Task<Dictionary<string, object>> HandleSearchKnowledgeBaseAsync(Dictionary<string, object> args, CancellationToken ct)
+    {
+        var query = GetStringArg(args, "query");
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return new Dictionary<string, object> { ["error"] = "Thiếu câu hỏi để tra cứu tài liệu." };
+        }
+
+        var queryEmbedding = await embeddingService.EmbedQueryAsync(query, ct);
+        var results = await knowledgeService.SearchAsync(queryEmbedding, topK: 5, ct);
+        if (results.Count == 0)
+        {
+            return new Dictionary<string, object> { ["output"] = "Không tìm thấy tài liệu liên quan." };
+        }
+
+        // sourceUrl trả riêng theo từng tài liệu (không phải 1 link chung) — không tự host/phân phối
+        // lại file gốc (rủi ro bản quyền), chỉ dẫn đúng trang chi tiết của CHÍNH tài liệu vừa trích để
+        // người dùng tự xem/tải. Có thể null nếu tài liệu không xác định được URL nguồn — khi đó
+        // Gemini không được tự bịa link (xem hướng dẫn trong system prompt).
+        return new Dictionary<string, object>
+        {
+            ["output"] = results.Select(r => new { sourceDocument = r.SourceDocument, text = r.Text, sourceUrl = r.SourceUrl }).ToList(),
+        };
     }
 
     /// <summary>
@@ -493,6 +536,22 @@ public class GeminiChatService(
                     Name = "get_my_profile",
                     Description = "Lấy tên và tỉnh/thành đã đăng ký của người dùng đang trò chuyện để xưng hô cá nhân hóa.",
                     Parameters = new Schema { Type = Google.GenAI.Types.Type.Object, Properties = new Dictionary<string, Schema>() },
+                },
+                new FunctionDeclaration
+                {
+                    Name = "search_knowledge_base",
+                    Description = "Tra cứu tài liệu kỹ thuật nông nghiệp (kỹ thuật canh tác, phục hồi vườn sau thiên tai, " +
+                                  "tiếp cận thị trường...) theo ngữ nghĩa câu hỏi. Dùng khi câu hỏi cần kiến thức chuyên " +
+                                  "sâu/cụ thể hơn kiến thức nền, đặc biệt các tình huống thiên tai/khắc phục sự cố cây trồng.",
+                    Parameters = new Schema
+                    {
+                        Type = Google.GenAI.Types.Type.Object,
+                        Properties = new Dictionary<string, Schema>
+                        {
+                            ["query"] = new() { Type = Google.GenAI.Types.Type.String, Description = "Câu hỏi hoặc chủ đề cần tra cứu" },
+                        },
+                        Required = ["query"],
+                    },
                 },
             ],
         },

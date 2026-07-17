@@ -40,7 +40,17 @@ dotnet run
 Kiểm tra kết quả: `GET http://localhost:5262/api/market-price/prices/{productId}/history?regionId=...`
 hoặc xem log console của crawler (in rõ nguồn nào góp giá bao nhiêu → giá cuối cùng).
 
-## Lên lịch chạy tự động (Windows Task Scheduler)
+## Lên lịch chạy tự động
+
+**Trên production (VPS)**: đã tự động qua GitHub Actions — `.github/workflows/crawl-daily.yml`
+chạy theo lịch mỗi ngày (mặc định 05:30 giờ Việt Nam), SSH vào VPS và kích hoạt service
+`market-price-crawler` (`profiles: ["cron"]` trong `docker-compose.prod.yml`, không chạy cùng
+`up -d` bình thường). Image được build/push GHCR bởi `deploy.yml` mỗi lần push `master`. Xem
+chi tiết ở `docs/architecture/03-infrastructure-deployment.md#5-nạp-dữ-liệu-market-price--lần-đầu-thủ-công--hằng-ngày-tự-động`.
+Muốn chạy ngay ngoài lịch: tab **Actions** trên GitHub → chọn workflow "Daily market price crawl"
+→ **Run workflow**.
+
+**Trên máy Windows cá nhân** (chạy dev/thử nghiệm, không phải cách dùng ở production):
 
 1. `dotnet publish -c Release -o publish` tại thư mục project này.
 2. Task Scheduler → Create Task:

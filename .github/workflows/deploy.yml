@@ -1,6 +1,7 @@
 name: Deploy backend
 
-# Chạy khi merge/push vào main — build 4 image, push lên GHCR, rồi SSH vào VPS pull + up.
+# Chạy khi merge/push vào main — build 5 image (gồm cả market-price-crawler, dù nó không chạy
+# cùng `up -d` — xem docker-compose.prod.yml), push lên GHCR, rồi SSH vào VPS pull + up.
 # 2 service AI Advisory/Notification chưa deploy (còn skeleton).
 on:
   push:
@@ -28,6 +29,8 @@ jobs:
             dockerfile: HappyFarmer_Backend/src/Services/MarketplaceService/HappyFarmer.MarketplaceService.Api/Dockerfile
           - service: gateway
             dockerfile: HappyFarmer_Backend/src/Gateway/HappyFarmer.ApiGateway/Dockerfile
+          - service: market-price-crawler
+            dockerfile: HappyFarmer_Backend/src/Tools/HappyFarmer.MarketPriceCrawler/Dockerfile
     steps:
       - uses: actions/checkout@v4
 

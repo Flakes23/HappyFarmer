@@ -24,5 +24,6 @@
   </Folder>
   <Folder Name="/src/Tools/">
     <Project Path="src/Tools/HappyFarmer.MarketPriceCrawler/HappyFarmer.MarketPriceCrawler.csproj" />
+    <Project Path="src/Tools/HappyFarmer.RagIngestor/HappyFarmer.RagIngestor.csproj" />
   </Folder>
 </Solution>

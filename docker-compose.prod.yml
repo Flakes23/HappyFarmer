@@ -5,6 +5,12 @@
 #
 # Dùng: docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d
 # Cần file .env cùng thư mục (không commit) — xem .env.prod.example.
+#
+# `market-price-crawler` ở dưới có `profiles: ["cron"]` nên KHÔNG bị `up -d` ở trên khởi động —
+# nó là console app chạy 1 lần rồi thoát, không phải service chạy liên tục. Được kích hoạt mỗi
+# ngày qua GitHub Actions (`.github/workflows/crawl-daily.yml`, SSH vào VPS chạy `docker compose
+# -f docker-compose.prod.yml --profile cron run --rm market-price-crawler`), xem mục 5 ở
+# docs/architecture/03-infrastructure-deployment.md.
 
 services:
   sqlserver:
@@ -142,6 +148,20 @@ services:
     networks:
       - happyfarmer-net
     restart: unless-stopped
+
+  market-price-crawler:
+    image: ghcr.io/flakes23/happyfarmer-market-price-crawler:latest
+    profiles: ["cron"]
+    environment:
+      # Gọi thẳng market-price-service trong network nội bộ, không qua Gateway/domain public —
+      # đây là service-to-service trong cùng docker network, không phải request từ browser.
+      Api__BaseUrl: "http://market-price-service:8080"
+      Internal__ApiKey: ${INTERNAL_API_KEY}
+    depends_on:
+      market-price-service:
+        condition: service_started
+    networks:
+      - happyfarmer-net
 
   gateway:
     image: ghcr.io/flakes23/happyfarmer-gateway:latest

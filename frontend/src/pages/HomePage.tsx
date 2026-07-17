@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { LineChart, MessageCircle, Plus, ShoppingBasket, Sprout } from 'lucide-react'
+import { Bot, LineChart, MessageCircle, Plus, ShoppingBasket, Sprout } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuthStore } from '@/store/authStore'
@@ -62,7 +62,7 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-3">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader>
             <LineChart className="h-6 w-6 text-primary" />
@@ -105,6 +105,24 @@ export function HomePage() {
             <Button variant="link" className="h-auto p-0" asChild>
               <Link to={isAuthenticated ? '/marketplace/my-interests' : '/register'}>
                 {isAuthenticated ? 'Xem liên hệ của tôi →' : 'Đăng ký để bắt đầu →'}
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <Bot className="h-6 w-6 text-primary" />
+            <CardTitle className="pt-2">Tư vấn AI</CardTitle>
+            <CardDescription>
+              Chatbot tư vấn canh tác, dự đoán thời điểm thu hoạch và nhận diện bệnh cây qua ảnh —
+              có AI đồng hành cùng bạn.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="link" className="h-auto p-0" asChild>
+              <Link to={isAuthenticated ? '/tu-van-ai' : '/register'}>
+                {isAuthenticated ? 'Trải nghiệm ngay →' : 'Đăng ký để bắt đầu →'}
               </Link>
             </Button>
           </CardContent>

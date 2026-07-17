@@ -17,8 +17,12 @@ graph TD
   KAFKA -- subscribe --> NOTI
   KAFKA -- subscribe --> MKT
 
-  AI --> CLAUDE[Claude API]
+  AI --> GEMINI[Gemini API]
   AI --> OWM[OpenWeatherMap API]
+  AI --> QDRANT[("Qdrant<br/>vector search cho RAG")]
+  AI -->|"internal REST"| MP
+  AI -->|"internal REST"| MKT
+  AI -->|"internal REST"| AUTH
   AI --> REDIS[("Redis")]
   MP --> REDIS
   NOTI --> REDIS
@@ -30,7 +34,9 @@ graph TD
   NOTI --> SQL5[("SQL Server: NotificationDb")]
 ```
 
-Frontend (React) chỉ nói chuyện với một cổng public duy nhất — API Gateway. Gateway verify JWT tập trung rồi route theo tiền tố path tới đúng service nội bộ, kèm danh tính người dùng qua header tin cậy (xem [02-security-auth.md](02-security-auth.md#2-luồng-verify-token-liên-service)). Kafka, Redis, SQL Server nằm hoàn toàn trong mạng nội bộ Docker, không public ra ngoài.
+Frontend (React) chỉ nói chuyện với một cổng public duy nhất — API Gateway. Gateway verify JWT tập trung rồi route theo tiền tố path tới đúng service nội bộ, kèm danh tính người dùng qua header tin cậy (xem [02-security-auth.md](02-security-auth.md#2-luồng-verify-token-liên-service)). Kafka, Redis, SQL Server, Qdrant nằm hoàn toàn trong mạng nội bộ Docker, không public ra ngoài.
+
+AI Advisory Service là service **duy nhất** chủ động gọi service-to-service REST tới 3 service khác (Market Price/Marketplace/Auth Service) — ngoại lệ có chủ đích với nguyên tắc "hạn chế REST trực tiếp giữa 2 backend" ở mục 2 bên dưới, vì đây là chatbot function-calling cần dữ liệu **thật, tức thời** (giá/tin đăng/thông tin user) chứ không phải dữ liệu có thể duplicate cục bộ như model event-driven thông thường. Xem [services/ai-advisory-service.md](services/ai-advisory-service.md) và [data-flows/ai-chatbot-flow.md](data-flows/ai-chatbot-flow.md).
 
 ## 2. Nguyên tắc giao tiếp
 
@@ -82,5 +88,7 @@ Không dùng Consul/Eureka/Kubernetes. Dùng chính DNS nội bộ của Docker 
 | Auth Service | Kafka topic `auth.user-updated.v1` | Publish | Báo FullName/AvatarUrl thay đổi |
 | Marketplace Service | Kafka topic `auth.user-updated.v1` | Subscribe | Đồng bộ lại FarmerName/BuyerName/avatar đã denormalize |
 | API Gateway | Auth Service `.well-known/jwks.json` | REST (cache) | Lấy public key verify JWT tập trung — chỉ Gateway fetch, service phía sau không tự verify JWT nữa |
+| AI Advisory Service | Market Price/Marketplace/Auth Service | REST (internal, resilience pipeline) | Chatbot function-calling tra giá/tin đăng/thông tin user thật — xem [services/ai-advisory-service.md](services/ai-advisory-service.md) |
+| AI Advisory Service | Qdrant | REST/gRPC | Lưu + tìm kiếm vector embedding tài liệu nông nghiệp (RAG) — xem [data-flows/ai-chatbot-flow.md](data-flows/ai-chatbot-flow.md) |
 
 Chi tiết từng service xem tại thư mục [services/](services/), chi tiết từng luồng sự kiện/AI xem tại [data-flows/](data-flows/).

@@ -2,7 +2,7 @@
 
 Nền tảng hỗ trợ nông dân: tra cứu giá nông sản theo thời gian thực, AI tư vấn canh tác (nhận diện bệnh cây, dự đoán thời điểm thu hoạch), kết nối trực tiếp nông dân với người mua, và chatbot tư vấn nông nghiệp bằng tiếng Việt.
 
-Thư mục này chứa toàn bộ tài liệu kiến trúc dùng làm nền tảng tham chiếu khi triển khai từng service. Đây là tài liệu thiết kế — chưa có code, đọc theo thứ tự dưới đây để nắm được bức tranh tổng thể trước khi đi vào chi tiết từng service.
+Thư mục này chứa toàn bộ tài liệu kiến trúc — **đã khớp với code thật** (Auth Service, Market Price Service, Marketplace Service, AI Advisory Service done; Notification Service vẫn skeleton), không còn là tài liệu thiết kế thuần tuý. Đọc theo thứ tự dưới đây để nắm được bức tranh tổng thể trước khi đi vào chi tiết từng service — xem `CLAUDE.md` ở root repo để biết trạng thái tổng quan mới nhất và bảng tra cứu nhanh theo chủ đề.
 
 ## Thứ tự đọc gợi ý
 
@@ -26,12 +26,14 @@ Thư mục này chứa toàn bộ tài liệu kiến trúc dùng làm nền tả
 
 | Layer | Công nghệ |
 |---|---|
-| Backend | .NET microservices (5 service độc lập) |
-| Frontend | ReactJS + TailwindCSS |
+| API Gateway | .NET + YARP (routing, verify JWT tập trung) |
+| Backend | .NET microservices (5 service độc lập phía sau Gateway) |
+| Frontend | React + TypeScript + Vite, TailwindCSS, shadcn/ui, TanStack Query + Zustand |
 | Database | SQL Server + EF Core Migration (database-per-service) |
-| Message Queue | Kafka (KRaft mode) |
+| Message Queue | Kafka (KRaft mode) — hiện chỉ dùng cho `auth.user-updated.v1` |
 | Cache | Redis |
-| AI | Claude API (vision + chatbot), OpenWeatherMap API (thời tiết) |
+| Vector search (RAG) | Qdrant |
+| AI | Gemini API (`Google.GenAI` — chat + function-calling, vision cho nhận diện bệnh cây, embedding cho RAG), OpenWeatherMap API (thời tiết) |
 | Containerize | Docker + Docker Compose |
 | CI/CD | GitHub Actions |
 | Deploy | VPS (Docker Compose) cho backend, Vercel cho frontend |

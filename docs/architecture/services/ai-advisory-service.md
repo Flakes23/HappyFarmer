@@ -22,6 +22,14 @@ timeout 2s, tổng timeout 5s, tối đa 2 lần retry). Endpoint Market Price/M
 đều public (`[AllowAnonymous]`); riêng Auth Service dùng key riêng, xem
 [auth-service.md#internal-api-key](auth-service.md#internal-api-key).
 
+Chatbot còn có **RAG** (Retrieval-Augmented Generation) — trả lời dựa trên tài liệu kỹ thuật nông
+nghiệp (phi cấu trúc, không query được bằng ID như dữ liệu ở trên) qua tool `search_knowledge_base`.
+Vector embedding (Gemini Embedding API) lưu trong **Qdrant** (service riêng, xem `docker-compose.yml`
+ở root repo) — không lưu song song trong SQL Server vì payload của Qdrant đã chứa cả nội dung chunk.
+Tài liệu nạp vào qua tool console riêng `HappyFarmer.RagIngestor` (`src/Tools/`, chạy thủ công/offline),
+không qua API Gateway. Chi tiết kiến trúc RAG xem
+[ai-chatbot-flow.md](../data-flows/ai-chatbot-flow.md#rag--tra-cứu-tài-liệu-nông-nghiệp).
+
 ## API chính
 
 | Method | Path | Mô tả |
@@ -38,6 +46,7 @@ timeout 2s, tổng timeout 5s, tối đa 2 lần retry). Endpoint Market Price/M
 | GET | `/api/ai-advisory/chat/sessions/{id}/messages` | Lấy lịch sử hội thoại (fallback khi Redis hết hạn) |
 | POST | `/api/ai-advisory/harvest-prediction` | Dự đoán thời điểm thu hoạch tối ưu (không giới hạn theo danh sách cây, xem [ai-harvest-prediction-flow.md](../data-flows/ai-harvest-prediction-flow.md)) |
 | GET | `/api/ai-advisory/harvest-prediction/history` | Lịch sử dự đoán thu hoạch của farmer |
+| POST | `/api/ai-advisory/internal/knowledge-ingest` | Nội bộ — nhận 1 chunk tài liệu RAG (`sourceDocument`, `chunkIndex`, `text`) từ `HappyFarmer.RagIngestor`, embed qua Gemini rồi lưu vào Qdrant. Xác thực `X-Internal-Api-Key` so với `Internal:IngestApiKey` (khác `Internal:ApiKey` — cái đó là key service này tự dùng khi gọi ra Auth Service) |
 
 ## DB schema (AiAdvisoryDb)
 

@@ -6,6 +6,7 @@ using HappyFarmer.Shared.Contracts.Auth;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Http.Resilience;
+using Qdrant.Client;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -79,6 +80,15 @@ builder.Services.AddHttpClient("AuthService", client =>
 builder.Services.AddScoped<MarketPriceServiceClient>();
 builder.Services.AddScoped<MarketplaceServiceClient>();
 builder.Services.AddScoped<AuthServiceClient>();
+
+// RAG — Qdrant lưu vector + payload (nội dung chunk tài liệu nông nghiệp), Gemini Embedding API
+// tạo vector. Xem Controllers/InternalController.cs (nhận ingest từ HappyFarmer.RagIngestor) và
+// GeminiChatService.cs (tool search_knowledge_base).
+builder.Services.AddSingleton(_ => new QdrantClient(
+    builder.Configuration["Qdrant:Host"] ?? "localhost",
+    builder.Configuration.GetValue("Qdrant:Port", 6334)));
+builder.Services.AddScoped<GeminiEmbeddingService>();
+builder.Services.AddScoped<QdrantKnowledgeService>();
 
 builder.Services.AddTrustedHeaderAuthentication();
 

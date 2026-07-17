@@ -60,6 +60,14 @@ export function ChatMessageList({ sessionId, pendingMessage }: ChatMessageListPr
                         ul: (props) => <ul className="mb-2 list-disc space-y-1 pl-4 last:mb-0" {...props} />,
                         ol: (props) => <ol className="mb-2 list-decimal space-y-1 pl-4 last:mb-0" {...props} />,
                         li: (props) => <li {...props} />,
+                        a: (props) => (
+                          <a
+                            {...props}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary underline underline-offset-2 hover:text-primary-light"
+                          />
+                        ),
                       }}
                     >
                       {m.content}

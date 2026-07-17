@@ -89,6 +89,13 @@ data/uploads/
 logs/
 
 ## =========================
+## Tài liệu nguồn RAG (bản quyền chưa xác nhận rõ, chỉ giữ local)
+## =========================
+knowledge-base/raw-sources/*.pdf
+knowledge-base/raw-sources/*.doc
+knowledge-base/raw-sources/*.docx
+
+## =========================
 ## Ghi chú học tập cá nhân (không thuộc tài liệu chính thức)
 ## =========================
 DEPLOY_LEARNING_NOTES.md
