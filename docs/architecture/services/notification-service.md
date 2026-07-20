@@ -1,5 +1,7 @@
 # Notification Service
 
+> **Trạng thái: thiết kế, CHƯA triển khai.** Code hiện tại chỉ có `Program.cs` mặc định của template ASP.NET — không có controller, không DbContext, không Kafka consumer nào. Toàn bộ nội dung bên dưới (API/DB schema/Kafka) là tài liệu thiết kế để tham khảo khi build service này (Phase 4), không phải mô tả code đang chạy.
+
 ## Trách nhiệm
 
 Subscribe các sự kiện Kafka từ Market Price Service và Marketplace Service, lưu Notification, quản lý danh sách theo dõi giá (`PriceWatchSubscriptions` — bản sao cục bộ, **không** gọi ngược Market Price Service). Gửi thông báo qua kênh in-app (bắt buộc MVP), email (Phase 4), push notification (stretch, Phase 6).

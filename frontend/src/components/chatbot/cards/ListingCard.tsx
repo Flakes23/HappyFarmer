@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import logo from '@/assets/logo.svg'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import type { ListingCard as ListingCardData } from '@/api/types'
@@ -12,7 +13,11 @@ export function ListingCard({ card }: { card: ListingCardData }) {
         <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md bg-secondary">
           {card.imageUrl ? (
             <img src={card.imageUrl} alt={card.productName} className="h-full w-full object-cover" />
-          ) : null}
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <img src={logo} alt="" className="h-6 w-6 opacity-30" />
+            </div>
+          )}
         </div>
         <div className="min-w-0 flex-1 space-y-0.5">
           <p className="truncate text-body-sm font-medium text-text">{card.productName}</p>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { HubConnectionState } from '@microsoft/signalr'
+import { motion } from 'framer-motion'
 import { Loader2, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -10,6 +11,7 @@ import { useSendMessage } from '@/hooks/mutations/useSendMessage'
 import { useMarkInterestRead } from '@/hooks/mutations/useMarkInterestRead'
 import { useChatConnection } from '@/providers/ChatConnectionProvider'
 import { useAuthStore } from '@/store/authStore'
+import { useMotionVariants } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import type { MessageResponse } from '@/api/types'
 
@@ -21,6 +23,21 @@ export function ChatThread({ interestId }: { interestId: number }) {
   const currentUserId = useAuthStore((s) => s.user?.id)
   const [draft, setDraft] = useState('')
   const listRef = useRef<HTMLDivElement>(null)
+  const { fadeInUp } = useMotionVariants()
+
+  // Id "mốc" của tin nhắn cũ nhất tại lần tải đầu — tin có id lớn hơn mốc này là tin mới phát
+  // sinh trong phiên (gửi đi hoặc nhận qua SignalR) nên được animate; tin đã có sẵn từ đầu thì
+  // giữ tĩnh, tránh toàn bộ lịch sử "bay vào" mỗi lần mở lại cuộc trò chuyện.
+  const baselineIdRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    baselineIdRef.current = null
+  }, [interestId])
+
+  if (messages.data && baselineIdRef.current === null) {
+    baselineIdRef.current =
+      messages.data.messages.length > 0 ? Math.max(...messages.data.messages.map((m) => m.id)) : 0
+  }
 
   useEffect(() => {
     if (!connection) return
@@ -87,8 +104,15 @@ export function ChatThread({ interestId }: { interestId: number }) {
         ) : (
           messages.data.messages.map((m) => {
             const isMine = m.senderUserId === currentUserId
+            const isNew = baselineIdRef.current !== null && m.id > baselineIdRef.current
             return (
-              <div key={m.id} className={cn('flex', isMine ? 'justify-end' : 'justify-start')}>
+              <motion.div
+                key={m.id}
+                initial={isNew ? 'hidden' : false}
+                animate="visible"
+                variants={fadeInUp}
+                className={cn('flex', isMine ? 'justify-end' : 'justify-start')}
+              >
                 <div
                   className={cn(
                     'max-w-[75%] rounded-lg px-3 py-2 text-body-sm',
@@ -105,7 +129,7 @@ export function ChatThread({ interestId }: { interestId: number }) {
                     {new Date(m.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
-              </div>
+              </motion.div>
             )
           })
         )}

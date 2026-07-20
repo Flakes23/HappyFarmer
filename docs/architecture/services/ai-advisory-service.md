@@ -46,6 +46,7 @@ không qua API Gateway. Chi tiết kiến trúc RAG xem
 | GET | `/api/ai-advisory/chat/sessions/{id}/messages` | Lấy lịch sử hội thoại (fallback khi Redis hết hạn) |
 | POST | `/api/ai-advisory/harvest-prediction` | Dự đoán thời điểm thu hoạch tối ưu (không giới hạn theo danh sách cây, xem [ai-harvest-prediction-flow.md](../data-flows/ai-harvest-prediction-flow.md)) |
 | GET | `/api/ai-advisory/harvest-prediction/history` | Lịch sử dự đoán thu hoạch của farmer |
+| GET | `/api/ai-advisory/harvest-prediction/weather-forecast` | Đọc forecast OpenWeatherMap đã cache theo địa điểm (`geo:province:*`/`weather:forecast:*`, xem mục Redis) — không gọi Gemini |
 | POST | `/api/ai-advisory/internal/knowledge-ingest` | Nội bộ — nhận 1 chunk tài liệu RAG (`sourceDocument`, `chunkIndex`, `text`) từ `HappyFarmer.RagIngestor`, embed qua Gemini rồi lưu vào Qdrant. Xác thực `X-Internal-Api-Key` so với `Internal:IngestApiKey` (khác `Internal:ApiKey` — cái đó là key service này tự dùng khi gọi ra Auth Service) |
 
 ## DB schema (AiAdvisoryDb)

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import logo from '@/assets/logo.svg'
 import { Card, CardContent } from '@/components/ui/card'
 import { StatusBadge } from '@/components/marketplace/StatusBadge'
 import { SellerInfo } from '@/components/marketplace/SellerInfo'
@@ -38,7 +39,11 @@ export function ListingCard({ listing }: { listing: ListingResponse }) {
                 alt={product?.nameVi ?? 'Ảnh sản phẩm'}
                 className="h-full w-full object-cover"
               />
-            ) : null}
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                <img src={logo} alt="" className="h-8 w-8 opacity-30" />
+              </div>
+            )}
             {listing.imageUrls.length > 1 ? (
               <span className="absolute bottom-0.5 right-0.5 rounded bg-black/60 px-1 text-[10px] text-white">
                 +{listing.imageUrls.length - 1} ảnh

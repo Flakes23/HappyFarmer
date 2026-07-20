@@ -74,7 +74,7 @@ PriceEntries               # append-only
 
 ## Kafka
 
-Publish `market-price.price-changed.v1` khi một `PriceEntries` mới chuyển sang `Approved`:
+`market-price.price-changed.v1` (**chưa wiring** — `PricesController.ApprovePrice` hiện chỉ đổi status + invalidate cache Redis, chưa có `AddKafkaProducer`/publish nào trong code — để dành Phase 4 cùng lúc với Notification Service). Schema dự kiến khi làm:
 
 ```json
 {

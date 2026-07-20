@@ -71,7 +71,7 @@ Lý do đổi quyết định:
 
 **Trade-off cần lưu ý**: Gateway giờ là single point of failure về cả routing lẫn auth — nếu Gateway lỗi, toàn bộ hệ thống không truy cập được (trước đây mỗi service vẫn tự đứng độc lập nếu Nginx lỗi ở tầng khác). Chấp nhận đánh đổi này vì đơn giản hoá được auth logic đáng kể ở quy mô dự án hiện tại.
 
-**Đã migrate xong**: Auth Service và Market Price Service không còn tự verify JWT — dùng `AddTrustedHeaderAuthentication` (cùng thư viện chung) để tin header do Gateway gắn. Việc này chỉ an toàn vì kiến trúc target không public 2 service này ra ngoài (chỉ Gateway gọi tới được); ở local dev do 2 service vẫn bind port ra host nên về lý thuyết có thể bị bypass nếu gọi thẳng port và tự gắn header — chấp nhận trade-off này ở dev, xem `CLAUDE.md`.
+**Đã migrate xong**: cả 4 service active (Auth Service, Market Price Service, Marketplace Service, AI Advisory Service) không còn tự verify JWT — dùng `AddTrustedHeaderAuthentication` (cùng thư viện chung) để tin header do Gateway gắn (chỉ Notification Service chưa áp dụng vì vẫn là skeleton rỗng, chưa có code). Việc này chỉ an toàn vì kiến trúc target không public các service này ra ngoài (chỉ Gateway gọi tới được); ở local dev do các service vẫn bind port ra host nên về lý thuyết có thể bị bypass nếu gọi thẳng port và tự gắn header — chấp nhận trade-off này ở dev, xem `CLAUDE.md`.
 
 ## 4. Service discovery ở mức Docker Compose
 

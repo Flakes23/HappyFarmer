@@ -18,8 +18,13 @@
 | POST | `/api/marketplace/buy-requests` | Đăng yêu cầu mua (Buyer) |
 | GET | `/api/marketplace/buy-requests?productId=&regionId=&status=&search=&minPrice=&maxPrice=&sort=&page=&pageSize=` | Tìm kiếm yêu cầu mua (phân trang, cùng tham số như trên) — trả về `PagedResult<BuyRequestResponse>` |
 | POST | `/api/marketplace/listings/{id}/contact` | Bày tỏ quan tâm/liên hệ (Buyer) → tạo Interest, trigger thông báo |
+| POST | `/api/marketplace/buy-requests/{id}/contact` | Bày tỏ quan tâm/liên hệ với yêu cầu mua (Farmer) → tạo Interest |
 | GET | `/api/marketplace/my-listings` | Quản lý tin đăng của tôi |
 | GET | `/api/marketplace/my-interests` | Quản lý liên hệ của tôi |
+| GET | `/api/marketplace/my-interests/unread-count` | Tổng số tin nhắn chưa đọc của user (badge) |
+| GET | `/api/marketplace/my-interests/{id}/messages` | Lịch sử tin nhắn của 1 Interest |
+| POST | `/api/marketplace/my-interests/{id}/messages` | Gửi tin nhắn trong 1 Interest — xem mục [Chat real-time (SignalR)](#chat-real-time-signalr) |
+| POST | `/api/marketplace/my-interests/{id}/read` | Đánh dấu đã đọc tin nhắn của 1 Interest (cập nhật `InitiatorReadAt`/`TargetReadAt`) |
 | GET | `/api/marketplace/uploads/signature` | Sinh chữ ký signed upload lên Cloudinary (Farmer, dùng khi đăng ảnh tin bán — xem mục Upload ảnh) |
 | POST | `/api/marketplace/internal/backfill-avatars` | Nội bộ (xác thực bằng `X-Internal-Api-Key`, không phải JWT) — đồng bộ lại FarmerName/BuyerName/avatar cho dữ liệu tạo trước khi có Kafka `auth.user-updated.v1`, chạy tay khi cần |
 
@@ -70,6 +75,15 @@ Interests
   TargetUserId
   Message
   Status            (Pending | Responded)
+  InitiatorReadAt       # null nếu InitiatorUserId chưa đọc tin nhắn mới nhất
+  TargetReadAt          # null nếu TargetUserId chưa đọc tin nhắn mới nhất
+  CreatedAt
+
+Messages
+  Id                (PK)
+  InterestId        (FK -> Interests.Id)
+  SenderUserId
+  Content
   CreatedAt
 ```
 
@@ -103,6 +117,15 @@ Optional, nice-to-have — không critical cho MVP:
 | Key | Mục đích | TTL |
 |---|---|---|
 | `marketplace:listings:search:{queryHash}` | Cache trang kết quả tìm kiếm phổ biến | 5 phút |
+
+## Chat real-time (SignalR)
+
+Mỗi `Interest` có 1 luồng tin nhắn (bảng `Messages`) giữa `InitiatorUserId` và `TargetUserId`. Ngoài REST (`GET/POST /api/marketplace/my-interests/{id}/messages`) để load lịch sử/gửi tin, còn có `ChatHub` (SignalR) đẩy tin nhắn real-time:
+
+- Frontend kết nối `/api/marketplace/hubs/chat` (qua API Gateway, bearer token) rồi `invoke('JoinConversation', interestId)`/`'LeaveConversation'` khi vào/rời trang chi tiết 1 Interest.
+- Khi có tin nhắn mới, Hub gửi event `ReceiveMessage` cho các client đang join đúng `interestId`.
+- Có thêm event toàn cục `UnreadCountChanged` (không cần join theo interest) để cập nhật badge tổng số tin chưa đọc ở mọi trang.
+- Đây là tính năng phát sinh thêm ngoài phạm vi thiết kế ban đầu (roadmap Phase 6 từng liệt kê SignalR như "stretch, tương lai") — đã build và dùng thật ở Marketplace Service, không phải kế hoạch nữa.
 
 ## Upload ảnh (Cloudinary)
 

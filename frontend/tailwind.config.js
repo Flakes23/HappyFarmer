@@ -14,18 +14,18 @@ export default {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
-			// Elevation scale Ã¢â‚¬â€ warm-tinted (via --shadow-color), not pure black. `shadow`
+			// Elevation scale warm-tinted (via --shadow-color), not pure black. `shadow`
 			// (Tailwind default) stays the resting elevation on Card; these are for
 			// hover/interactive/overlay states. See index.css for --shadow-color per theme.
 			// NOTE: none of these keys may match an existing `colors.*` token name (e.g. `card`,
-			// `primary`) Ã¢â‚¬â€ Tailwind's built-in shadow-color utilities silently win that collision
+			// `primary`) Tailwind's built-in shadow-color utilities silently win that collision
 			// and produce a white/wrong-color shadow instead of this config's value.
 			boxShadow: {
 				raised: '0 4px 8px -2px rgb(var(--shadow-color) / 0.12), 0 2px 4px -2px rgb(var(--shadow-color) / 0.08)',
 				floating: '0 12px 24px -4px rgb(var(--shadow-color) / 0.16), 0 4px 8px -4px rgb(var(--shadow-color) / 0.08)',
 				modal: '0 20px 40px -8px rgb(var(--shadow-color) / 0.24), 0 8px 16px -8px rgb(var(--shadow-color) / 0.12)'
 			},
-			// Type scale Ã¢â‚¬â€ pair size/lineHeight/weight so pages pick e.g. `text-h1`
+			// Type scale pair size/lineHeight/weight so pages pick e.g. `text-h1`
 			// instead of ad hoc `text-3xl font-semibold`. `body` floors at 16px
 			// (accessibility: default readable size for older/low-tech-literacy users).
 			fontSize: {
@@ -94,8 +94,8 @@ export default {
 				input: 'var(--input)',
 				ring: 'var(--ring)',
 
-				// HappyFarmer palette Ã¢â‚¬â€ direct aliases matching the design spec
-				// vocabulary (mÃ¡Â»Â¥c 1 cÃ¡Â»Â§a plan). Prefer these names in app code.
+				// HappyFarmer palette direct aliases matching the design spec
+				// vocabulary. Prefer these names in app code.
 				surface: 'var(--card)',
 				text: {
 					DEFAULT: 'var(--foreground)',
