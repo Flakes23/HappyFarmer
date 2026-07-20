@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react'
 import Markdown from 'react-markdown'
 import { Bot } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ChatMessageSkeleton } from '@/components/shared/Skeletons'
 import { ChatCardList } from '@/components/chatbot/cards/ChatCardList'
 import { useChatHistory } from '@/hooks/queries/useChatHistory'
+import { useMotionVariants } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 const GREETING = 'Xin chào! Tôi có thể giúp gì cho việc canh tác của bạn?'
@@ -17,6 +19,20 @@ interface ChatMessageListProps {
 export function ChatMessageList({ sessionId, pendingMessage }: ChatMessageListProps) {
   const history = useChatHistory(sessionId)
   const listRef = useRef<HTMLDivElement>(null)
+  const { fadeInUp } = useMotionVariants()
+
+  // Id "mốc" của tin nhắn cũ nhất tại lần tải đầu — tin có id lớn hơn mốc này là tin mới phát
+  // sinh trong phiên (gửi/AI trả lời) nên được animate; tin đã có sẵn từ đầu thì giữ tĩnh, tránh
+  // toàn bộ lịch sử "bay vào" mỗi lần mount lại.
+  const baselineIdRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    baselineIdRef.current = null
+  }, [sessionId])
+
+  if (history.data && baselineIdRef.current === null) {
+    baselineIdRef.current = history.data.length > 0 ? Math.max(...history.data.map((m) => m.id)) : 0
+  }
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight })
@@ -37,8 +53,15 @@ export function ChatMessageList({ sessionId, pendingMessage }: ChatMessageListPr
         <>
           {history.data?.map((m) => {
             const isMine = m.sender === 'User'
+            const isNew = baselineIdRef.current !== null && m.id > baselineIdRef.current
             return (
-              <div key={m.id} className={cn('flex gap-2', isMine ? 'justify-end' : 'items-end justify-start')}>
+              <motion.div
+                key={m.id}
+                initial={isNew ? 'hidden' : false}
+                animate="visible"
+                variants={fadeInUp}
+                className={cn('flex gap-2', isMine ? 'justify-end' : 'items-end justify-start')}
+              >
                 {isMine ? null : <BotAvatar />}
                 <div
                   className={cn(
@@ -80,12 +103,12 @@ export function ChatMessageList({ sessionId, pendingMessage }: ChatMessageListPr
 
                   {!isMine && m.cards && m.cards.length > 0 ? <ChatCardList cards={m.cards} /> : null}
                 </div>
-              </div>
+              </motion.div>
             )
           })}
 
           {pendingMessage ? (
-            <>
+            <motion.div initial="hidden" animate="visible" variants={fadeInUp} className="space-y-2">
               {/* Bong bóng tin nhắn vừa gửi — hiện ngay lập tức, không đợi phản hồi AI */}
               <div className="flex justify-end gap-2">
                 <div className="max-w-[75%] rounded-lg bg-primary px-3 py-2 text-body-sm text-primary-foreground">
@@ -102,7 +125,7 @@ export function ChatMessageList({ sessionId, pendingMessage }: ChatMessageListPr
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-text-muted" />
                 </div>
               </div>
-            </>
+            </motion.div>
           ) : null}
         </>
       )}

@@ -1,10 +1,10 @@
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
-import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/marketplace/StatusBadge'
 import { InterestSummary } from '@/components/marketplace/InterestSummary'
 import { ChatThread } from '@/components/marketplace/ChatThread'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { ThreadSummarySkeleton, ChatMessageSkeleton } from '@/components/shared/Skeletons'
 import { useMyInterests } from '@/hooks/queries/useMyInterests'
 import { useAuthStore } from '@/store/authStore'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
@@ -27,7 +27,10 @@ export function InterestThreadPage() {
       </Link>
 
       {interests.isLoading ? (
-        <Skeleton className="h-[60vh] w-full" />
+        <div className="space-y-4">
+          <ThreadSummarySkeleton />
+          <ChatMessageSkeleton />
+        </div>
       ) : !interest || interestId === undefined ? (
         <EmptyState title="Không tìm thấy cuộc trò chuyện" description="Liên hệ này có thể đã bị xoá hoặc không tồn tại." />
       ) : (

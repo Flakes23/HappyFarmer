@@ -13,12 +13,14 @@ import {
 import { StatusBadge } from '@/components/marketplace/StatusBadge'
 import { ContactDialog } from '@/components/marketplace/ContactDialog'
 import { SellerInfo } from '@/components/marketplace/SellerInfo'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { useBuyRequest } from '@/hooks/queries/useBuyRequest'
 import { useProducts } from '@/hooks/queries/useProducts'
 import { useRegions } from '@/hooks/queries/useRegions'
 import { useAuthStore } from '@/store/authStore'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { formatRelativeTime } from '@/lib/relativeTime'
+import notFoundIllustration from '@/assets/illustrations/illustration-not-found.webp'
 
 const currencyFormatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
 
@@ -67,7 +69,7 @@ export function BuyRequestDetailPage() {
       {buyRequest.isLoading ? (
         <Skeleton className="h-64 w-full" />
       ) : !buyRequest.data ? (
-        <p className="py-8 text-center text-text-muted">Không tìm thấy yêu cầu mua.</p>
+        <EmptyState illustration={notFoundIllustration} title="Không tìm thấy yêu cầu mua" />
       ) : (
         <Card>
           <CardHeader className="flex flex-row items-start justify-between gap-4">

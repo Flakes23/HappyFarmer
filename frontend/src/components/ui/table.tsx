@@ -4,7 +4,11 @@ import { cn } from "@/lib/utils"
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
-    <div className="relative w-full overflow-auto bg-card p-6">
+    // No `overflow-auto` here on purpose — it would make this div the nearest scroll
+    // ancestor and silently break `position: sticky` on TableHeader (PriceTable relies
+    // on this for its sticky column header). The consumer wraps this in its own
+    // scroll container when needed.
+    <div className="relative w-full bg-card p-6">
       <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
     </div>
   )

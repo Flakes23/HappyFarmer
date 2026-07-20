@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { StatusBadge } from '@/components/marketplace/StatusBadge'
 import { InterestSummary } from '@/components/marketplace/InterestSummary'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { ListSkeleton } from '@/components/shared/Skeletons'
+import { InterestRowSkeleton } from '@/components/shared/Skeletons'
 import { useMyInterests } from '@/hooks/queries/useMyInterests'
 import { useAuthStore } from '@/store/authStore'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
@@ -22,7 +22,7 @@ export function MyInterestsPage() {
       </div>
 
       {interests.isLoading ? (
-        <ListSkeleton count={3} />
+        <InterestRowSkeleton count={3} />
       ) : interests.data && interests.data.length > 0 ? (
         <div className="space-y-3">
           {interests.data.map((interest) => {

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MessageSquare, PackageOpen, Plus, ShoppingBasket } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -14,11 +15,12 @@ import { MarketplaceFilterBar } from '@/components/marketplace/MarketplaceFilter
 import { ListingCard } from '@/components/marketplace/ListingCard'
 import { BuyRequestCard } from '@/components/marketplace/BuyRequestCard'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { CardGridSkeleton } from '@/components/shared/Skeletons'
+import { ListingCardSkeleton, BuyRequestCardSkeleton } from '@/components/shared/Skeletons'
 import { useListings } from '@/hooks/queries/useListings'
 import { useBuyRequests } from '@/hooks/queries/useBuyRequests'
 import { useAuthStore } from '@/store/authStore'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import { useMotionVariants } from '@/lib/motion'
 import type { MarketplaceSort } from '@/api/marketplaceApi'
 import emptyMarketplaceIllustration from '@/assets/illustrations/illustration-empty-marketplace.webp'
 
@@ -41,6 +43,7 @@ export function MarketplacePage() {
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const user = useAuthStore((s) => s.user)
+  const { fadeInUp, staggerContainer } = useMotionVariants()
 
   function resetPages() {
     setListingsPage(1)
@@ -127,14 +130,21 @@ export function MarketplacePage() {
 
         <TabsContent value="listings" className="space-y-4">
           {listings.isLoading ? (
-            <CardGridSkeleton count={8} />
+            <ListingCardSkeleton count={8} />
           ) : listings.data && listings.data.items.length > 0 ? (
             <>
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={staggerContainer}
+                className="grid gap-4 grid-cols-1 sm:grid-cols-2"
+              >
                 {listings.data.items.map((l) => (
-                  <ListingCard key={l.id} listing={l} />
+                  <motion.div key={l.id} variants={fadeInUp}>
+                    <ListingCard listing={l} />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
               {totalPages(listings.data.totalCount) > 1 ? (
                 <Pagination>
                   <PaginationContent>
@@ -169,14 +179,21 @@ export function MarketplacePage() {
 
         <TabsContent value="buy-requests" className="space-y-4">
           {buyRequests.isLoading ? (
-            <CardGridSkeleton count={8} />
+            <BuyRequestCardSkeleton count={8} />
           ) : buyRequests.data && buyRequests.data.items.length > 0 ? (
             <>
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={staggerContainer}
+                className="grid gap-4 grid-cols-1 sm:grid-cols-2"
+              >
                 {buyRequests.data.items.map((br) => (
-                  <BuyRequestCard key={br.id} buyRequest={br} />
+                  <motion.div key={br.id} variants={fadeInUp}>
+                    <BuyRequestCard buyRequest={br} />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
               {totalPages(buyRequests.data.totalCount) > 1 ? (
                 <Pagination>
                   <PaginationContent>

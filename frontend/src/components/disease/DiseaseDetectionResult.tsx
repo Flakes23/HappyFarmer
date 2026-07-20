@@ -1,4 +1,6 @@
+import { motion } from 'framer-motion'
 import { Badge } from '@/components/ui/badge'
+import { useMotionVariants } from '@/lib/motion'
 import type { DiseaseDetectionResponse } from '@/api/types'
 
 const SEVERITY_STYLES: Record<string, string> = {
@@ -26,8 +28,14 @@ function ListSection({ title, items }: { title: string; items: string[] }) {
 }
 
 export function DiseaseDetectionResult({ result }: DiseaseDetectionResultProps) {
+  const { fadeInUp } = useMotionVariants()
   return (
-    <div className="space-y-4 rounded-lg border border-border bg-surface p-4">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={fadeInUp}
+      className="space-y-4 rounded-lg border border-border bg-surface p-4"
+    >
       <img
         src={result.imageUrl}
         alt={result.identifiedCropType}
@@ -35,7 +43,7 @@ export function DiseaseDetectionResult({ result }: DiseaseDetectionResultProps) 
       />
 
       <div className="flex flex-wrap items-center gap-3">
-        <p className="text-lg font-semibold text-text">{result.identifiedCropType}</p>
+        <p className="text-h3 text-text">{result.identifiedCropType}</p>
         <Badge
           className={
             result.isHealthy
@@ -61,6 +69,6 @@ export function DiseaseDetectionResult({ result }: DiseaseDetectionResultProps) 
       <ListSection title="Biện pháp hóa học" items={result.treatmentChemical} />
       <ListSection title="Phòng ngừa" items={result.preventionTips} />
       <ListSection title="Hành động ngay" items={result.recommendedActions} />
-    </div>
+    </motion.div>
   )
 }

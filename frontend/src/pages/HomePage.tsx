@@ -1,11 +1,9 @@
 import { Link } from 'react-router-dom'
 import { Bot, LineChart, MessageCircle, Plus, ShoppingBasket, Sprout, type LucideIcon } from 'lucide-react'
-import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuthStore } from '@/store/authStore'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import { useMotionVariants } from '@/lib/motion'
 
 interface FeatureCard {
   icon: LucideIcon
@@ -19,7 +17,6 @@ export function HomePage() {
   useDocumentTitle('HappyFarmer — Kết nối nông dân và người mua')
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const user = useAuthStore((s) => s.user)
-  const { fadeInUp, staggerContainer } = useMotionVariants()
 
   const features: FeatureCard[] = [
     {
@@ -55,12 +52,7 @@ export function HomePage() {
 
   return (
     <div className="space-y-16">
-      <motion.section
-        initial="hidden"
-        animate="visible"
-        variants={fadeInUp}
-        className="flex flex-col items-center gap-6 py-8 text-center"
-      >
+      <section className="flex flex-col items-center gap-6 py-8 text-center">
         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-primary">
           <Sprout className="h-7 w-7" />
         </span>
@@ -107,31 +99,24 @@ export function HomePage() {
             </>
           )}
         </div>
-      </motion.section>
+      </section>
 
-      <motion.section
-        initial="hidden"
-        animate="visible"
-        variants={staggerContainer}
-        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-      >
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {features.map((feature) => (
-          <motion.div key={feature.title} variants={fadeInUp}>
-            <Card className="h-full transition-shadow hover:shadow-raised">
-              <CardHeader>
-                <feature.icon className="h-6 w-6 text-primary" />
-                <CardTitle className="pt-2 text-h3">{feature.title}</CardTitle>
-                <CardDescription className="text-body-sm">{feature.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button variant="link" className="h-auto p-0" asChild>
-                  <Link to={feature.href}>{feature.cta}</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
+          <Card key={feature.title} className="h-full transition-shadow hover:shadow-raised">
+            <CardHeader>
+              <feature.icon className="h-6 w-6 text-primary" />
+              <CardTitle className="pt-2 text-h3">{feature.title}</CardTitle>
+              <CardDescription className="text-body-sm">{feature.description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="link" className="h-auto p-0" asChild>
+                <Link to={feature.href}>{feature.cta}</Link>
+              </Button>
+            </CardContent>
+          </Card>
         ))}
-      </motion.section>
+      </section>
     </div>
   )
 }

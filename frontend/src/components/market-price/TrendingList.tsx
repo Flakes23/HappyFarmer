@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { TrendingRowSkeleton } from '@/components/shared/Skeletons'
 import { PriceTrendBadge } from '@/components/market-price/PriceTrendBadge'
 import { useTrending } from '@/hooks/queries/useTrending'
 
@@ -17,11 +17,7 @@ export function TrendingList() {
       </CardHeader>
       <CardContent>
         {trending.isLoading ? (
-          <div className="space-y-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </div>
+          <TrendingRowSkeleton />
         ) : !trending.data || trending.data.length === 0 ? (
           <EmptyState title="Chưa có dữ liệu biến động" />
         ) : (

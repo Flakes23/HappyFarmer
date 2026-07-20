@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { HistoryRowSkeleton } from '@/components/shared/Skeletons'
 import { HarvestPredictionResult } from '@/components/harvest/HarvestPredictionResult'
 import { useHarvestHistory } from '@/hooks/queries/useHarvestHistory'
 import { useHarvestPredictionDetail } from '@/hooks/queries/useHarvestPredictionDetail'
@@ -37,12 +38,7 @@ export function HarvestHistoryList() {
   }
 
   if (history.isLoading) {
-    return (
-      <div className="space-y-2">
-        <Skeleton className="h-14 w-full" />
-        <Skeleton className="h-14 w-full" />
-      </div>
-    )
+    return <HistoryRowSkeleton count={2} />
   }
 
   if (!history.data || history.data.length === 0) {

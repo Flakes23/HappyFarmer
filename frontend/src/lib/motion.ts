@@ -1,7 +1,7 @@
 import type { Variants } from 'framer-motion'
 import { useReducedMotion } from 'framer-motion'
 
-export const MOTION_TRANSITION = { duration: 0.3, ease: [0.16, 1, 0.3, 1] } as const
+export const MOTION_TRANSITION = { duration: 0.5, ease: [0.16, 1, 0.3, 1] } as const
 
 export const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 12 },

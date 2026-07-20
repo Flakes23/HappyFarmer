@@ -14,12 +14,14 @@ import { StatusBadge } from '@/components/marketplace/StatusBadge'
 import { ContactDialog } from '@/components/marketplace/ContactDialog'
 import { ImageGallery } from '@/components/marketplace/ImageGallery'
 import { SellerInfo } from '@/components/marketplace/SellerInfo'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { useListing } from '@/hooks/queries/useListing'
 import { useProducts } from '@/hooks/queries/useProducts'
 import { useRegions } from '@/hooks/queries/useRegions'
 import { useAuthStore } from '@/store/authStore'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { formatRelativeTime } from '@/lib/relativeTime'
+import notFoundIllustration from '@/assets/illustrations/illustration-not-found.webp'
 
 const currencyFormatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
 
@@ -68,7 +70,7 @@ export function ListingDetailPage() {
       {listing.isLoading ? (
         <Skeleton className="h-64 w-full" />
       ) : !listing.data ? (
-        <p className="py-8 text-center text-text-muted">Không tìm thấy tin đăng.</p>
+        <EmptyState illustration={notFoundIllustration} title="Không tìm thấy tin đăng" />
       ) : (
         <Card>
           <CardHeader className="flex flex-row items-start justify-between gap-4">

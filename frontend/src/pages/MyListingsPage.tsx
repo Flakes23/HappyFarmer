@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/marketplace/StatusBadge'
 import { EditListingDialog } from '@/components/marketplace/EditListingDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { ListSkeleton } from '@/components/shared/Skeletons'
+import { ListingRowSkeleton } from '@/components/shared/Skeletons'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { useMyListings } from '@/hooks/queries/useMyListings'
 import { useCloseListing } from '@/hooks/mutations/useCloseListing'
@@ -34,7 +34,7 @@ export function MyListingsPage() {
       </div>
 
       {myListings.isLoading ? (
-        <ListSkeleton count={3} />
+        <ListingRowSkeleton count={3} />
       ) : myListings.data && myListings.data.length > 0 ? (
         <div className="space-y-3">
           {myListings.data.map((listing) => (

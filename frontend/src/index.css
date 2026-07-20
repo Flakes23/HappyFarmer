@@ -40,6 +40,11 @@
     --input: #e2dcc8;
     --ring: #48bb78;
 
+    /* Skeleton shimmer sweep — highlight must read lighter than base in both
+       themes, so light/dark point at different existing tokens (see .dark below). */
+    --skeleton-base: var(--muted);
+    --skeleton-highlight: var(--card);
+
     --radius: 0.5rem;
 
     /* Warm dark green-grey tint for elevation shadows (not pure black) — see
@@ -84,6 +89,11 @@
     --border: #3a4032;
     --input: #3a4032;
     --ring: #48bb78;
+
+    /* --card is darker than --muted in this theme, so the light-mode highlight
+       token (--card) would invert the shimmer here — use --border instead. */
+    --skeleton-base: var(--muted);
+    --skeleton-highlight: var(--border);
 
     /* Dark surfaces need a near-black shadow to read as elevation at all —
        a warm-tinted shadow (like light mode) would be invisible against

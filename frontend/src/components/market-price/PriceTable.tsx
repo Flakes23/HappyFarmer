@@ -24,7 +24,7 @@ export function PriceTable({ prices, isLoading }: PriceTableProps) {
   const trending = useTrending()
 
   if (isLoading) {
-    return <TableRowsSkeleton count={5} />
+    return <TableRowsSkeleton count={10} />
   }
 
   if (!prices || prices.length === 0) {
@@ -42,9 +42,9 @@ export function PriceTable({ prices, isLoading }: PriceTableProps) {
 
   return (
     <>
-      <div className="hidden rounded-lg border border-border sm:block">
+      <div className="hidden max-h-[560px] overflow-y-auto rounded-lg border border-border sm:block">
         <Table>
-          <TableHeader>
+          <TableHeader className="sticky top-0 z-10 bg-card">
             <TableRow>
               <TableHead>Sản phẩm</TableHead>
               <TableHead>Giá</TableHead>

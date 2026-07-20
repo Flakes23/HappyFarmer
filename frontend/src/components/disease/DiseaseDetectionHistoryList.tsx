@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { HistoryRowSkeleton } from '@/components/shared/Skeletons'
 import { DiseaseDetectionResult } from '@/components/disease/DiseaseDetectionResult'
 import { useDiseaseHistory } from '@/hooks/queries/useDiseaseHistory'
 import { useDiseaseDetectionDetail } from '@/hooks/queries/useDiseaseDetectionDetail'
@@ -32,12 +33,7 @@ export function DiseaseDetectionHistoryList() {
   }
 
   if (history.isLoading) {
-    return (
-      <div className="space-y-2">
-        <Skeleton className="h-16 w-full" />
-        <Skeleton className="h-16 w-full" />
-      </div>
-    )
+    return <HistoryRowSkeleton count={2} />
   }
 
   if (!history.data || history.data.length === 0) {
