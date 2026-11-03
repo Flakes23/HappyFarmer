@@ -2,6 +2,10 @@ import { rawAuthClient } from '@/api/rawAuthClient'
 import { httpAuth } from '@/api/httpAuth'
 import type {
   AuthResponse,
+  ChangePasswordRequest,
+  ForgotPasswordRequest,
+  MessageResponse,
+  ResetPasswordRequest,
   LoginRequest,
   ProvinceResponse,
   RefreshTokenRequest,
@@ -25,6 +29,15 @@ export const authApi = {
 
   logout: (body: RefreshTokenRequest) =>
     rawAuthClient.post<void>('/api/auth/logout', body).then((r) => r.data),
+
+  forgotPassword: (body: ForgotPasswordRequest) =>
+    rawAuthClient.post<MessageResponse>('/api/auth/forgot-password', body).then((r) => r.data),
+
+  resetPassword: (body: ResetPasswordRequest) =>
+    rawAuthClient.post<void>('/api/auth/reset-password', body).then((r) => r.data),
+
+  changePassword: (body: ChangePasswordRequest) =>
+    httpAuth.post<void>('/api/auth/change-password', body).then((r) => r.data),
 
   getMe: () => httpAuth.get<UserResponse>('/api/auth/me').then((r) => r.data),
 

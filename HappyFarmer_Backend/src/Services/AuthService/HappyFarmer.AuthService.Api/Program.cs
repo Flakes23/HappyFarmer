@@ -22,6 +22,10 @@ builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptio
 builder.Services.AddSingleton<RsaKeyProvider>();
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddScoped<LoginRateLimiter>();
+builder.Services.AddScoped<PasswordResetOtpService>();
+
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailOptions.SectionName));
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 
 builder.Services.Configure<CloudinaryOptions>(builder.Configuration.GetSection(CloudinaryOptions.SectionName));
 builder.Services.AddScoped<CloudinarySignatureService>();

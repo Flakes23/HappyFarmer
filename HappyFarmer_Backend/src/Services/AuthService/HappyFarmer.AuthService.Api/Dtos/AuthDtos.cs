@@ -19,6 +19,13 @@ public record UpdateProfileRequest(string? FullName, string? Email, int? Provinc
 
 public record ChangePasswordRequest([Required] string CurrentPassword, [Required, MinLength(6)] string NewPassword);
 
+public record ForgotPasswordRequest([Required, EmailAddress] string Email);
+
+public record ResetPasswordRequest(
+    [Required, EmailAddress] string Email,
+    [Required, StringLength(6, MinimumLength = 6)] string Otp,
+    [Required, MinLength(6)] string NewPassword);
+
 public record AuthResponse(string AccessToken, string RefreshToken, DateTime AccessTokenExpiresAt, UserResponse User);
 
 public record UserResponse(int Id, string? PhoneNumber, string? Email, string FullName, string Role, int? ProvinceId, bool IsActive, DateTime CreatedAt, string? AvatarUrl)

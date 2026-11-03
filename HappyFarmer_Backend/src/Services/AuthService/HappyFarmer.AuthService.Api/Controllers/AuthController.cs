@@ -18,6 +18,8 @@ public class AuthController(
     AuthDbContext db,
     JwtTokenService tokenService,
     LoginRateLimiter rateLimiter,
+    PasswordResetOtpService passwordResetOtp,
+    IEmailSender emailSender,
     IProducer<string, string> kafkaProducer,
     ILogger<AuthController> logger) : ControllerBase
 {
@@ -191,6 +193,65 @@ public class AuthController(
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
         await db.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
+        if (user is not null)
+        {
+            var otp = await passwordResetOtp.TryCreateAsync(email);
+            if (otp is null)
+            {
+                return StatusCode(StatusCodes.Status429TooManyRequests,
+                    new { message = "Vui lòng đợi 1 phút trước khi yêu cầu gửi lại mã." });
+            }
+
+            try
+            {
+                await emailSender.SendAsync(email, "Mã đặt lại mật khẩu HappyFarmer",
+                    $"<p>Xin chào {System.Net.WebUtility.HtmlEncode(user.FullName)},</p>" +
+                    $"<p>Mã xác nhận đặt lại mật khẩu của bạn là: <b style=\"font-size:20px\">{otp}</b></p>" +
+                    $"<p>Mã có hiệu lực trong {PasswordResetOtpService.OtpMinutes} phút. Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Không gửi được email đặt lại mật khẩu cho user {UserId}", user.Id);
+            }
+        }
+
+        // Luôn trả cùng một thông báo để không lộ email nào đã đăng ký.
+        return Ok(new { message = "Nếu email tồn tại trong hệ thống, mã xác nhận đã được gửi. Vui lòng kiểm tra hộp thư." });
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+        const string invalidMessage = "Mã xác nhận không đúng hoặc đã hết hạn.";
+
+        if (!await passwordResetOtp.VerifyAsync(email, request.Otp))
+        {
+            return BadRequest(new { message = invalidMessage });
+        }
+
+        var user = await db.Users.Include(u => u.RefreshTokens).FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
+        if (user is null)
+        {
+            return BadRequest(new { message = invalidMessage });
+        }
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        foreach (var token in user.RefreshTokens.Where(t => t.IsActive))
+        {
+            token.RevokedAt = DateTime.UtcNow;
+        }
+        await db.SaveChangesAsync();
+        await passwordResetOtp.ConsumeAsync(email);
         return NoContent();
     }
 

@@ -392,3 +392,22 @@ export interface DiseaseDetectionSummaryDto {
   severity: string | null
   createdAt: string
 }
+
+export interface MessageResponse {
+  message: string
+}
+
+export interface ForgotPasswordRequest {
+  email: string
+}
+
+export interface ResetPasswordRequest {
+  email: string
+  otp: string
+  newPassword: string
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
+}

@@ -7,8 +7,8 @@ React + TypeScript + Vite, TailwindCSS v3, shadcn/ui (Radix), TanStack Query + Z
 | Path | Page component (`frontend/src/pages/...`) | Auth guard |
 |---|---|---|
 | `/` | `HomePage.tsx` | không |
-| `/login`, `/register`, `/forgot-password` | `LoginPage`, `RegisterPage`, `ForgotPasswordPage` | không |
-| `/profile` | `EditProfilePage.tsx` | `RequireAuth` |
+| `/login`, `/register`, `/forgot-password` | `LoginPage`, `RegisterPage`, `ForgotPasswordPage` (2 bước: nhập email nhận OTP → nhập OTP + mật khẩu mới) | không |
+| `/profile` | `EditProfilePage.tsx` (sửa hồ sơ + đổi mật khẩu) | `RequireAuth` |
 | `/prices`, `/prices/:productId` | `MarketPricePage.tsx`, `ProductPriceDetailPage.tsx` | không |
 | `/marketplace` | `MarketplacePage.tsx` | không |
 | `/marketplace/listings/:id` | `ListingDetailPage.tsx` | không |

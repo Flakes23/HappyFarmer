@@ -1,8 +1,7 @@
-import { Link } from 'react-router-dom'
 import { Mail } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AuthLayout } from '@/layouts/AuthLayout'
+import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import authIllustration from '@/assets/illustrations/illustration-auth.webp'
 
@@ -17,21 +16,12 @@ export function ForgotPasswordPage() {
           </span>
           <CardTitle className="pt-2">Quên mật khẩu</CardTitle>
           <CardDescription>
-            Tính năng tự đặt lại mật khẩu chưa khả dụng. Vui lòng liên hệ đội ngũ hỗ trợ HappyFarmer để được cấp
-            lại mật khẩu.
+            Nhập email đã đăng ký, chúng tôi sẽ gửi mã xác nhận để bạn đặt lại mật khẩu. Tài khoản chưa cập nhật
+            email chưa dùng được tính năng này.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-body-sm text-text-muted">
-            Gửi yêu cầu qua email{' '}
-            <a href="mailto:ho-tro@happyfarmer.vn" className="font-medium text-primary hover:underline">
-              ho-tro@happyfarmer.vn
-            </a>{' '}
-            kèm số điện thoại đã đăng ký để được hỗ trợ nhanh nhất.
-          </p>
-          <Button variant="outline" className="w-full" asChild>
-            <Link to="/login">Quay lại đăng nhập</Link>
-          </Button>
+        <CardContent>
+          <ForgotPasswordForm />
         </CardContent>
       </Card>
     </AuthLayout>

@@ -99,6 +99,7 @@ knowledge-base/raw-sources/*.docx
 ## Ghi chú học tập cá nhân (không thuộc tài liệu chính thức)
 ## =========================
 DEPLOY_LEARNING_NOTES.md
+*_LEARNING_NOTES.md
 
 ## =========================
 ## Chứa thông tin hạ tầng thật (IP VPS...) — không đẩy lên repo public
