@@ -6,6 +6,7 @@ import type {
   ForgotPasswordRequest,
   MessageResponse,
   ResetPasswordRequest,
+  VerifyResetCodeRequest,
   LoginRequest,
   ProvinceResponse,
   RefreshTokenRequest,
@@ -32,6 +33,9 @@ export const authApi = {
 
   forgotPassword: (body: ForgotPasswordRequest) =>
     rawAuthClient.post<MessageResponse>('/api/auth/forgot-password', body).then((r) => r.data),
+
+  verifyResetCode: (body: VerifyResetCodeRequest) =>
+    rawAuthClient.post<void>('/api/auth/verify-reset-code', body).then((r) => r.data),
 
   resetPassword: (body: ResetPasswordRequest) =>
     rawAuthClient.post<void>('/api/auth/reset-password', body).then((r) => r.data),

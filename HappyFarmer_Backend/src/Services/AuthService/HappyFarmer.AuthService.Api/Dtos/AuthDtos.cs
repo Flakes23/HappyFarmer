@@ -21,6 +21,10 @@ public record ChangePasswordRequest([Required] string CurrentPassword, [Required
 
 public record ForgotPasswordRequest([Required, EmailAddress] string Email);
 
+public record VerifyResetCodeRequest(
+    [Required, EmailAddress] string Email,
+    [Required, StringLength(6, MinimumLength = 6)] string Otp);
+
 public record ResetPasswordRequest(
     [Required, EmailAddress] string Email,
     [Required, StringLength(6, MinimumLength = 6)] string Otp,

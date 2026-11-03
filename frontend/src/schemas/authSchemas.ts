@@ -30,9 +30,14 @@ export const forgotPasswordSchema = z.object({
 
 export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>
 
+export const verifyCodeSchema = z.object({
+  otp: z.string().regex(/^\d{6}$/, 'Mã xác nhận gồm 6 chữ số'),
+})
+
+export type VerifyCodeFormValues = z.infer<typeof verifyCodeSchema>
+
 export const resetPasswordSchema = z
   .object({
-    otp: z.string().regex(/^\d{6}$/, 'Mã xác nhận gồm 6 chữ số'),
     newPassword: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),
     confirmPassword: z.string().min(1, 'Vui lòng nhập lại mật khẩu mới'),
   })

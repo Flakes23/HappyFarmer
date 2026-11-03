@@ -20,6 +20,7 @@ Xem luồng xác thực tổng thể tại [../02-security-auth.md](../02-securi
 | PUT | `/api/auth/me` | Cập nhật profile (kèm `avatarUrl` sau khi đã upload lên Cloudinary); validate `provinceId` tồn tại trong bảng `Provinces` trước khi lưu (400 nếu không hợp lệ, tránh vi phạm FK bung lỗi 500 thô) |
 | POST | `/api/auth/change-password` | Đổi mật khẩu (cần đăng nhập, xác nhận mật khẩu hiện tại) |
 | POST | `/api/auth/forgot-password` | Quên mật khẩu bước 1: nhập email, gửi mã OTP 6 số qua email. Luôn trả cùng một thông báo dù email có tồn tại hay không (không lộ tài khoản); chờ 60 giây mới được gửi lại |
+| POST | `/api/auth/verify-reset-code` | Kiểm tra mã OTP có đúng không (không đổi mật khẩu, không xoá mã) — frontend chỉ mở bước nhập mật khẩu mới khi mã đúng |
 | POST | `/api/auth/reset-password` | Quên mật khẩu bước 2: gửi `email` + `otp` + `newPassword`. OTP đúng thì đổi mật khẩu và thu hồi toàn bộ refresh token cũ |
 | GET | `/api/auth/uploads/signature` | Lấy chữ ký signed upload ảnh đại diện lên Cloudinary (mọi role) |
 | GET | `/api/auth/provinces` | Danh sách 63 tỉnh/thành (id, name) — `[AllowAnonymous]`, nguồn dữ liệu tham chiếu thật duy nhất cho `provinceId`, thay cho danh sách hardcode trước đây ở frontend |

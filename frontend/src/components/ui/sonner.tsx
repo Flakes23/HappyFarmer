@@ -19,12 +19,16 @@ const Toaster = ({ ...props }: ToasterProps) => {
             "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
           cancelButton:
             "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
-          // Màu theo loại thông báo — nền giữ nguyên theo giao diện (sáng/tối), chỉ viền trái dày,
-          // viền, icon và tiêu đề đổi màu theo token thương hiệu để dịu mắt, dễ đọc ở cả 2 chế độ.
-          success: "!border-success/40 !border-l-4 !border-l-success !text-success",
-          error: "!border-destructive/40 !border-l-4 !border-l-destructive !text-destructive",
-          warning: "!border-accent/40 !border-l-4 !border-l-accent !text-accent",
-          info: "!border-primary/40 !border-l-4 !border-l-primary !text-primary",
+          // Màu theo loại thông báo — dùng token thương hiệu (success/destructive/accent/primary)
+          // nên tự đổi theo light/dark mode. `!` để thắng class nền mặc định của `toast` ở trên.
+          success:
+            "!border-success !bg-success !text-success-foreground [&_[data-description]]:!text-success-foreground/90",
+          error:
+            "!border-destructive !bg-destructive !text-destructive-foreground [&_[data-description]]:!text-destructive-foreground/90",
+          warning:
+            "!border-accent !bg-accent !text-accent-foreground [&_[data-description]]:!text-accent-foreground/90",
+          info:
+            "!border-primary !bg-primary !text-primary-foreground [&_[data-description]]:!text-primary-foreground/90",
         },
       }}
       {...props}

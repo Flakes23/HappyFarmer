@@ -17,25 +17,38 @@ import {
 import {
   forgotPasswordSchema,
   resetPasswordSchema,
+  verifyCodeSchema,
   type ForgotPasswordFormValues,
   type ResetPasswordFormValues,
+  type VerifyCodeFormValues,
 } from '@/schemas/authSchemas'
 import { useForgotPassword } from '@/hooks/mutations/useForgotPassword'
+import { useVerifyResetCode } from '@/hooks/mutations/useVerifyResetCode'
 import { useResetPassword } from '@/hooks/mutations/useResetPassword'
 import { extractApiErrorMessage } from '@/api/authApi'
 
-/** Bước 1: nhập email để nhận mã OTP. Bước 2: nhập OTP + mật khẩu mới. */
-export function ForgotPasswordForm() {
-  const [email, setEmail] = useState<string | null>(null)
+type Step = { name: 'email' } | { name: 'code'; email: string } | { name: 'password'; email: string; otp: string }
 
-  return email ? (
-    <ResetStep email={email} onChangeEmail={() => setEmail(null)} />
-  ) : (
-    <RequestStep onSent={setEmail} />
-  )
+/** 3 bước: nhập email nhận mã → nhập mã xác nhận (đúng mới sang bước tiếp) → nhập mật khẩu mới. */
+export function ForgotPasswordForm() {
+  const [step, setStep] = useState<Step>({ name: 'email' })
+
+  if (step.name === 'email') {
+    return <EmailStep onSent={(email) => setStep({ name: 'code', email })} />
+  }
+  if (step.name === 'code') {
+    return (
+      <CodeStep
+        email={step.email}
+        onVerified={(otp) => setStep({ name: 'password', email: step.email, otp })}
+        onChangeEmail={() => setStep({ name: 'email' })}
+      />
+    )
+  }
+  return <PasswordStep email={step.email} otp={step.otp} />
 }
 
-function RequestStep({ onSent }: { onSent: (email: string) => void }) {
+function EmailStep({ onSent }: { onSent: (email: string) => void }) {
   const forgot = useForgotPassword()
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -86,27 +99,26 @@ function RequestStep({ onSent }: { onSent: (email: string) => void }) {
   )
 }
 
-function ResetStep({ email, onChangeEmail }: { email: string; onChangeEmail: () => void }) {
-  const navigate = useNavigate()
-  const reset = useResetPassword()
+function CodeStep({
+  email,
+  onVerified,
+  onChangeEmail,
+}: {
+  email: string
+  onVerified: (otp: string) => void
+  onChangeEmail: () => void
+}) {
+  const verify = useVerifyResetCode()
   const resend = useForgotPassword()
 
-  const form = useForm<ResetPasswordFormValues>({
-    resolver: zodResolver(resetPasswordSchema),
-    defaultValues: { otp: '', newPassword: '', confirmPassword: '' },
+  const form = useForm<VerifyCodeFormValues>({
+    resolver: zodResolver(verifyCodeSchema),
+    defaultValues: { otp: '' },
     mode: 'onBlur',
   })
 
-  function onSubmit(values: ResetPasswordFormValues) {
-    reset.mutate(
-      { email, otp: values.otp, newPassword: values.newPassword },
-      {
-        onSuccess: () => {
-          toast.success('Đặt lại mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới.')
-          navigate('/login')
-        },
-      },
-    )
+  function onSubmit(values: VerifyCodeFormValues) {
+    verify.mutate({ email, otp: values.otp }, { onSuccess: () => onVerified(values.otp) })
   }
 
   function onResend() {
@@ -140,6 +152,61 @@ function ResetStep({ email, onChangeEmail }: { email: string; onChangeEmail: () 
             </FormItem>
           )}
         />
+
+        {verify.isError ? (
+          <p className="text-body-sm font-medium text-error">
+            {extractApiErrorMessage(verify.error, 'Không xác nhận được mã. Vui lòng thử lại.')}
+          </p>
+        ) : null}
+
+        <Button type="submit" className="w-full" disabled={verify.isPending}>
+          {verify.isPending ? 'Đang kiểm tra...' : 'Xác nhận'}
+        </Button>
+
+        <div className="flex items-center justify-between text-xs">
+          <button type="button" className="text-primary hover:underline" onClick={onChangeEmail}>
+            Dùng email khác
+          </button>
+          <button
+            type="button"
+            className="text-primary hover:underline disabled:opacity-50"
+            onClick={onResend}
+            disabled={resend.isPending}
+          >
+            Gửi lại mã
+          </button>
+        </div>
+      </form>
+    </Form>
+  )
+}
+
+function PasswordStep({ email, otp }: { email: string; otp: string }) {
+  const navigate = useNavigate()
+  const reset = useResetPassword()
+
+  const form = useForm<ResetPasswordFormValues>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { newPassword: '', confirmPassword: '' },
+    mode: 'onBlur',
+  })
+
+  function onSubmit(values: ResetPasswordFormValues) {
+    reset.mutate(
+      { email, otp, newPassword: values.newPassword },
+      {
+        onSuccess: () => {
+          toast.success('Đặt lại mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới.')
+          navigate('/login')
+        },
+      },
+    )
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <p className="text-body-sm text-text-muted">Mã đã được xác nhận. Hãy chọn mật khẩu mới cho tài khoản của bạn.</p>
 
         <FormField
           control={form.control}
@@ -178,20 +245,6 @@ function ResetStep({ email, onChangeEmail }: { email: string; onChangeEmail: () 
         <Button type="submit" className="w-full" disabled={reset.isPending}>
           {reset.isPending ? 'Đang xử lý...' : 'Đặt lại mật khẩu'}
         </Button>
-
-        <div className="flex items-center justify-between text-xs">
-          <button type="button" className="text-primary hover:underline" onClick={onChangeEmail}>
-            Dùng email khác
-          </button>
-          <button
-            type="button"
-            className="text-primary hover:underline disabled:opacity-50"
-            onClick={onResend}
-            disabled={resend.isPending}
-          >
-            Gửi lại mã
-          </button>
-        </div>
       </form>
     </Form>
   )

@@ -401,6 +401,11 @@ export interface ForgotPasswordRequest {
   email: string
 }
 
+export interface VerifyResetCodeRequest {
+  email: string
+  otp: string
+}
+
 export interface ResetPasswordRequest {
   email: string
   otp: string

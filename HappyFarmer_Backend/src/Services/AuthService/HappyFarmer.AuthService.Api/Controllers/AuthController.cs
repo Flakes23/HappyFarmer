@@ -214,9 +214,7 @@ public class AuthController(
             try
             {
                 await emailSender.SendAsync(email, "Mã đặt lại mật khẩu HappyFarmer",
-                    $"<p>Xin chào {System.Net.WebUtility.HtmlEncode(user.FullName)},</p>" +
-                    $"<p>Mã xác nhận đặt lại mật khẩu của bạn là: <b style=\"font-size:20px\">{otp}</b></p>" +
-                    $"<p>Mã có hiệu lực trong {PasswordResetOtpService.OtpMinutes} phút. Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>");
+                    EmailTemplates.PasswordResetOtp(user.FullName, otp, PasswordResetOtpService.OtpMinutes));
             }
             catch (Exception ex)
             {
@@ -226,6 +224,21 @@ public class AuthController(
 
         // Luôn trả cùng một thông báo để không lộ email nào đã đăng ký.
         return Ok(new { message = "Nếu email tồn tại trong hệ thống, mã xác nhận đã được gửi. Vui lòng kiểm tra hộp thư." });
+    }
+
+    /// <summary>Kiểm tra mã OTP có đúng không (không đổi mật khẩu, không xoá mã) để frontend chỉ mở bước nhập mật khẩu mới khi mã đúng.</summary>
+    [HttpPost("verify-reset-code")]
+    public async Task<IActionResult> VerifyResetCode(VerifyResetCodeRequest request)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+
+        if (!await passwordResetOtp.VerifyAsync(email, request.Otp))
+        {
+            return BadRequest(new { message = "Mã xác nhận không đúng hoặc đã hết hạn." });
+        }
+
+        await passwordResetOtp.ClearAttemptsAsync(email);
+        return NoContent();
     }
 
     [HttpPost("reset-password")]

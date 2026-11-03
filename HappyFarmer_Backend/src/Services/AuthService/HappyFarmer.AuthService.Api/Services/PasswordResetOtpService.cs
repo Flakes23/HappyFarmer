@@ -44,6 +44,13 @@ public class PasswordResetOtpService(IConnectionMultiplexer redis)
         return CryptographicOperations.FixedTimeEquals(expected, actual);
     }
 
+    /// <summary>Gọi sau khi nhập đúng mã, để bước đặt mật khẩu (kiểm tra lại mã) không tính thêm lượt thử.</summary>
+    public async Task ClearAttemptsAsync(string email)
+    {
+        var db = redis.GetDatabase();
+        await db.KeyDeleteAsync(AttemptsKey(email));
+    }
+
     public async Task ConsumeAsync(string email)
     {
         var db = redis.GetDatabase();
