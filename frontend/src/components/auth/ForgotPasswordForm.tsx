@@ -62,7 +62,7 @@ function RequestStep({ onSent }: { onSent: (email: string) => void }) {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="ban@example.com" autoComplete="email" {...field} />
+                <Input type="email" placeholder="nguyenvana@gmail.com" autoComplete="email" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
