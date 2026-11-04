@@ -67,6 +67,52 @@ public class PricesController(MarketPriceDbContext db, PriceCacheService cache) 
         return Ok(new PagedResult<PriceResponse>(paged, page, pageSize, totalCount));
     }
 
+    /// <summary>
+    /// Giá hiện tại gom theo SẢN PHẨM: mỗi sản phẩm một phần tử (kèm các biến thể quy cách/nguồn), phân trang theo sản phẩm —
+    /// khác <see cref="GetCurrentPrices"/> phân trang theo từng dòng giá (một sản phẩm ở nhiều quy cách/nguồn/tỉnh thành nhiều dòng).
+    /// </summary>
+    [HttpGet("grouped")]
+    [AllowAnonymous]
+    public async Task<ActionResult<PagedResult<PriceGroupResponse>>> GetCurrentPriceGroups(
+        [FromQuery] int? regionId, [FromQuery] DateOnly? date,
+        [FromQuery] string? search, [FromQuery] int? categoryId, [FromQuery] int? subCategoryId,
+        [FromQuery] string? province, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+        var asOfDate = date ?? DateOnly.FromDateTime(DateTime.UtcNow);
+
+        var candidates = await db.PriceEntries
+            .Include(pe => pe.Product)
+            .Include(pe => pe.Region)
+            .Where(pe => pe.Status == PriceEntryStatus.Approved && pe.EffectiveDate <= asOfDate)
+            .Where(pe => regionId == null || pe.RegionId == regionId)
+            .Where(pe => string.IsNullOrWhiteSpace(province) || pe.Region.ProvinceName == province)
+            .Where(pe => string.IsNullOrWhiteSpace(search) || pe.Product.NameVi.Contains(search))
+            .Where(pe => categoryId == null || pe.Product.SubCategory.CategoryId == categoryId)
+            .Where(pe => subCategoryId == null || pe.Product.SubCategoryId == subCategoryId)
+            .OrderByDescending(pe => pe.EffectiveDate)
+            .ThenByDescending(pe => pe.CreatedAt)
+            .ToListAsync();
+
+        var groups = candidates
+            .GroupBy(pe => (pe.ProductId, pe.RegionId, pe.Unit))
+            .Select(g => g.First())
+            .GroupBy(pe => pe.ProductId)
+            .Select(g => new PriceGroupResponse(
+                g.Key,
+                g.First().Product.NameVi,
+                g.Select(pe => new PriceVariantResponse(
+                        pe.RegionId, pe.Region.ProvinceName, pe.Region.MarketName,
+                        pe.Price, pe.Source.ToString(), pe.EffectiveDate, pe.Unit))
+                    .ToList()))
+            .OrderBy(g => g.ProductName)
+            .ToList();
+
+        var paged = groups.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        return Ok(new PagedResult<PriceGroupResponse>(paged, page, pageSize, groups.Count));
+    }
+
     [HttpGet("{productId:int}/history")]
     [AllowAnonymous]
     public async Task<ActionResult<List<PriceHistoryPoint>>> GetHistory(

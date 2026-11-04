@@ -9,11 +9,11 @@ interface PriceFilterBarProps {
   search: string
   categoryId: number | undefined
   subCategoryId: number | undefined
-  province: string | undefined
+  province: string
   onSearchChange: (search: string) => void
   onCategoryChange: (categoryId: number | undefined) => void
   onSubCategoryChange: (subCategoryId: number | undefined) => void
-  onProvinceChange: (province: string | undefined) => void
+  onProvinceChange: (province: string) => void
 }
 
 const ALL = 'all'
@@ -33,9 +33,11 @@ export function PriceFilterBar({
   const subCategories = useSubCategories(categoryId)
   const regions = useRegions()
   // Mỗi tỉnh có thể có nhiều khu vực (mỗi nguồn giá một khu vực) nên danh sách lọc chỉ liệt kê tên tỉnh, không lặp.
-  const provinces = Array.from(new Set(regions.data?.map((r) => r.provinceName) ?? [])).sort((a, b) =>
+  const loadedProvinces = Array.from(new Set(regions.data?.map((r) => r.provinceName) ?? [])).sort((a, b) =>
     a.localeCompare(b, 'vi'),
   )
+  // Luôn giữ tỉnh đang chọn trong danh sách (kể cả lúc danh sách khu vực chưa tải xong) để ô chọn không bị trống.
+  const provinces = loadedProvinces.includes(province) ? loadedProvinces : [province, ...loadedProvinces]
 
   useEffect(() => {
     const timeout = setTimeout(() => onSearchChange(searchInput.trim()), 400)
@@ -92,15 +94,14 @@ export function PriceFilterBar({
       </Select>
 
       <Select
-        value={province ?? ALL}
-        onValueChange={(v) => onProvinceChange(v === ALL ? undefined : v)}
+        value={province}
+        onValueChange={onProvinceChange}
         disabled={regions.isLoading}
       >
         <SelectTrigger className="w-56">
-          <SelectValue placeholder={regions.isLoading ? 'Đang tải...' : 'Tất cả tỉnh thành'} />
+          <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={ALL}>Tất cả tỉnh thành</SelectItem>
           {provinces.map((name) => (
             <SelectItem key={name} value={name}>
               {name}

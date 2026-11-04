@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { usePrices } from '@/hooks/queries/usePrices'
+import { usePriceGroups } from '@/hooks/queries/usePriceGroups'
 import { useProvinces } from '@/hooks/queries/useProvinces'
 import { useRegions } from '@/hooks/queries/useRegions'
 import { useAuthStore } from '@/store/authStore'
@@ -11,15 +11,17 @@ import { Pagination, PaginationContent, PaginationItem, PaginationNext, Paginati
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 const PAGE_SIZE = 20
+// Tỉnh mặc định khi người dùng chưa đăng nhập, chưa chọn tỉnh trong hồ sơ, hoặc tỉnh của họ chưa có dữ liệu giá.
+const DEFAULT_PROVINCE = 'TP. Hồ Chí Minh'
 
 export function MarketPricePage() {
   useDocumentTitle('Giá nông sản — HappyFarmer')
   const [search, setSearch] = useState('')
   const [categoryId, setCategoryId] = useState<number | undefined>(undefined)
   const [subCategoryId, setSubCategoryId] = useState<number | undefined>(undefined)
-  const [province, setProvince] = useState<string | undefined>(undefined)
-  // Mặc định chọn sẵn tỉnh trong hồ sơ người dùng (nếu có dữ liệu giá ở tỉnh đó) — chỉ làm 1 lần, và không ghi đè
-  // lựa chọn của người dùng nếu họ đã tự đổi bộ lọc.
+  const [province, setProvince] = useState<string>(DEFAULT_PROVINCE)
+  // Mặc định chọn sẵn tỉnh trong hồ sơ người dùng nếu có dữ liệu giá ở tỉnh đó, còn lại dùng TP.HCM — chỉ làm 1 lần, và
+  // không ghi đè lựa chọn của người dùng nếu họ đã tự đổi bộ lọc. Không có lựa chọn "tất cả tỉnh".
   const user = useAuthStore((s) => s.user)
   const userProvinces = useProvinces()
   const regions = useRegions()
@@ -36,9 +38,9 @@ export function MarketPricePage() {
     setProvinceResolved(true)
   }, [needsProvinceDefault, userProvinces.data, regions.data, user?.provinceId])
 
-  // Chờ xác định tỉnh mặc định xong mới gọi API giá, tránh nháy "tất cả tỉnh" rồi mới đổi sang tỉnh của người dùng
-  // (nếu tải tỉnh/khu vực bị lỗi thì vẫn gọi bình thường với "tất cả").
-  const prices = usePrices(
+  // Chờ xác định tỉnh mặc định xong mới gọi API giá, tránh nháy TP.HCM rồi mới đổi sang tỉnh của người dùng
+  // (nếu tải tỉnh/khu vực bị lỗi thì vẫn gọi bình thường với tỉnh mặc định).
+  const prices = usePriceGroups(
     {
       search: search || undefined,
       categoryId,
@@ -61,7 +63,7 @@ export function MarketPricePage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-h1 text-text">Giá nông sản</h1>
-        <p className="text-body text-text-muted">Tra cứu giá nông sản mới nhất theo sản phẩm và khu vực.</p>
+        <p className="text-body text-text-muted">Tra cứu giá nông sản mới nhất theo sản phẩm và tỉnh thành.</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -90,7 +92,7 @@ export function MarketPricePage() {
             }}
           />
 
-          <PriceTable prices={prices.data?.items} isLoading={prices.isLoading} />
+          <PriceTable groups={prices.data?.items} isLoading={prices.isLoading} />
 
           {totalPages > 1 ? (
             <Pagination>
