@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import { useProducts } from '@/hooks/queries/useProducts'
 import { useRegions } from '@/hooks/queries/useRegions'
+import { regionLabel } from '@/lib/regionLabels'
 import { usePriceHistory } from '@/hooks/queries/usePriceHistory'
 import { PriceHistoryChart } from '@/components/market-price/PriceHistoryChart'
 import { PriceStatCards } from '@/components/market-price/PriceStatCards'
@@ -87,7 +88,7 @@ export function ProductPriceDetailPage() {
               <SelectItem value={ALL}>Tất cả khu vực</SelectItem>
               {regions.data?.map((r) => (
                 <SelectItem key={r.id} value={String(r.id)}>
-                  {r.marketName} — {r.provinceName}
+                  {regionLabel(r)}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { UnitSelect } from '@/components/marketplace/UnitSelect'
 import { ProductSearchInput } from '@/components/marketplace/ProductSearchInput'
 import { useRegions } from '@/hooks/queries/useRegions'
+import { regionLabel } from '@/lib/regionLabels'
 import { usePrices } from '@/hooks/queries/usePrices'
 import { useCreateBuyRequest } from '@/hooks/mutations/useCreateBuyRequest'
 import { createBuyRequestSchema, type CreateBuyRequestFormValues } from '@/schemas/marketplaceSchemas'
@@ -136,7 +137,7 @@ export function BuyRequestForm() {
                 <SelectContent>
                   {regions.data?.map((r) => (
                     <SelectItem key={r.id} value={String(r.id)}>
-                      {r.provinceName}
+                      {regionLabel(r)}
                     </SelectItem>
                   ))}
                 </SelectContent>

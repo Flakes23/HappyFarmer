@@ -13,6 +13,7 @@ import { ImageUploadField } from '@/components/marketplace/ImageUploadField'
 import { UnitSelect } from '@/components/marketplace/UnitSelect'
 import { ProductSearchInput } from '@/components/marketplace/ProductSearchInput'
 import { useRegions } from '@/hooks/queries/useRegions'
+import { regionLabel } from '@/lib/regionLabels'
 import { usePrices } from '@/hooks/queries/usePrices'
 import { useCreateListing } from '@/hooks/mutations/useCreateListing'
 import { createListingSchema, type CreateListingFormValues } from '@/schemas/marketplaceSchemas'
@@ -170,7 +171,7 @@ export function ListingForm() {
                 <SelectContent>
                   {regions.data?.map((r) => (
                     <SelectItem key={r.id} value={String(r.id)}>
-                      {r.provinceName}
+                      {regionLabel(r)}
                     </SelectItem>
                   ))}
                 </SelectContent>

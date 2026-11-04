@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useRegions } from '@/hooks/queries/useRegions'
+import { regionLabel } from '@/lib/regionLabels'
 import type { MarketplaceSort } from '@/api/marketplaceApi'
 
 interface MarketplaceFilterBarProps {
@@ -63,7 +64,7 @@ export function MarketplaceFilterBar({
           <SelectItem value={ALL_REGIONS}>Tất cả khu vực</SelectItem>
           {regions.data?.map((r) => (
             <SelectItem key={r.id} value={String(r.id)}>
-              {r.provinceName}
+              {regionLabel(r)}
             </SelectItem>
           ))}
         </SelectContent>

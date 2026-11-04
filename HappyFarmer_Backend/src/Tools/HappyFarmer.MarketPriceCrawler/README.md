@@ -79,3 +79,53 @@ Muốn chạy ngay ngoài lịch: tab **Actions** trên GitHub → chọn workfl
   cũng có mặt. `NsvlScraper` đã có retry (tối đa 5 lần, cách nhau 500ms) nhưng nếu chu kỳ xoay
   vòng của trang dài hơn khoảng retry, lượt chạy đó sẽ không lấy được gì từ nguồn này — hệ thống
   vẫn hoạt động bình thường với 2 nguồn còn lại, không phải lỗi crash.
+
+## Tắt/bật từng nguồn khi thử
+
+Công tắc `Crawler:EnableThucPhamNhanh` (mặc định `true`) trong `appsettings.Local.json`: đặt `false` để chỉ chạy các nguồn
+khác (vd. BHX) mà không crawl lại thucphamnhanh.com; xoá dòng hoặc đặt `true` để bật lại.
+
+## Nguồn Bách Hóa Xanh (tự gọi API, chỉ chạy trên máy bạn)
+
+`BachHoaXanhApiScraper` gọi `POST /gw/Category/AjaxProduct` của Bách Hóa Xanh cho từng cửa hàng đã cấu hình
+(phân trang 6 sản phẩm/trang tới hết `data.total`; tối đa 10 cửa hàng, nghỉ 3 giây mỗi lần gọi, gặp lỗi HTTP là
+dừng). Đây là API phía sau website BHX, **không công bố cho bên thứ ba** — BHX có thể đổi/chặn bất cứ lúc nào, và
+bạn tự chịu trách nhiệm về việc dùng nó. Nguồn này mặc định **tắt**: chỉ bật khi có file cấu hình dưới đây, nên
+chạy trên VPS/CI (GitHub Actions) không bị ảnh hưởng.
+
+Tạo file `appsettings.Local.json` cạnh `appsettings.json` (đã được ignore, **không commit**):
+
+```json
+{
+  "BachHoaXanh": {
+    "ApiKey": "<giá trị header xapikey lấy từ yêu cầu AjaxProduct trong DevTools>",
+    "ReverseHost": "http://bhxapi.live",
+    "CategoryIds": [8785],
+    "UseListPrice": false,
+    "PriorityProductIdsByCategory": { "8785": "" },
+    "Stores": [
+      { "Province": "TP. Hồ Chí Minh", "ProvinceId": 1027, "StoreId": 2546 }
+    ]
+  }
+}
+```
+
+- `ProvinceId`/`StoreId`: lấy từ body của yêu cầu `AjaxProduct` trong DevTools sau khi đổi địa chỉ giao hàng sang tỉnh đó.
+- `CategoryIds`: 8785 = nhóm "Củ, quả" (trang `/cu`); thêm `CategoryId` của nhóm khác nếu muốn.
+- `PriorityProductIdsByCategory`: với mỗi `CategoryId`, một chuỗi mã sản phẩm cách nhau bằng dấu phẩy, copy từ trường
+  `PriorityProductIds` trong body yêu cầu `AjaxProduct` của **đúng nhóm hàng đó** (DevTools → Payload). Mỗi nhóm có danh sách
+  riêng, không dùng chung được. Để trống/thiếu thì API có thể bỏ sót một số sản phẩm (vd. báo `total` 43 nhưng chỉ trả 37).
+- `SubCategoryByCategory`: nhóm con (SubCategory) gán cho sản phẩm **mới** của từng `CategoryId`, vd. `{ "8820": "Dạng lá", "8788": "Trái cây" }`
+  (mặc định "Rau, củ, quả khác"). Sản phẩm đã tồn tại cùng tên giữ nhóm con cũ — server chỉ gán nhóm con khi tạo mới sản phẩm.
+- `UseListPrice`: `false` = giá bán thực tế (đã trừ khuyến mãi); `true` = giá niêm yết gốc (`sysPrice`).
+- Đơn vị lưu: mặt hàng bán theo kg → "500g"/"1kg"/"1.5kg" theo `netUnitValue`; mặt hàng bán theo gói (Túi/Vỉ/Combo)
+  → khối lượng thật của gói lấy từ `canonical` (vd "100g"), để giá so sánh được với nguồn khác.
+- Giá là giá bán lẻ siêu thị theo từng cửa hàng, không phải giá thị trường.
+
+### Chạy ở đâu
+
+**BHX chặn IP của VPS Azure** (đã thử 04/11/2026: `curl` từ VPS tới `www`/`api.bachhoaxanh.com` bị đóng kết nối), nên nguồn này
+**chạy từ máy bạn**: `dotnet run` trong thư mục crawler (với `appsettings.Local.json` như trên), dữ liệu vẫn đẩy lên VPS qua
+`Api:BaseUrl`. Chạy BHX khoảng mỗi ngày hoặc vài ngày một lần. Workflow `crawl-bhx.yml` chỉ còn chạy tay; mẫu file cấu hình cho
+VPS ở `crawler-config/appsettings.Local.example.json` (chưa dùng được vì lý do trên). Xem thêm mục 5 của
+`docs/architecture/03-infrastructure-deployment.md`.

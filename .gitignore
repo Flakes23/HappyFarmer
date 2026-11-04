@@ -112,3 +112,6 @@ CLAUDE.md
 .DS_Store
 Thumbs.db
 *.swp
+
+# Cấu hình riêng trên máy (khoá/nguồn BHX của crawler) — không commit
+appsettings.Local.json

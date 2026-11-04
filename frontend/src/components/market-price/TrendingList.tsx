@@ -4,11 +4,15 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { TrendingRowSkeleton } from '@/components/shared/Skeletons'
 import { PriceTrendBadge } from '@/components/market-price/PriceTrendBadge'
 import { useTrending } from '@/hooks/queries/useTrending'
+import { useRegions } from '@/hooks/queries/useRegions'
+import { sourceLabel } from '@/lib/regionLabels'
 
 const currencyFormatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
 
 export function TrendingList() {
   const trending = useTrending()
+  const regions = useRegions()
+  const regionById = new Map(regions.data?.map((r) => [r.id, r]))
 
   return (
     <Card>
@@ -28,7 +32,10 @@ export function TrendingList() {
                   <Link to={`/prices/${item.productId}`} className="font-medium text-text hover:text-primary">
                     {item.productName}
                   </Link>
-                  <p className="text-xs text-text-muted">{item.regionName}</p>
+                  <p className="text-xs text-text-muted">
+                    {sourceLabel(item.regionName)}
+                    {regionById.get(item.regionId) ? ` · ${regionById.get(item.regionId)!.provinceName}` : ''}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="font-medium">{currencyFormatter.format(item.currentPrice)}</p>

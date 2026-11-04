@@ -1,0 +1,39 @@
+name: BHX price crawl
+
+# Crawl giá Bách Hóa Xanh theo từng tỉnh (danh sách tỉnh/cửa hàng nằm trong file cấu hình trên VPS:
+# ~/happyfarmer/crawler-config/appsettings.Local.json).
+#
+# KHÔNG còn chạy theo lịch: đã thử (04/11/2026) — BHX chặn IP của VPS Azure (curl từ VPS tới www/api.bachhoaxanh.com
+# đều bị đóng kết nối "HTTP/2 stream 1 was closed cleanly, but before getting all response header fields"), nên
+# crawler trên VPS không lấy được gì. Giá BHX được crawl TỪ MÁY NGƯỜI DÙNG (xem README của crawler), dữ liệu vẫn
+# đẩy lên VPS qua Api:BaseUrl. Giữ lại workflow này để chạy tay (Actions → "BHX price crawl" → Run workflow) phòng khi
+# sau này IP được phép hoặc đổi sang môi trường chạy khác. Image crawler do deploy.yml build/push; crawl-daily.yml (thucphamnhanh) chạy riêng mỗi ngày.
+on:
+  workflow_dispatch:
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    permissions:
+      packages: read
+    steps:
+      - name: Pull + run BHX crawler on VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          # Mặc định ssh-action cắt sau 10 phút; crawl nhiều tỉnh (nghỉ 3 giây giữa các yêu cầu) có thể lâu hơn.
+          command_timeout: 60m
+          script: |
+            cd ~/happyfarmer
+            mkdir -p crawler-config
+            if [ ! -f crawler-config/appsettings.Local.json ]; then
+              echo "Thiếu ~/happyfarmer/crawler-config/appsettings.Local.json — xem crawler-config/appsettings.Local.example.json"
+              exit 1
+            fi
+            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+            docker compose -f docker-compose.prod.yml --profile cron pull market-price-crawler
+            # Tắt thucphamnhanh ở lượt này (đã có crawl-daily) — chỉ chạy nguồn BHX.
+            docker compose -f docker-compose.prod.yml --profile cron run --rm -e Crawler__EnableThucPhamNhanh=false market-price-crawler

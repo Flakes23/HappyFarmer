@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useCategories } from '@/hooks/queries/useCategories'
 import { useSubCategories } from '@/hooks/queries/useSubCategories'
 import { useRegions } from '@/hooks/queries/useRegions'
+import { regionLabel } from '@/lib/regionLabels'
 
 interface PriceFilterBarProps {
   search: string
@@ -99,7 +100,7 @@ export function PriceFilterBar({
           <SelectItem value={ALL}>Tất cả khu vực</SelectItem>
           {regions.data?.map((r) => (
             <SelectItem key={r.id} value={String(r.id)}>
-              {r.provinceName}
+              {regionLabel(r)}
             </SelectItem>
           ))}
         </SelectContent>

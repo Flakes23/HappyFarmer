@@ -219,6 +219,13 @@ services:
       # đây là service-to-service trong cùng docker network, không phải request từ browser.
       Api__BaseUrl: "http://market-price-service:8080"
       Internal__ApiKey: ${INTERNAL_API_KEY}
+    volumes:
+      # Cấu hình nguồn Bách Hóa Xanh (danh sách tỉnh/cửa hàng, khoá...) nằm trong file
+      # ~/happyfarmer/crawler-config/appsettings.Local.json trên VPS — KHÔNG commit (xem
+      # crawler-config/appsettings.Local.example.json). Mount cả thư mục (không phải 1 file) để thư mục
+      # thiếu cũng không làm Docker tạo nhầm thành 1 thư mục tên file. Không có file thì crawler chỉ chạy
+      # thucphamnhanh.com như cũ.
+      - ./crawler-config:/app/config:ro
     depends_on:
       market-price-service:
         condition: service_started

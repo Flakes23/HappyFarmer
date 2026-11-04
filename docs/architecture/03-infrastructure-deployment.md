@@ -139,8 +139,10 @@ dùng, Gateway chỉ forward nguyên header này xuống Market Price Service.
 2-5h sáng), SSH vào VPS và chạy:
 ```
 docker compose -f docker-compose.prod.yml --profile cron pull market-price-crawler
-docker compose -f docker-compose.prod.yml --profile cron run --rm market-price-crawler
+docker compose -f docker-compose.prod.yml --profile cron run --rm -e BachHoaXanh__Enabled=false market-price-crawler
 ```
+(chỉ crawl thucphamnhanh.com mỗi ngày — nguồn Bách Hóa Xanh chạy riêng, xem bên dưới).
+
 Service `market-price-crawler` trong `docker-compose.prod.yml` được gắn `profiles: ["cron"]` nên
 **không** tự khởi động cùng `docker compose up -d` của `deploy.yml` (sẽ chạy xong rồi thoát ngay,
 không phải long-running service) — chỉ được kích hoạt tường minh qua `--profile cron` bởi workflow
@@ -149,6 +151,16 @@ lịch trên. Gọi thẳng `http://market-price-service:8080` qua network nội
 Image crawler được build/push GHCR bởi chính `deploy.yml` (mục 4) mỗi khi push `master`, nên
 `crawl-daily.yml` không cần build gì, chỉ pull tag `latest` mới nhất. Có thể trigger thủ công qua
 `workflow_dispatch` (tab Actions trên GitHub) nếu cần chạy ngay ngoài lịch.
+
+**Nguồn Bách Hóa Xanh (giá theo tỉnh) — crawl từ máy người dùng, không chạy tự động trên VPS.** Đã thử chạy trên VPS
+(`.github/workflows/crawl-bhx.yml`, chạy tay qua `workflow_dispatch`) nhưng **BHX chặn IP của VPS Azure**: `curl` từ VPS tới
+`www.bachhoaxanh.com` và `api.bachhoaxanh.com` đều bị đóng kết nối ngay sau khi gửi yêu cầu (`curl: (92) HTTP/2 stream 1 was
+closed cleanly, but before getting all response header fields`), nên crawler trên VPS báo `LỖI khi crawl` và không lưu gì. Vì vậy
+`crawl-daily.yml` chỉ crawl thucphamnhanh.com (`-e BachHoaXanh__Enabled=false`), còn giá BHX được crawl **từ máy bạn**
+(`dotnet run` trong `HappyFarmer_Backend/src/Tools/HappyFarmer.MarketPriceCrawler` với `appsettings.Local.json`, xem README
+của crawler) — dữ liệu vẫn vào VPS qua `Api:BaseUrl`. Workflow `crawl-bhx.yml` và thư mục mount `./crawler-config` được giữ lại
+phòng khi sau này chạy được từ môi trường khác; file mẫu cấu hình ở `crawler-config/appsettings.Local.example.json`. Crawler thoát
+mã 1 khi có nguồn lỗi nên workflow sẽ báo đỏ thay vì xanh giả.
 
 ## 6. Nạp dữ liệu RAG cho AI Advisory — lần đầu (thủ công)
 

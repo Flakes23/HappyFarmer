@@ -26,4 +26,6 @@ jobs:
             cd ~/happyfarmer
             docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
             docker compose -f docker-compose.prod.yml --profile cron pull market-price-crawler
-            docker compose -f docker-compose.prod.yml --profile cron run --rm market-price-crawler
+            mkdir -p crawler-config
+            # Chỉ crawl thucphamnhanh.com mỗi ngày; nguồn Bách Hóa Xanh chạy riêng, thưa hơn (crawl-bhx.yml).
+            docker compose -f docker-compose.prod.yml --profile cron run --rm -e BachHoaXanh__Enabled=false market-price-crawler
