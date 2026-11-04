@@ -110,6 +110,10 @@ Tạo file `appsettings.Local.json` cạnh `appsettings.json` (đã được ign
 }
 ```
 
+- `Province`: tên tỉnh hiển thị, **phải đúng bằng tên trong danh sách tỉnh của Auth Service** 
+  (`HappyFarmer.AuthService.Api/Data/AuthDbContext.cs`, mảng `ProvinceNames`, vd. "TP. Hồ Chí Minh", "Thừa Thiên Huế", "Bà Rịa - Vũng Tàu"). 
+  Dịch vụ giá lưu tỉnh dưới dạng chữ (không có bảng/id tỉnh chung giữa các service), trang giá nối với tỉnh trong hồ sơ người dùng
+  qua tên này để chọn sẵn tỉnh mặc định — đặt sai tên (vd. "Huế" thay vì "Thừa Thiên Huế") thì không nối được.
 - `ProvinceId`/`StoreId`: lấy từ body của yêu cầu `AjaxProduct` trong DevTools sau khi đổi địa chỉ giao hàng sang tỉnh đó.
 - `CategoryIds`: 8785 = nhóm "Củ, quả" (trang `/cu`); thêm `CategoryId` của nhóm khác nếu muốn.
 - `PriorityProductIdsByCategory`: với mỗi `CategoryId`, một chuỗi mã sản phẩm cách nhau bằng dấu phẩy, copy từ trường
@@ -126,6 +130,5 @@ Tạo file `appsettings.Local.json` cạnh `appsettings.json` (đã được ign
 
 **BHX chặn IP của VPS Azure** (đã thử 04/11/2026: `curl` từ VPS tới `www`/`api.bachhoaxanh.com` bị đóng kết nối), nên nguồn này
 **chạy từ máy bạn**: `dotnet run` trong thư mục crawler (với `appsettings.Local.json` như trên), dữ liệu vẫn đẩy lên VPS qua
-`Api:BaseUrl`. Chạy BHX khoảng mỗi ngày hoặc vài ngày một lần. Workflow `crawl-bhx.yml` chỉ còn chạy tay; mẫu file cấu hình cho
-VPS ở `crawler-config/appsettings.Local.example.json` (chưa dùng được vì lý do trên). Xem thêm mục 5 của
+`Api:BaseUrl`. Chạy BHX khoảng mỗi ngày hoặc vài ngày một lần. Workflow `crawl-bhx.yml` chỉ còn chạy tay; cấu hình trên VPS (nếu sau này dùng được) đặt ở `~/happyfarmer/crawler-config/appsettings.Local.json`, nội dung như mục trên. Xem thêm mục 5 của
 `docs/architecture/03-infrastructure-deployment.md`.

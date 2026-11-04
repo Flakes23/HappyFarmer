@@ -30,7 +30,7 @@ jobs:
             cd ~/happyfarmer
             mkdir -p crawler-config
             if [ ! -f crawler-config/appsettings.Local.json ]; then
-              echo "Thiếu ~/happyfarmer/crawler-config/appsettings.Local.json — xem crawler-config/appsettings.Local.example.json"
+              echo "Thiếu ~/happyfarmer/crawler-config/appsettings.Local.json — tạo file theo mục BachHoaXanh trong README của crawler"
               exit 1
             fi
             docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}

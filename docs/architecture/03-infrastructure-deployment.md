@@ -159,7 +159,7 @@ closed cleanly, but before getting all response header fields`), nên crawler tr
 `crawl-daily.yml` chỉ crawl thucphamnhanh.com (`-e BachHoaXanh__Enabled=false`), còn giá BHX được crawl **từ máy bạn**
 (`dotnet run` trong `HappyFarmer_Backend/src/Tools/HappyFarmer.MarketPriceCrawler` với `appsettings.Local.json`, xem README
 của crawler) — dữ liệu vẫn vào VPS qua `Api:BaseUrl`. Workflow `crawl-bhx.yml` và thư mục mount `./crawler-config` được giữ lại
-phòng khi sau này chạy được từ môi trường khác; file mẫu cấu hình ở `crawler-config/appsettings.Local.example.json`. Crawler thoát
+phòng khi sau này chạy được từ môi trường khác; file cấu hình (nội dung như mục BachHoaXanh trong README của crawler) đặt ở `~/happyfarmer/crawler-config/appsettings.Local.json`. Crawler thoát
 mã 1 khi có nguồn lỗi nên workflow sẽ báo đỏ thay vì xanh giả.
 
 ## 6. Nạp dữ liệu RAG cho AI Advisory — lần đầu (thủ công)

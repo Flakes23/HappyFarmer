@@ -13,6 +13,8 @@ import type {
 export interface PriceFilters {
   productId?: number
   regionId?: number
+  /** Lọc theo tên tỉnh (gồm mọi nguồn giá của tỉnh đó), khác regionId chỉ lấy 1 khu vực/nguồn. */
+  province?: string
   date?: string
   search?: string
   categoryId?: number

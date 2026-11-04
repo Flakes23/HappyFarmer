@@ -1,5 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { usePrices } from '@/hooks/queries/usePrices'
+import { useProvinces } from '@/hooks/queries/useProvinces'
+import { useRegions } from '@/hooks/queries/useRegions'
+import { useAuthStore } from '@/store/authStore'
+import { findMatchingProvince } from '@/lib/provinceMatch'
 import { PriceFilterBar } from '@/components/market-price/PriceFilterBar'
 import { PriceTable } from '@/components/market-price/PriceTable'
 import { TrendingList } from '@/components/market-price/TrendingList'
@@ -13,17 +17,38 @@ export function MarketPricePage() {
   const [search, setSearch] = useState('')
   const [categoryId, setCategoryId] = useState<number | undefined>(undefined)
   const [subCategoryId, setSubCategoryId] = useState<number | undefined>(undefined)
-  const [regionId, setRegionId] = useState<number | undefined>(undefined)
+  const [province, setProvince] = useState<string | undefined>(undefined)
+  // Mặc định chọn sẵn tỉnh trong hồ sơ người dùng (nếu có dữ liệu giá ở tỉnh đó) — chỉ làm 1 lần, và không ghi đè
+  // lựa chọn của người dùng nếu họ đã tự đổi bộ lọc.
+  const user = useAuthStore((s) => s.user)
+  const userProvinces = useProvinces()
+  const regions = useRegions()
+  const [provinceTouched, setProvinceTouched] = useState(false)
+  const [provinceResolved, setProvinceResolved] = useState(false)
+  const needsProvinceDefault = Boolean(user?.provinceId) && !provinceTouched && !provinceResolved
   const [page, setPage] = useState(1)
 
-  const prices = usePrices({
-    search: search || undefined,
-    categoryId,
-    subCategoryId,
-    regionId,
-    page,
-    pageSize: PAGE_SIZE,
-  })
+  useEffect(() => {
+    if (!needsProvinceDefault || !userProvinces.data || !regions.data) return
+    const userProvinceName = userProvinces.data.find((p) => p.id === user?.provinceId)?.name
+    const match = findMatchingProvince(userProvinceName, regions.data.map((r) => r.provinceName))
+    if (match) setProvince(match)
+    setProvinceResolved(true)
+  }, [needsProvinceDefault, userProvinces.data, regions.data, user?.provinceId])
+
+  // Chờ xác định tỉnh mặc định xong mới gọi API giá, tránh nháy "tất cả tỉnh" rồi mới đổi sang tỉnh của người dùng
+  // (nếu tải tỉnh/khu vực bị lỗi thì vẫn gọi bình thường với "tất cả").
+  const prices = usePrices(
+    {
+      search: search || undefined,
+      categoryId,
+      subCategoryId,
+      province,
+      page,
+      pageSize: PAGE_SIZE,
+    },
+    { enabled: !needsProvinceDefault || userProvinces.isError || regions.isError },
+  )
 
   function resetPage() {
     setPage(1)
@@ -45,7 +70,7 @@ export function MarketPricePage() {
             search={search}
             categoryId={categoryId}
             subCategoryId={subCategoryId}
-            regionId={regionId}
+            province={province}
             onSearchChange={(v) => {
               setSearch(v)
               resetPage()
@@ -58,8 +83,9 @@ export function MarketPricePage() {
               setSubCategoryId(v)
               resetPage()
             }}
-            onRegionChange={(v) => {
-              setRegionId(v)
+            onProvinceChange={(v) => {
+              setProvinceTouched(true)
+              setProvince(v)
               resetPage()
             }}
           />

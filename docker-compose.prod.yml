@@ -221,8 +221,7 @@ services:
       Internal__ApiKey: ${INTERNAL_API_KEY}
     volumes:
       # Cấu hình nguồn Bách Hóa Xanh (danh sách tỉnh/cửa hàng, khoá...) nằm trong file
-      # ~/happyfarmer/crawler-config/appsettings.Local.json trên VPS — KHÔNG commit (xem
-      # crawler-config/appsettings.Local.example.json). Mount cả thư mục (không phải 1 file) để thư mục
+      # ~/happyfarmer/crawler-config/appsettings.Local.json trên VPS — KHÔNG commit (nội dung lấy từ mục BachHoaXanh trong README của crawler). Mount cả thư mục (không phải 1 file) để thư mục
       # thiếu cũng không làm Docker tạo nhầm thành 1 thư mục tên file. Không có file thì crawler chỉ chạy
       # thucphamnhanh.com như cũ.
       - ./crawler-config:/app/config:ro

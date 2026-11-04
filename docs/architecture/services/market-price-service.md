@@ -16,7 +16,7 @@ Danh mục nông sản (Category → SubCategory → Product), khu vực/nguồn
 | GET | `/api/market-price/regions/by-ids?ids=1,2,3` | Tương tự `products/by-ids` nhưng cho khu vực |
 | GET | `/api/market-price/categories` | Danh sách Category cha (hiện chỉ có 1: "Rau, củ, quả") |
 | GET | `/api/market-price/categories/{categoryId}/sub-categories` | Danh sách SubCategory con của 1 Category (Dạng lá, Dạng củ, Dạng quả (trái), Dạng nấm, Dạng hạt, Rau gia vị tây, Trái cây, Rau củ quả khác) |
-| GET | `/api/market-price/prices?productId=&regionId=&date=&search=&categoryId=&subCategoryId=&page=&pageSize=` | Giá hiện tại/theo ngày, có lọc theo tên (search, khớp `Contains`)/Category/SubCategory, **trả về `PagedResult<PriceResponse>`** (`page` mặc định 1, `pageSize` mặc định 20, tối đa 100) |
+| GET | `/api/market-price/prices?productId=&regionId=&province=&date=&search=&categoryId=&subCategoryId=&page=&pageSize=` | Giá hiện tại/theo ngày, có lọc theo tên (search, khớp `Contains`)/Category/SubCategory/tỉnh (`province` = tên tỉnh, lấy mọi nguồn giá của tỉnh đó; khác `regionId` chỉ lấy 1 khu vực), **trả về `PagedResult<PriceResponse>`** (`page` mặc định 1, `pageSize` mặc định 20, tối đa 100) |
 | GET | `/api/market-price/prices/{productId}/history?regionId=&from=&to=` | Lịch sử giá (cho biểu đồ) — trả nguyên danh sách, không phân trang, mỗi điểm kèm `variant` |
 | GET | `/api/market-price/prices/trending` | Top biến động giá (kèm `variant`) |
 | POST | `/api/market-price/prices` | Nhập giá cộng đồng (Farmer) → status=Pending |

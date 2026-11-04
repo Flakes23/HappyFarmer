@@ -4,17 +4,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useCategories } from '@/hooks/queries/useCategories'
 import { useSubCategories } from '@/hooks/queries/useSubCategories'
 import { useRegions } from '@/hooks/queries/useRegions'
-import { regionLabel } from '@/lib/regionLabels'
 
 interface PriceFilterBarProps {
   search: string
   categoryId: number | undefined
   subCategoryId: number | undefined
-  regionId: number | undefined
+  province: string | undefined
   onSearchChange: (search: string) => void
   onCategoryChange: (categoryId: number | undefined) => void
   onSubCategoryChange: (subCategoryId: number | undefined) => void
-  onRegionChange: (regionId: number | undefined) => void
+  onProvinceChange: (province: string | undefined) => void
 }
 
 const ALL = 'all'
@@ -23,16 +22,20 @@ export function PriceFilterBar({
   search,
   categoryId,
   subCategoryId,
-  regionId,
+  province,
   onSearchChange,
   onCategoryChange,
   onSubCategoryChange,
-  onRegionChange,
+  onProvinceChange,
 }: PriceFilterBarProps) {
   const [searchInput, setSearchInput] = useState(search)
   const categories = useCategories()
   const subCategories = useSubCategories(categoryId)
   const regions = useRegions()
+  // Mỗi tỉnh có thể có nhiều khu vực (mỗi nguồn giá một khu vực) nên danh sách lọc chỉ liệt kê tên tỉnh, không lặp.
+  const provinces = Array.from(new Set(regions.data?.map((r) => r.provinceName) ?? [])).sort((a, b) =>
+    a.localeCompare(b, 'vi'),
+  )
 
   useEffect(() => {
     const timeout = setTimeout(() => onSearchChange(searchInput.trim()), 400)
@@ -89,18 +92,18 @@ export function PriceFilterBar({
       </Select>
 
       <Select
-        value={regionId ? String(regionId) : ALL}
-        onValueChange={(v) => onRegionChange(v === ALL ? undefined : Number(v))}
+        value={province ?? ALL}
+        onValueChange={(v) => onProvinceChange(v === ALL ? undefined : v)}
         disabled={regions.isLoading}
       >
         <SelectTrigger className="w-56">
-          <SelectValue placeholder={regions.isLoading ? 'Đang tải...' : 'Tất cả khu vực'} />
+          <SelectValue placeholder={regions.isLoading ? 'Đang tải...' : 'Tất cả tỉnh thành'} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={ALL}>Tất cả khu vực</SelectItem>
-          {regions.data?.map((r) => (
-            <SelectItem key={r.id} value={String(r.id)}>
-              {regionLabel(r)}
+          <SelectItem value={ALL}>Tất cả tỉnh thành</SelectItem>
+          {provinces.map((name) => (
+            <SelectItem key={name} value={name}>
+              {name}
             </SelectItem>
           ))}
         </SelectContent>

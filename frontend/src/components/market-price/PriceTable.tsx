@@ -7,7 +7,6 @@ import { PriceTrendBadge } from '@/components/market-price/PriceTrendBadge'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { TableRowsSkeleton } from '@/components/shared/Skeletons'
 import { useTrending } from '@/hooks/queries/useTrending'
-import { useRegions } from '@/hooks/queries/useRegions'
 import { sourceLabel } from '@/lib/regionLabels'
 import type { PriceResponse } from '@/api/types'
 import emptyPricesIllustration from '@/assets/illustrations/illustration-empty-prices.webp'
@@ -24,9 +23,6 @@ export function PriceTable({ prices, isLoading }: PriceTableProps) {
   // request nếu đã có cache. PriceResponse không có sẵn xu hướng giá (chỉ TrendingItem
   // có), nên join phía client theo productId/regionId.
   const trending = useTrending()
-  const regions = useRegions()
-  // PriceResponse.regionName chỉ là MarketName (không có tỉnh) — tra tỉnh theo regionId từ danh sách khu vực.
-  const regionById = new Map(regions.data?.map((r) => [r.id, r]))
 
   if (isLoading) {
     return <TableRowsSkeleton count={10} />
@@ -77,10 +73,7 @@ export function PriceTable({ prices, isLoading }: PriceTableProps) {
                   <TableCell>
                     <SourceBadge source={p.source} />
                   </TableCell>
-                  <TableCell>
-                    <p>{sourceLabel(p.regionName)}</p>
-                    <p className="text-xs text-text-muted">{regionById.get(p.regionId)?.provinceName}</p>
-                  </TableCell>
+                  <TableCell>{sourceLabel(p.regionName)}</TableCell>
                   <TableCell className="text-text-muted">{new Date(p.effectiveDate).toLocaleDateString('vi-VN')}</TableCell>
                 </TableRow>
               )
@@ -102,10 +95,7 @@ export function PriceTable({ prices, isLoading }: PriceTableProps) {
                   <SourceBadge source={p.source} />
                 </div>
                 {p.unit ? <p className="text-body-sm text-text-muted">{p.unit}</p> : null}
-                <p className="text-body-sm text-text-muted">
-                  {sourceLabel(p.regionName)}
-                  {regionById.get(p.regionId) ? ` · ${regionById.get(p.regionId)!.provinceName}` : ''}
-                </p>
+                <p className="text-body-sm text-text-muted">{sourceLabel(p.regionName)}</p>
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-text">{currencyFormatter.format(p.price)}</p>
                   <PriceTrendBadge changePercent={changePercent} />

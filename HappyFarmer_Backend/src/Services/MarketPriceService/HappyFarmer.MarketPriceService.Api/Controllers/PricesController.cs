@@ -18,12 +18,13 @@ public class PricesController(MarketPriceDbContext db, PriceCacheService cache) 
     public async Task<ActionResult<PagedResult<PriceResponse>>> GetCurrentPrices(
         [FromQuery] int? productId, [FromQuery] int? regionId, [FromQuery] DateOnly? date,
         [FromQuery] string? search, [FromQuery] int? categoryId, [FromQuery] int? subCategoryId,
-        [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        [FromQuery] string? province, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         page = Math.Max(page, 1);
         pageSize = Math.Clamp(pageSize, 1, 100);
         var asOfDate = date ?? DateOnly.FromDateTime(DateTime.UtcNow);
-        var hasExtraFilters = !string.IsNullOrWhiteSpace(search) || categoryId is not null || subCategoryId is not null;
+        var hasExtraFilters = !string.IsNullOrWhiteSpace(search) || categoryId is not null || subCategoryId is not null
+            || !string.IsNullOrWhiteSpace(province);
 
         if (productId is not null && regionId is not null && !hasExtraFilters && page == 1)
         {
@@ -40,6 +41,8 @@ public class PricesController(MarketPriceDbContext db, PriceCacheService cache) 
             .Where(pe => pe.Status == PriceEntryStatus.Approved && pe.EffectiveDate <= asOfDate)
             .Where(pe => productId == null || pe.ProductId == productId)
             .Where(pe => regionId == null || pe.RegionId == regionId)
+            // Lọc theo TÊN TỈNH: 1 tỉnh có thể có nhiều khu vực (mỗi nguồn giá 1 Region), lọc theo regionId chỉ lấy được 1 nguồn.
+            .Where(pe => string.IsNullOrWhiteSpace(province) || pe.Region.ProvinceName == province)
             .Where(pe => string.IsNullOrWhiteSpace(search) || pe.Product.NameVi.Contains(search))
             .Where(pe => categoryId == null || pe.Product.SubCategory.CategoryId == categoryId)
             .Where(pe => subCategoryId == null || pe.Product.SubCategoryId == subCategoryId)
