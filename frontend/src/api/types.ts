@@ -106,24 +106,6 @@ export interface PriceResponse {
   unit: string | null
 }
 
-/** Một biến thể giá của sản phẩm (khác quy cách `unit` và/hoặc nguồn `marketName`). */
-export interface PriceVariant {
-  regionId: number
-  provinceName: string
-  marketName: string
-  price: number
-  source: PriceSource
-  effectiveDate: string
-  unit: string | null
-}
-
-/** Giá hiện tại của một sản phẩm, gom mọi biến thể vào một dòng. */
-export interface PriceGroup {
-  productId: number
-  productName: string
-  variants: PriceVariant[]
-}
-
 export interface PriceHistoryPoint {
   effectiveDate: string
   price: number

@@ -2,7 +2,6 @@ import { httpMarketPrice } from '@/api/httpMarketPrice'
 import type {
   CategoryResponse,
   PagedResult,
-  PriceGroup,
   PriceHistoryPoint,
   PriceResponse,
   ProductResponse,
@@ -55,12 +54,6 @@ export const marketPriceApi = {
   getPrices: (filters: PriceFilters = {}) =>
     httpMarketPrice
       .get<PagedResult<PriceResponse>>('/api/market-price/prices', { params: filters })
-      .then((r) => r.data),
-
-  /** Giá hiện tại gom theo sản phẩm (mỗi sản phẩm một phần tử, kèm các biến thể quy cách/nguồn). */
-  getPriceGroups: (filters: Omit<PriceFilters, 'productId'> = {}) =>
-    httpMarketPrice
-      .get<PagedResult<PriceGroup>>('/api/market-price/prices/grouped', { params: filters })
       .then((r) => r.data),
 
   getPriceHistory: (productId: number, params: PriceHistoryParams = {}) =>

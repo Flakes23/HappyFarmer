@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { usePriceGroups } from '@/hooks/queries/usePriceGroups'
+import { usePrices } from '@/hooks/queries/usePrices'
 import { useProvinces } from '@/hooks/queries/useProvinces'
 import { useRegions } from '@/hooks/queries/useRegions'
 import { useAuthStore } from '@/store/authStore'
@@ -40,7 +40,7 @@ export function MarketPricePage() {
 
   // Chờ xác định tỉnh mặc định xong mới gọi API giá, tránh nháy TP.HCM rồi mới đổi sang tỉnh của người dùng
   // (nếu tải tỉnh/khu vực bị lỗi thì vẫn gọi bình thường với tỉnh mặc định).
-  const prices = usePriceGroups(
+  const prices = usePrices(
     {
       search: search || undefined,
       categoryId,
@@ -92,7 +92,7 @@ export function MarketPricePage() {
             }}
           />
 
-          <PriceTable groups={prices.data?.items} isLoading={prices.isLoading} />
+          <PriceTable prices={prices.data?.items} isLoading={prices.isLoading} />
 
           {totalPages > 1 ? (
             <Pagination>

@@ -30,14 +30,6 @@ public record PriceResponse(
     int ProductId, string ProductName, int RegionId, string RegionName,
     decimal Price, string Source, DateOnly EffectiveDate, string? Unit);
 
-/// <summary>Một biến thể giá của sản phẩm: cùng sản phẩm nhưng khác quy cách (<c>Unit</c>) và/hoặc nguồn/khu vực.</summary>
-public record PriceVariantResponse(
-    int RegionId, string ProvinceName, string MarketName,
-    decimal Price, string Source, DateOnly EffectiveDate, string? Unit);
-
-/// <summary>Giá hiện tại của MỘT sản phẩm, gom mọi biến thể (quy cách × nguồn × khu vực) vào cùng một dòng.</summary>
-public record PriceGroupResponse(int ProductId, string ProductName, List<PriceVariantResponse> Variants);
-
 public record PriceHistoryPoint(DateOnly EffectiveDate, decimal Price, string? Unit);
 
 public record TrendingItem(
