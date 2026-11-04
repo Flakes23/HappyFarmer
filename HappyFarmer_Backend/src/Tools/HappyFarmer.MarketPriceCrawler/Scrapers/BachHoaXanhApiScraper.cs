@@ -37,7 +37,8 @@ public class BachHoaXanhApiScraper(
     IReadOnlyList<int> categoryIds,
     bool useListPrice,
     IReadOnlyDictionary<int, string>? priorityProductIdsByCategory = null,
-    IReadOnlyDictionary<int, string>? subCategoryByCategory = null) : IPriceSourceScraper
+    IReadOnlyDictionary<int, string>? subCategoryByCategory = null,
+    IReadOnlyList<string>? excludeNameKeywords = null) : IPriceSourceScraper
 {
     public const string SourceNameConst = "bachhoaxanh.com";
     public string SourceName => SourceNameConst;
@@ -111,7 +112,7 @@ public class BachHoaXanhApiScraper(
             using var doc = await SendAsync(http, request, store);
             if (doc is null) return false;
 
-            var result = ParseProducts(doc.RootElement, store.Province, useListPrice, seen, subCategory);
+            var result = ParseProducts(doc.RootElement, store.Province, useListPrice, seen, subCategory, excludeNameKeywords);
             items.AddRange(result.Items);
             collected += result.ProductCount;
             if (result.Total > 0) onTotal(result.Total);
@@ -136,7 +137,7 @@ public class BachHoaXanhApiScraper(
         using var doc = await SendAsync(http, request, store);
         if (doc is null) return false;
 
-        var result = ParseProducts(doc.RootElement, store.Province, useListPrice, seen, subCategory);
+        var result = ParseProducts(doc.RootElement, store.Province, useListPrice, seen, subCategory, excludeNameKeywords);
         items.AddRange(result.Items);
         Console.WriteLine($"[{SourceName}]   GetCateVegetable: {result.ProductCount} sản phẩm ({result.NewProducts} mới), {result.Items.Count} mức giá.");
         foreach (var reason in result.Skipped) Console.WriteLine($"[{SourceName}]     BỎ QUA: {reason}");
@@ -203,7 +204,8 @@ public class BachHoaXanhApiScraper(
     /// bị bỏ qua để không trùng; mã mới được thêm vào tập này.
     /// </summary>
     internal static ParseResult ParseProducts(
-        JsonElement root, string province, bool useListPrice, HashSet<long> seenProductIds, string subCategoryName = SubCategoryName)
+        JsonElement root, string province, bool useListPrice, HashSet<long> seenProductIds, string subCategoryName = SubCategoryName,
+        IReadOnlyList<string>? excludeNameKeywords = null)
     {
         var items = new List<RawPriceItem>();
         var productIds = new List<long>();
@@ -246,6 +248,14 @@ public class BachHoaXanhApiScraper(
                 continue;
             }
 
+            // Bỏ sản phẩm bán kèm quà (vd. "Xoài keo 1kg + Muối chấm Hảo Hảo ..." — giá gồm cả muối, không phải giá nông sản) và các
+            // sản phẩm khớp từ khoá loại trừ trong cấu hình. Đã đánh dấu "đã thấy" ở trên nên không tính lại ở các lượt gọi sau.
+            if (IsExcludedProduct(name, excludeNameKeywords))
+            {
+                skipped.Add($"\"{name}\": bị loại (sản phẩm bán kèm/khớp từ khoá loại trừ)");
+                continue;
+            }
+
             var bhxUnit = Str(product, "unit") ?? "";
             var canonical = Str(product, "canonical");
             var imageUrl = Str(product, "avatar");
@@ -256,8 +266,10 @@ public class BachHoaXanhApiScraper(
                 continue;
             }
 
-            var before = items.Count;
             var reasons = new List<string>();
+            // Mặt hàng bán theo kg có nhiều mức khối lượng (500g/1kg/1.5kg — cùng giá/kg, chỉ khác số lượng). Gom hết rồi chỉ giữ MỘT
+            // mức đại diện (gần 1kg nhất) để mỗi sản phẩm chỉ có 1 dòng giá, tránh lặp.
+            var candidates = new List<(decimal Price, decimal NetUnitValue)>();
             foreach (var priceEntry in prices.EnumerateArray())
             {
                 if (priceEntry.TryGetProperty("isCanBuy", out var canBuy) && canBuy.ValueKind == JsonValueKind.False)
@@ -274,6 +286,12 @@ public class BachHoaXanhApiScraper(
                 }
 
                 var netUnitValue = priceEntry.TryGetProperty("netUnitValue", out var nuv) && nuv.TryGetDecimal(out var v) ? v : 0m;
+                candidates.Add((price, netUnitValue));
+            }
+
+            if (candidates.Count > 0)
+            {
+                var (price, netUnitValue) = PickRepresentativePrice(candidates);
                 var unit = BuildUnit(bhxUnit, canonical, netUnitValue);
                 var productUnit = bhxUnit.Equals("Kg", StringComparison.OrdinalIgnoreCase) ? "Kg" : unit;
 
@@ -281,14 +299,39 @@ public class BachHoaXanhApiScraper(
                     SourceNameConst, CategoryName, subCategoryName, name, productUnit,
                     province, MarketName, price, Unit: unit, ImageUrl: imageUrl));
             }
-
-            if (items.Count == before)
+            else
             {
                 skipped.Add($"\"{name}\": không lưu được mức giá nào ({(reasons.Count == 0 ? "productPrices rỗng" : string.Join("; ", reasons.Distinct()))})");
             }
         }
 
         return new(items, productCount, newProducts, total, productIds, skipped);
+    }
+
+    /// <summary>
+    /// Chọn đúng một mức giá đại diện cho sản phẩm: mức có khối lượng (<c>netUnitValue</c>, đơn vị kg) gần 1kg nhất — vd. {0.5, 1, 1.5} chọn
+    /// 1kg; {0.4, 0.8, 1.2} chọn 0.8 (cùng khoảng cách 0.2 thì lấy mức nhẹ hơn). Sản phẩm bán theo gói (<c>netUnitValue</c> = 0)
+    /// chỉ có một mức nên giữ nguyên.
+    /// </summary>
+    internal static (decimal Price, decimal NetUnitValue) PickRepresentativePrice(IReadOnlyList<(decimal Price, decimal NetUnitValue)> candidates)
+    {
+        var weighted = candidates.Where(c => c.NetUnitValue > 0).ToList();
+        if (weighted.Count == 0) return candidates[0];
+        return weighted
+            .OrderBy(c => Math.Abs(c.NetUnitValue - 1m))
+            .ThenBy(c => c.NetUnitValue)
+            .First();
+    }
+
+    /// <summary>
+    /// Tên chứa dấu "+" là gói bán kèm (vd. "Ổi Đài Loan 1kg + Muối chấm Hảo Hảo 120g") nên luôn bị loại; ngoài ra loại thêm các sản phẩm
+    /// có tên chứa một trong các từ khoá cấu hình (<c>BachHoaXanh:ExcludeNameKeywords</c>, không phân biệt hoa thường).
+    /// </summary>
+    internal static bool IsExcludedProduct(string name, IReadOnlyList<string>? excludeNameKeywords)
+    {
+        if (name.Contains('+')) return true;
+        return excludeNameKeywords is not null &&
+               excludeNameKeywords.Any(k => !string.IsNullOrWhiteSpace(k) && name.Contains(k.Trim(), StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>

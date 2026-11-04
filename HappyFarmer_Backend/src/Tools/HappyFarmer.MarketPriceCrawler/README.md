@@ -121,6 +121,9 @@ Tạo file `appsettings.Local.json` cạnh `appsettings.json` (đã được ign
   riêng, không dùng chung được. Để trống/thiếu thì API có thể bỏ sót một số sản phẩm (vd. báo `total` 43 nhưng chỉ trả 37).
 - `SubCategoryByCategory`: nhóm con (SubCategory) gán cho sản phẩm **mới** của từng `CategoryId`, vd. `{ "8820": "Dạng lá", "8788": "Trái cây" }`
   (mặc định "Rau, củ, quả khác"). Sản phẩm đã tồn tại cùng tên giữ nhóm con cũ — server chỉ gán nhóm con khi tạo mới sản phẩm.
+- Sản phẩm **có dấu `+` trong tên** (gói bán kèm quà, vd. "Xoài keo 1kg + Muối chấm Hảo Hảo 120g") luôn bị bỏ qua. Muốn loại thêm sản phẩm khác
+  (vd. bún, hàng không phải nông sản), thêm từ khoá vào `"ExcludeNameKeywords": ["Bún tươi"]` (không phân biệt hoa thường). Sản phẩm đã lưu từ
+  trước không tự xoá — xoá bằng SQL trên database giá.
 - `UseListPrice`: `false` = giá bán thực tế (đã trừ khuyến mãi); `true` = giá niêm yết gốc (`sysPrice`).
 - Đơn vị lưu: mặt hàng bán theo kg → "500g"/"1kg"/"1.5kg" theo `netUnitValue`; mặt hàng bán theo gói (Túi/Vỉ/Combo)
   → khối lượng thật của gói lấy từ `canonical` (vd "100g"), để giá so sánh được với nguồn khác.

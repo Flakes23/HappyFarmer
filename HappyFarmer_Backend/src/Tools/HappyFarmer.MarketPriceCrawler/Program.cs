@@ -60,7 +60,9 @@ if (bhxEnabled && !string.IsNullOrWhiteSpace(bhxApiKey) && bhxStores.Count > 0)
     var bhxSubCategoryByCategory = (configuration.GetSection("BachHoaXanh:SubCategoryByCategory").Get<Dictionary<string, string>>() ?? [])
         .Where(kv => int.TryParse(kv.Key, out _))
         .ToDictionary(kv => int.Parse(kv.Key), kv => kv.Value);
-    scrapers.Add(new BachHoaXanhApiScraper(bhxStores, bhxApiKey, bhxReverseHost, bhxCategoryIds, bhxUseListPrice, bhxPriorityByCategory, bhxSubCategoryByCategory));
+    // Từ khoá trong tên để loại thêm sản phẩm không muốn lưu (vd. ["Bún tươi"]); sản phẩm có dấu "+" (bán kèm quà) luôn bị loại.
+    var bhxExcludeKeywords = configuration.GetSection("BachHoaXanh:ExcludeNameKeywords").Get<List<string>>() ?? [];
+    scrapers.Add(new BachHoaXanhApiScraper(bhxStores, bhxApiKey, bhxReverseHost, bhxCategoryIds, bhxUseListPrice, bhxPriorityByCategory, bhxSubCategoryByCategory, bhxExcludeKeywords));
 }
 
 var scraped = new List<RawPriceItem>();
